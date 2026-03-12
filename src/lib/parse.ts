@@ -1,34 +1,51 @@
-// Parsing logic specific to iqchan — not in SDK
+// Parsing utilities specific to iqchan — not in SDK
 
-// TODO: Parse >>no quote references from post body
-// Input:  "hello >>123 world >>456"
-// Output: [123, 456]
+export type Segment =
+    | { type: "text"; value: string }
+    | { type: "quote"; no: number };
+
+// parseQuoteRefs(text)
+//   Extract all >>no references from post body text.
+//
+// Input:  text (string) — e.g. "hello >>123 world >>456"
+// Output: number[] — e.g. [123, 456]
 export function parseQuoteRefs(text: string): number[] {
-    // regex: />>(\d+)/g
+    // 1. Match all />>(\d+)/g in text
+    // 2. Extract capture group as numbers
+    // 3. Return array of referenced post numbers
     throw new Error("TODO");
 }
 
-// TODO: Render post body with >>no as clickable links
-// Input:  "hello >>123"
-// Output: ["hello ", <QuoteLink no={123} />]
-// This returns React-renderable segments
-export function segmentPostBody(text: string): Array<{ type: "text"; value: string } | { type: "quote"; no: number }> {
-    // split by >>(\d+), alternate between text and quote segments
+// segmentPostBody(text)
+//   Split post body into renderable segments — plain text and >>no quote references.
+//   Components map over this array to render text as-is and quotes as <QuoteLink />.
+//
+// Input:  text (string) — e.g. "hello >>123 world"
+// Output: Segment[] — e.g. [{type:"text", value:"hello "}, {type:"quote", no:123}, {type:"text", value:" world"}]
+export function segmentPostBody(text: string): Segment[] {
+    // 1. Split text by />>(\d+)/ pattern
+    // 2. Alternate between text segments and quote segments
+    // 3. Filter out empty text segments
+    // 4. Return the segment array
     throw new Error("TODO");
 }
 
-// TODO: Apply edit/delete instructions to a list of posts
-// 1. Fetch instruction table rows for the thread
-// 2. For each instruction: if metadata has "com" → edit, if empty → delete
-// 3. Return posts with edits applied and deleted posts removed
+// mergeInstructions(posts, instructions)
+//   Apply edit/delete instruction logs to a list of posts.
+//   Instructions are append-only — originals are immutable on-chain.
+//
+// Input:  posts (Post[]) — original posts from readTableRows
+//         instructions (Instruction[]) — edit/delete logs from instruction table
+// Output: Post[] — posts with edits applied, deleted posts removed
 export function mergeInstructions(
     posts: Record<string, unknown>[],
     instructions: Record<string, unknown>[],
 ): Record<string, unknown>[] {
-    // for each instruction:
-    //   find post by target_tx
-    //   if instruction has "com" → overwrite post.com
-    //   if instruction has no data → mark as deleted
-    // filter out deleted posts
+    // 1. For each instruction:
+    //    - Match to original post via "target" field (tx signature)
+    //    - If instruction has "com" field → overwrite post.com (edit)
+    //    - If instruction has no data (empty) → mark post as deleted
+    // 2. Filter out deleted posts
+    // 3. Return the resulting posts array
     throw new Error("TODO");
 }

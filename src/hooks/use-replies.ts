@@ -1,9 +1,16 @@
-// Fetch replies for a specific thread
-
-// TODO:
-// 1. Derive repliesTablePDA from hash("boards/{boardId}/threads/{no}/replies")
-// 2. iqlabs.reader.readTableRows(repliesTablePDA)
-// 3. Fetch instruction table → mergeInstructions() for edits/deletes
-// 4. Return { replies, loading, error }
+// useReplies(boardId, threadNo)
+//   Fetch replies for a specific thread, with edit/delete instructions applied.
 //
-// Each reply row: { no, com, name, time }
+// Input:  boardId (string) — e.g. "po"
+//         threadNo (number) — the thread number
+// Output: { replies, loading, error }
+//   replies: Array<{ no: number, com: string, name: string, time: number, img?: string }>
+//   loading: boolean
+//   error: Error | null
+//
+// Logic:
+//   1. Derive repliesTablePDA from repliesTableSeed(boardId, threadNo)
+//   2. Call iqlabs.reader.readTableRows(repliesTablePDA) → raw replies
+//   3. Fetch instruction table for this thread → edit/delete logs
+//   4. Call mergeInstructions(replies, instructions) → apply edits, remove deletes
+//   5. Return { replies, loading, error }
