@@ -1,12 +1,44 @@
-// ThreadList({ threads, boardId })
-//   Thread previews for a board page. Supports catalog (grid) and bump (list) layouts.
-//
-// Input props:
-//   threads: Array<{ no: number, sub: string, com: string, name: string, time: number, img?: string }>
-//   boardId (string) — current board id
-//
-// Renders:
-//   1. Each thread as a <Post /> with com truncated to preview length
-//   2. Optional image thumbnail if img exists
-//   3. Each thread card links to /{boardId}/{no}
-//   4. Catalog view: grid layout / Bump view: list layout (parent page controls which)
+"use client";
+
+import Link from "next/link";
+import Post from "./post";
+
+const PREVIEW_LENGTH = 200;
+
+export default function ThreadList({
+    threads,
+    boardId,
+}: {
+    threads: Record<string, unknown>[];
+    boardId: string;
+}) {
+    return (
+        <div className="divide-y divide-gray-300">
+            {threads.map((thread) => {
+                const no = thread.no as number;
+                const com = thread.com as string;
+                const truncated =
+                    com.length > PREVIEW_LENGTH
+                        ? com.slice(0, PREVIEW_LENGTH) + "..."
+                        : com;
+
+                return (
+                    <Link
+                        key={no}
+                        href={`/${boardId}/${no}`}
+                        className="block hover:bg-[#eef0f7] transition-colors"
+                    >
+                        <Post
+                            no={no}
+                            com={truncated}
+                            name={thread.name as string}
+                            time={thread.time as number}
+                            sub={thread.sub as string | undefined}
+                            img={thread.img as string | undefined}
+                        />
+                    </Link>
+                );
+            })}
+        </div>
+    );
+}

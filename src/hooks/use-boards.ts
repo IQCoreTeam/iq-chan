@@ -1,15 +1,34 @@
-// useBoards()
-//   Fetch all boards from on-chain boards table.
-//   Called once on home page mount.
-//
-// Input:  (none)
-// Output: { boards, loading, error }
-//   boards: Array<{ board_id: string, title: string, description: string, rules: string, sticky: string }>
-//   loading: boolean
-//   error: Error | null
-//
-// Logic:
-//   1. Derive boardsTablePDA from boardsTableSeed() → hash("boards")
-//   2. Call iqlabs.reader.readTableRows(boardsTablePDA)
-//   3. Store result in React state
-//   4. Return { boards, loading, error }
+"use client";
+
+import { useState, useEffect } from "react";
+import { fetchTableIndex, fetchTableSliceBatched } from "../lib/gateway";
+import { boardsTableSeed, deriveTablePda } from "../lib/constants";
+
+export function useBoards() {
+    const [boards, setBoards] = useState<Record<string, unknown>[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<Error | null>(null);
+
+    useEffect(() => {
+        let cancelled = false;
+
+        async function load() {
+            try {
+                const pda = deriveTablePda(boardsTableSeed());
+                const sigs = await fetchTableIndex(pda);
+                if (cancelled) return;
+                const rows = await fetchTableSliceBatched(pda, sigs);
+                if (!cancelled) setBoards(rows);
+            } catch (e) {
+                if (!cancelled) setError(e instanceof Error ? e : new Error(String(e)));
+            } finally {
+                if (!cancelled) setLoading(false);
+            }
+        }
+
+        load();
+        return () => { cancelled = true; };
+    }, []);
+
+    return { boards, loading, error };
+}

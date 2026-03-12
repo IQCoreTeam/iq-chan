@@ -1,12 +1,21 @@
-// QuoteLink({ no, boardId, threadNo })
-//   Inline >>no reference link with hover preview.
-//
-// Input props:
-//   no (number) — the referenced post number
-//   boardId (string) — current board
-//   threadNo (number) — current thread
-//
-// Renders:
-//   1. Clickable ">>no" text (green, 4chan style)
-//   2. On hover: tooltip showing referenced post's content (lookup from same-page data)
-//   3. On click: smooth scroll to the referenced post element if on same page
+"use client";
+
+export default function QuoteLink({ no }: { no: number }) {
+    function handleClick(e: React.MouseEvent) {
+        e.preventDefault();
+        const el = document.getElementById(`post-${no}`);
+        el?.scrollIntoView({ behavior: "smooth", block: "center" });
+        el?.classList.add("bg-yellow-100");
+        setTimeout(() => el?.classList.remove("bg-yellow-100"), 1500);
+    }
+
+    return (
+        <a
+            href={`#post-${no}`}
+            onClick={handleClick}
+            className="text-blue-700 hover:underline"
+        >
+            &gt;&gt;{no}
+        </a>
+    );
+}

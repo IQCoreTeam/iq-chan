@@ -1,15 +1,121 @@
-// PostForm({ mode, onSubmit, loading })
-//   Shared form for creating threads or posting replies.
-//
-// Input props:
-//   mode ("thread" | "reply") — determines which fields to show
-//   onSubmit (callback) — called with form data: { sub?, com, name, img? }
-//   loading (boolean) — disables form while submitting
-//
-// Renders:
-//   1. If wallet not connected: "Connect Wallet" prompt, form disabled
-//   2. Thread mode fields: subject input, comment textarea, name input, image upload
-//   3. Reply mode fields: comment textarea, name input, image upload
-//   4. Image upload: file picker, preview thumbnail after selection
-//   5. Estimated cost display (thread: ~0.023 SOL, reply: ~0.003 SOL)
-//   6. Submit button (disabled while loading)
+"use client";
+
+import { useState } from "react";
+import { useWallet } from "@solana/wallet-adapter-react";
+
+export default function PostForm({
+    mode,
+    onSubmit,
+    loading,
+}: {
+    mode: "thread" | "reply";
+    onSubmit: (data: { sub?: string; com: string; name: string; img?: string }) => void;
+    loading: boolean;
+}) {
+    const { publicKey } = useWallet();
+    const [sub, setSub] = useState("");
+    const [com, setCom] = useState("");
+    const [name, setName] = useState("Anonymous");
+    const [img, setImg] = useState("");
+
+    if (!publicKey) {
+        return (
+            <div className="border border-gray-300 bg-[#f0e0d6] p-3 text-center text-sm text-gray-600">
+                Connect your wallet to post
+            </div>
+        );
+    }
+
+    function handleSubmit(e: React.FormEvent) {
+        e.preventDefault();
+        if (!com.trim()) return;
+        onSubmit({
+            ...(mode === "thread" && sub.trim() ? { sub: sub.trim() } : {}),
+            com: com.trim(),
+            name: name.trim() || "Anonymous",
+            ...(img.trim() ? { img: img.trim() } : {}),
+        });
+        setSub("");
+        setCom("");
+        setImg("");
+    }
+
+    return (
+        <form
+            onSubmit={handleSubmit}
+            className="border border-gray-300 bg-[#f0e0d6] p-3 space-y-2"
+        >
+            {/* ─── Subject (thread only) ────────────────────────── */}
+            {mode === "thread" && (
+                <input
+                    type="text"
+                    placeholder="Subject"
+                    value={sub}
+                    onChange={(e) => setSub(e.target.value)}
+                    className="w-full border border-gray-400 px-2 py-1 text-sm"
+                />
+            )}
+
+            {/* ─── Comment ──────────────────────────────────────── */}
+            <textarea
+                placeholder="Comment"
+                value={com}
+                onChange={(e) => setCom(e.target.value)}
+                rows={4}
+                className="w-full border border-gray-400 px-2 py-1 text-sm resize-y"
+                required
+            />
+
+            {/* ─── Image URL ───────────────────────────────────── */}
+            <input
+                type="url"
+                placeholder="Image URL (optional)"
+                value={img}
+                onChange={(e) => setImg(e.target.value)}
+                className="w-full border border-gray-400 px-2 py-1 text-sm"
+            />
+
+            {/* ─── Image preview ──────────────────────────────── */}
+            {img.trim() && (
+                <div className="flex items-center gap-2">
+                    <img
+                        src={img.trim()}
+                        alt="preview"
+                        className="max-h-20 max-w-[120px] border border-gray-400 object-contain"
+                        onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                    />
+                    <button
+                        type="button"
+                        onClick={() => setImg("")}
+                        className="text-xs text-red-600 hover:underline"
+                    >
+                        Remove
+                    </button>
+                </div>
+            )}
+
+            {/* ─── Name ─────────────────────────────────────────── */}
+            <input
+                type="text"
+                placeholder="Name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="w-full border border-gray-400 px-2 py-1 text-sm"
+            />
+
+            {/* ─── Submit ───────────────────────────────────────── */}
+            <div className="flex items-center justify-between">
+                <span className="text-xs text-gray-500">
+                    ~{mode === "thread" ? "0.023" : "0.003"} SOL
+                </span>
+                <button
+                    type="submit"
+                    disabled={loading || !com.trim()}
+                    className="bg-gray-200 border border-gray-400 px-4 py-1 text-sm hover:bg-gray-300 disabled:opacity-50"
+                >
+                    {loading ? "Posting..." : mode === "thread" ? "Create Thread" : "Post Reply"}
+                </button>
+            </div>
+        </form>
+    );
+}
