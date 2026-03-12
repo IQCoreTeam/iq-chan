@@ -48,6 +48,16 @@ export function usePost() {
                     deriveInstructionTablePda(rSeed),
                 );
 
+                console.log("[iqchan:createThread] ──────────────────────────");
+                console.log("[iqchan:createThread] boardId:", boardId);
+                console.log("[iqchan:createThread] threadNo:", threadNo);
+                console.log("[iqchan:createThread] threadsSeed:", tSeed);
+                console.log("[iqchan:createThread] repliesSeed:", rSeed);
+                console.log("[iqchan:createThread] dbRootKey:", dbRootKey.toBase58());
+                console.log("[iqchan:createThread] feedPda:", feedPda.toBase58());
+                console.log("[iqchan:createThread] threadsTablePda:", tTablePda.toBase58());
+                console.log("[iqchan:createThread] repliesTablePda:", rTablePda.toBase58());
+
                 // Check which accounts need initialization
                 const [dbRootInfo, threadsTableInfo, repliesTableInfo] =
                     await Promise.all([
@@ -55,6 +65,10 @@ export function usePost() {
                         connection.getAccountInfo(tTablePda),
                         connection.getAccountInfo(rTablePda),
                     ]);
+
+                console.log("[iqchan:createThread] dbRoot exists:", !!dbRootInfo);
+                console.log("[iqchan:createThread] threadsTable exists:", !!threadsTableInfo);
+                console.log("[iqchan:createThread] repliesTable exists:", !!repliesTableInfo);
 
                 const builder = iqlabs.contract.createInstructionBuilder(
                     require("iqlabs-sdk/idl/code_in.json"),
@@ -123,47 +137,13 @@ export function usePost() {
                         await connection.getLatestBlockhash()
                     ).blockhash;
                     const signed0 = await wallet.signTransaction(tx0);
+                    console.log("[iqchan:createThread] TX0 signed, sending (init dbRoot/threadsTable)...");
                     const tx0Sig = await connection.sendRawTransaction(
                         signed0.serialize(),
                     );
+                    console.log("[iqchan:createThread] TX0 sent:", tx0Sig);
                     await connection.confirmTransaction(tx0Sig, "confirmed");
-                }
-
-                // Update threads table columns if it already existed (e.g. missing img column)
-                if (threadsTableInfo) {
-                    const txUpdate = new Transaction();
-                    txUpdate.add(
-                        iqlabs.contract.updateTableInstruction(
-                            builder,
-                            {
-                                db_root: dbRootKey,
-                                table: tTablePda,
-                                signer: wallet.publicKey,
-                            },
-                            {
-                                db_root_id: dbRootIdBytes,
-                                table_seed: tSeedBytes,
-                                table_name: Buffer.from(tSeed),
-                                column_names: threadsColumns,
-                                id_col: Buffer.from("no"),
-                                ext_keys: [Buffer.from("replies")],
-                                writers_opt: null,
-                            },
-                        ),
-                    );
-                    txUpdate.feePayer = wallet.publicKey;
-                    txUpdate.recentBlockhash = (
-                        await connection.getLatestBlockhash()
-                    ).blockhash;
-                    const signedUpdate =
-                        await wallet.signTransaction(txUpdate);
-                    const updateSig = await connection.sendRawTransaction(
-                        signedUpdate.serialize(),
-                    );
-                    await connection.confirmTransaction(
-                        updateSig,
-                        "confirmed",
-                    );
+                    console.log("[iqchan:createThread] TX0 confirmed ✓");
                 }
 
                 // TX1: Create replies ext table for this thread
@@ -204,11 +184,24 @@ export function usePost() {
                     tx1.recentBlockhash = (
                         await connection.getLatestBlockhash()
                     ).blockhash;
+
+                    // Simulate first to get meaningful error before wallet popup
+                    const sim = await connection.simulateTransaction(tx1);
+                    if (sim.value.err) {
+                        console.error("[iqchan:createThread] TX1 simulation FAILED:", sim.value.err);
+                        console.error("[iqchan:createThread] TX1 simulation logs:", sim.value.logs);
+                        throw new Error(`createExtTable simulation failed: ${JSON.stringify(sim.value.err)}`);
+                    }
+                    console.log("[iqchan:createThread] TX1 simulation OK, requesting signature...");
+
                     const signed1 = await wallet.signTransaction(tx1);
+                    console.log("[iqchan:createThread] TX1 signed, sending (create repliesTable)...");
                     const tx1Sig = await connection.sendRawTransaction(
                         signed1.serialize(),
                     );
+                    console.log("[iqchan:createThread] TX1 sent:", tx1Sig);
                     await connection.confirmTransaction(tx1Sig, "confirmed");
+                    console.log("[iqchan:createThread] TX1 confirmed ✓");
                 }
 
                 // TX2: Write thread row
@@ -221,7 +214,13 @@ export function usePost() {
                     ...(data.img ? { img: data.img } : {}),
                 });
 
-                await iqlabs.writer.writeRow(
+                console.log("[iqchan:createThread] TX2 writeRow payload:", rowJson);
+                console.log("[iqchan:createThread] TX2 dbRootIdSeed:", DB_ROOT_ID);
+                console.log("[iqchan:createThread] TX2 tableSeed:", tSeed);
+                console.log("[iqchan:createThread] TX2 remainingAccounts (feedPda):", feedPda.toBase58());
+
+                // writeRow needs pre-hashed Buffer (SDK passes to Borsh which requires Buffer(32))
+                const writeResult = await iqlabs.writer.writeRow(
                     connection,
                     wallet as any,
                     Buffer.from(iqlabs.utils.toSeedBytes(DB_ROOT_ID)),
@@ -230,8 +229,13 @@ export function usePost() {
                     false,
                     [feedPda],
                 );
+
+                console.log("[iqchan:createThread] TX2 writeRow result:", writeResult);
+                console.log("[iqchan:createThread] ✅ Thread created successfully! threadNo:", threadNo);
             } catch (e) {
                 const err = e instanceof Error ? e : new Error(String(e));
+                console.error("[iqchan:createThread] ❌ FAILED:", err.message);
+                console.error("[iqchan:createThread] Full error:", e);
                 setError(err);
                 throw err;
             } finally {
@@ -260,15 +264,22 @@ export function usePost() {
                     deriveTablePda(threadsTableSeed(boardId)),
                 );
 
+                const replyNo = Date.now();
                 const rowJson = JSON.stringify({
-                    no: Date.now(),
+                    no: replyNo,
                     com: data.com,
                     name: data.name,
                     time: Math.floor(Date.now() / 1000),
                     ...(data.img ? { img: data.img } : {}),
                 });
 
-                await iqlabs.writer.writeRow(
+                console.log("[iqchan:postReply] ──────────────────────────");
+                console.log("[iqchan:postReply] boardId:", boardId, "threadNo:", threadNo, "replyNo:", replyNo);
+                console.log("[iqchan:postReply] repliesSeed:", rSeed);
+                console.log("[iqchan:postReply] payload:", rowJson);
+
+                // writeRow needs pre-hashed Buffer (SDK passes to Borsh which requires Buffer(32))
+                const writeResult = await iqlabs.writer.writeRow(
                     connection,
                     wallet as any,
                     Buffer.from(iqlabs.utils.toSeedBytes(DB_ROOT_ID)),
@@ -277,8 +288,12 @@ export function usePost() {
                     false,
                     [feedPda, threadsPda],
                 );
+
+                console.log("[iqchan:postReply] ✅ Reply posted! result:", writeResult);
             } catch (e) {
                 const err = e instanceof Error ? e : new Error(String(e));
+                console.error("[iqchan:postReply] ❌ FAILED:", err.message);
+                console.error("[iqchan:postReply] Full error:", e);
                 setError(err);
                 throw err;
             } finally {
@@ -303,6 +318,7 @@ export function usePost() {
 
             try {
                 const rSeed = repliesTableSeed(boardId, threadNo);
+                // manageRowData needs pre-hashed Buffer (SDK passes to Borsh which requires Buffer(32))
                 await iqlabs.writer.manageRowData(
                     connection,
                     wallet as any,
@@ -333,6 +349,7 @@ export function usePost() {
 
             try {
                 const rSeed = repliesTableSeed(boardId, threadNo);
+                // manageRowData needs pre-hashed Buffer (SDK passes to Borsh which requires Buffer(32))
                 await iqlabs.writer.manageRowData(
                     connection,
                     wallet as any,
