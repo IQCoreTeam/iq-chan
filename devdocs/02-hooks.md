@@ -1,9 +1,9 @@
-# hooks/ — SDK 호출 + React 상태 관리
+# hooks/ — SDK calls + React state management
 
-## 목표
+## Goal
 
-SDK 함수를 직접 호출하고, 결과를 React 상태로 관리한다.
-SDK를 다시 감싸는 래퍼는 만들지 않는다. hook 안에서 `iqlabs.reader.readTableRows(...)` 직접 호출.
+Call SDK functions directly and manage results as React state.
+No SDK wrappers. Hooks call `iqlabs.reader.readTableRows(...)` directly.
 
 ---
 
@@ -11,13 +11,13 @@ SDK를 다시 감싸는 래퍼는 만들지 않는다. hook 안에서 `iqlabs.re
 
 ### `useBoards()`
 
-- 반환: `{ boards, loading, error }`
-- 로직:
-  1. SDK의 `getTablePda`로 boardsTablePDA 파생
-  2. `iqlabs.reader.readTableRows(boardsTablePDA)` 호출
-  3. 결과를 상태에 저장
-- 각 board: `{ board_id, title, description, rules, sticky }`
-- 호출 시점: home 페이지 마운트 시 1회
+- Returns: `{ boards, loading, error }`
+- Logic:
+  1. Derive boardsTablePDA via SDK's `getTablePda`
+  2. Call `iqlabs.reader.readTableRows(boardsTablePDA)`
+  3. Store result in state
+- Each board: `{ board_id, title, description, rules, sticky }`
+- Called once on home page mount
 
 ---
 
@@ -25,16 +25,16 @@ SDK를 다시 감싸는 래퍼는 만들지 않는다. hook 안에서 `iqlabs.re
 
 ### `useThreads(boardId, mode)`
 
-- 반환: `{ threads, loading, error }`
+- Returns: `{ threads, loading, error }`
 - mode: `"catalog"` | `"bump"`
-- **catalog 모드:**
-  1. `threadsTableSeed(boardId)` → tablePDA 파생
-  2. `iqlabs.reader.readTableRows(tablePDA, {limit})` → 생성순
-- **bump 모드:**
+- **Catalog mode:**
+  1. `threadsTableSeed(boardId)` → derive tablePDA
+  2. `iqlabs.reader.readTableRows(tablePDA, {limit})` → creation order
+- **Bump mode:**
   1. `getFeedPda(dbRootKey, boardId)` → feedPDA
-  2. `fetchBumpOrderedThreadNos(connection, feedPDA, limit)` → 정렬된 thread nos
-  3. 각 thread no에 대해 thread 데이터 로드
-- 각 thread: `{ no, sub, com, name, time, img? }`
+  2. `fetchBumpOrderedThreadNos(connection, feedPDA)` → ordered thread nos
+  3. Load thread data for each no
+- Each thread: `{ no, sub, com, name, time, img? }`
 
 ---
 
@@ -42,12 +42,12 @@ SDK를 다시 감싸는 래퍼는 만들지 않는다. hook 안에서 `iqlabs.re
 
 ### `useReplies(boardId, threadNo)`
 
-- 반환: `{ replies, loading, error }`
-- 로직:
-  1. `repliesTableSeed(boardId, threadNo)` → tablePDA 파생
-  2. `iqlabs.reader.readTableRows(tablePDA)` → 댓글 목록
-  3. instruction table 조회 → `mergeInstructions(replies, instructions)` → edit/delete 적용
-- 각 reply: `{ no, com, name, time, img? }`
+- Returns: `{ replies, loading, error }`
+- Logic:
+  1. `repliesTableSeed(boardId, threadNo)` → derive tablePDA
+  2. `iqlabs.reader.readTableRows(tablePDA)` → reply list
+  3. Fetch instruction table → `mergeInstructions(replies, instructions)` → apply edits/deletes
+- Each reply: `{ no, com, name, time, img? }`
 
 ---
 
@@ -55,28 +55,29 @@ SDK를 다시 감싸는 래퍼는 만들지 않는다. hook 안에서 `iqlabs.re
 
 ### `usePost()`
 
-- 반환: `{ createThread, postReply, editPost, deletePost, loading, error }`
+- Returns: `{ createThread, postReply, editPost, deletePost, loading, error }`
 
 #### `createThread(boardId, { sub, com, name, img? })`
-- TX1: `contract.createExtTableInstruction` → replies ext table 생성 (~0.02 SOL)
+- TX1: `contract.createExtTableInstruction` → create replies ext table (~0.02 SOL)
 - TX2: `iqlabs.writer.writeRow(threadsTableSeed, rowJson, false, [feedPDA])` (~0.003 SOL)
-- thread no는 프론트에서 채번 (기존 max no + 1 또는 timestamp 기반)
+- Thread no assigned by frontend (max+1 or timestamp-based)
 
 #### `postReply(boardId, threadNo, { com, name, img? })`
 - `iqlabs.writer.writeRow(repliesTableSeed, rowJson, false, [feedPDA, threadsPDA])`
-- reply no 채번 필요
+- Reply no assigned by frontend
+- Cost: ~0.003 SOL
 
 #### `editPost(boardId, threadNo, targetTxSig, newCom)`
 - `iqlabs.writer.manageRowData(repliesTableSeed, rowJson, tableName, targetTx)`
 
 #### `deletePost(boardId, threadNo, targetTxSig)`
 - `iqlabs.writer.manageRowData(repliesTableSeed, "{}", tableName, targetTx)`
-- 빈 metadata = DELETE
+- Empty metadata = DELETE
 
 ---
 
-## 생각해볼 여지
+## Open questions
 
-- thread/reply no 채번 전략: timestamp 기반 vs 기존 max+1 조회. max+1은 race condition 가능. timestamp가 더 안전할 수 있음
-- `createThread`에서 2개 TX를 순차 실행해야 함 — TX1 실패 시 TX2 안 보내는 에러 핸들링 필요
-- bump 모드에서 thread 데이터를 개별 로드하면 N번 RPC 호출 — 배치 최적화 고려
+- Thread/reply no assignment strategy: timestamp-based vs max+1 query. max+1 has race condition risk. Timestamp may be safer.
+- `createThread` requires 2 sequential TXs — need error handling if TX1 fails (don't send TX2)
+- Bump mode loads thread data individually = N RPC calls — consider batch optimization

@@ -1,17 +1,17 @@
-# app/ — 페이지 조합
+# app/ — page composition
 
-## 목표
+## Goal
 
-hooks 호출 + components 배치만 한다. 로직 없음. 각 페이지는 짧아야 한다.
+Only call hooks + place components. No logic. Each page should be short.
 
 ---
 
 ## layout.tsx
 
-- `ConnectionProvider` — RPC endpoint 설정
-- `WalletProvider` — phantom, solflare 등
-- `<Header />` 상단 고정
-- children 렌더링
+- `ConnectionProvider` — RPC endpoint config
+- `WalletProvider` — phantom, solflare, etc.
+- `<Header />` fixed at top
+- Render children
 
 ---
 
@@ -30,9 +30,9 @@ if error → error message
 ## [boardId]/page.tsx (Board)
 
 ```
-params에서 boardId 추출
+Extract boardId from params
 useThreads(boardId, mode) → { threads, loading, error }
-mode 토글 (catalog/bump) — useState
+mode toggle (catalog/bump) — useState
 
 → <PostForm mode="thread" onSubmit={createThread} />
 → <ThreadList threads={threads} boardId={boardId} />
@@ -43,9 +43,9 @@ mode 토글 (catalog/bump) — useState
 ## [boardId]/[threadNo]/page.tsx (Thread)
 
 ```
-params에서 boardId, threadNo 추출
+Extract boardId, threadNo from params
 useReplies(boardId, threadNo) → { replies, loading, error }
-useThreads(boardId) → OP 찾기 (threads에서 no === threadNo)
+useThreads(boardId) → find OP (where no === threadNo)
 
 → <ThreadDetail thread={op} replies={replies} />
 → <PostForm mode="reply" onSubmit={postReply} />
@@ -53,6 +53,6 @@ useThreads(boardId) → OP 찾기 (threads에서 no === threadNo)
 
 ---
 
-## 생각해볼 여지
+## Open questions
 
-- OP를 가져오기 위해 `useThreads` 전체를 호출하는 건 비효율적일 수 있음. 단일 thread row를 가져오는 방법이 SDK에 있는지 확인 필요. 없으면 thread 데이터를 reply 페이지 진입 시 URL에서 넘기는 것도 방법
+- Calling `useThreads` just to get the OP is inefficient. Check if SDK has a single-row fetch method. If not, consider passing thread data via URL on navigation to the reply page.
