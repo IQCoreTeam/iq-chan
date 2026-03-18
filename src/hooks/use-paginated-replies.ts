@@ -1,10 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Connection } from "@solana/web3.js";
-import iqlabs from "iqlabs-sdk";
+import { useConnection } from "@solana/wallet-adapter-react";
 
 import { fetchTableIndex, fetchTableSlice } from "../lib/gateway";
 import { mergeInstructions } from "../lib/parse";
-import { repliesTableSeed, deriveTablePda, deriveInstructionTablePda } from "../lib/constants";
+import { deriveInstructionTablePda } from "../lib/constants";
 import {
     buildSparseTimeMap,
     estimateCandidateRange,
@@ -12,58 +11,30 @@ import {
     type Instruction,
     type TimeMapEntry,
 } from "../lib/instruction-resolver";
+import type { Reply } from "../lib/types";
 
 const PAGE_SIZE_DEFAULT = 20;
-
-// Tier threshold: if instrSigs <= this, fetch all at once
 const EAGER_THRESHOLD = 50;
 
-export interface Reply {
-    no: number;
-    com: string;
-    name: string;
-    time: number;
-    img?: string;
-    __txSignature?: string;
-}
-
-export interface UsePaginatedRepliesReturn {
-    replies: Reply[];
-    page: number;
-    totalPages: number;
-    totalReplies: number;
-    loading: boolean;
-    indexLoading: boolean;
-    error: Error | null;
-    goToPage: (n: number) => void;
-    nextPage: () => void;
-    prevPage: () => void;
-    refresh: () => void;
-}
-
 export function usePaginatedReplies(
-    boardId: string,
-    threadNo: number,
+    threadPda: string,
+    threadSeed: string,
     pageSize: number = PAGE_SIZE_DEFAULT,
-): UsePaginatedRepliesReturn {
-    // ─── Index state (set once on mount) ────────────────────────────────────
+) {
+    const { connection } = useConnection();
     const [replySigsOldestFirst, setReplySigsOldestFirst] = useState<string[]>([]);
     const [instrSigs, setInstrSigs] = useState<string[]>([]);
     const [indexLoading, setIndexLoading] = useState(true);
 
-    // ─── Page state ─────────────────────────────────────────────────────────
     const [page, setPage] = useState(0);
     const [replies, setReplies] = useState<Reply[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<Error | null>(null);
 
-    // ─── Persistent caches (survive page changes, not re-renders) ───────────
     const instrCache = useRef<Map<string, Instruction>>(new Map());
     const timeMap = useRef<TimeMapEntry[]>([]);
-    const instrPda = useRef<string>("");
-    const repliesPda = useRef<string>("");
+    const instrPdaRef = useRef<string>("");
 
-    // ─── Refresh counter to force re-mount ──────────────────────────────────
     const [refreshKey, setRefreshKey] = useState(0);
 
     const totalPages = Math.max(1, Math.ceil(replySigsOldestFirst.length / pageSize));
@@ -71,6 +42,7 @@ export function usePaginatedReplies(
 
     // ─── Phase 1: Index Prefetch ────────────────────────────────────────────
     useEffect(() => {
+        if (!threadPda || !threadSeed) return;
         let cancelled = false;
 
         async function prefetch() {
@@ -80,36 +52,30 @@ export function usePaginatedReplies(
             timeMap.current = [];
 
             try {
-                // Derive PDAs
-                const seed = repliesTableSeed(boardId, threadNo);
-                repliesPda.current = deriveTablePda(seed);
-                instrPda.current = deriveInstructionTablePda(seed);
+                instrPdaRef.current = deriveInstructionTablePda(threadSeed);
 
-                // Fetch both indexes in parallel
                 const [rSigs, iSigs] = await Promise.all([
-                    fetchTableIndex(repliesPda.current),
-                    fetchTableIndex(instrPda.current),
+                    fetchTableIndex(threadPda),
+                    fetchTableIndex(instrPdaRef.current),
                 ]);
 
                 if (cancelled) return;
 
-                // /index returns newest-first → reverse for oldest-first display
+                // Filter out OP row — we only want replies
+                // OP is the oldest sig (last in newest-first array), but we need to check data
+                // For now, reverse to oldest-first, then filter OP when loading pages
                 const reversed = [...rSigs].reverse();
                 setReplySigsOldestFirst(reversed);
                 setInstrSigs(iSigs);
 
-                // ─── Tier-based instruction prefetch ────────────────────────
                 if (iSigs.length > 0 && iSigs.length <= EAGER_THRESHOLD) {
-                    // Tier 1: Fetch all instructions eagerly
-                    const instrRows = await fetchTableSlice(instrPda.current, iSigs);
+                    const instrRows = await fetchTableSlice(instrPdaRef.current, iSigs);
                     for (const row of instrRows) {
                         if (row.__txSignature) {
                             instrCache.current.set(row.__txSignature, row as Instruction);
                         }
                     }
                 } else if (iSigs.length > EAGER_THRESHOLD) {
-                    // Tier 2: Build sparse time map for interpolation search
-                    const connection = new Connection(iqlabs.getRpcUrl());
                     timeMap.current = await buildSparseTimeMap(connection, iSigs);
                 }
 
@@ -123,7 +89,7 @@ export function usePaginatedReplies(
 
         prefetch();
         return () => { cancelled = true; };
-    }, [boardId, threadNo, refreshKey]);
+    }, [threadPda, threadSeed, refreshKey]);
 
     // ─── Phase 2: Per-Page Loading ──────────────────────────────────────────
     useEffect(() => {
@@ -136,7 +102,6 @@ export function usePaginatedReplies(
             setError(null);
 
             try {
-                // Compute which reply sigs belong to this page
                 const start = page * pageSize;
                 const end = Math.min(start + pageSize, replySigsOldestFirst.length);
                 const pageReplySigs = replySigsOldestFirst.slice(start, end);
@@ -146,52 +111,43 @@ export function usePaginatedReplies(
                     return;
                 }
 
-                // Fetch reply data for this page
-                const replyRows = await fetchTableSlice(repliesPda.current, pageReplySigs);
+                const replyRows = await fetchTableSlice(threadPda, pageReplySigs);
                 if (cancelled) return;
 
-                // ─── Resolve instructions for this page ─────────────────────
+                // Filter out OP row (sub is non-empty)
+                const replyOnly = replyRows.filter(
+                    (r) => !r.sub || (r.sub as string).length === 0,
+                );
+
                 let relevantInstructions: Instruction[] = [];
 
                 if (instrSigs.length > 0) {
                     const pageReplySet = new Set(pageReplySigs);
 
                     if (instrSigs.length <= EAGER_THRESHOLD) {
-                        // Tier 1: All instructions already cached — just filter
                         for (const instr of instrCache.current.values()) {
                             if (instr.target && pageReplySet.has(instr.target)) {
                                 relevantInstructions.push(instr);
                             }
                         }
                     } else {
-                        // Tier 2: Interpolation search
-                        // Get T_oldest from reply data (the `time` field of oldest reply on page)
-                        const times = replyRows
+                        const times = replyOnly
                             .map((r) => r.time as number | undefined)
                             .filter((t): t is number => typeof t === "number" && t > 0);
                         const T_oldest = times.length > 0 ? Math.min(...times) : 0;
 
                         if (T_oldest > 0) {
                             const rangeEnd = estimateCandidateRange(
-                                timeMap.current,
-                                instrSigs.length,
-                                T_oldest,
+                                timeMap.current, instrSigs.length, T_oldest,
                             );
                             relevantInstructions = await resolveInstructionsForPage(
-                                instrSigs,
-                                rangeEnd,
-                                pageReplySet,
-                                instrCache.current,
-                                instrPda.current,
+                                instrSigs, rangeEnd, pageReplySet,
+                                instrCache.current, instrPdaRef.current,
                             );
                         } else {
-                            // Fallback: can't determine time, fetch all candidates
                             relevantInstructions = await resolveInstructionsForPage(
-                                instrSigs,
-                                instrSigs.length - 1,
-                                pageReplySet,
-                                instrCache.current,
-                                instrPda.current,
+                                instrSigs, instrSigs.length - 1, pageReplySet,
+                                instrCache.current, instrPdaRef.current,
                             );
                         }
                     }
@@ -199,12 +155,10 @@ export function usePaginatedReplies(
 
                 if (cancelled) return;
 
-                // Merge instructions into replies
                 const merged = instrSigs.length > 0
-                    ? mergeInstructions(replyRows, relevantInstructions)
-                    : replyRows;
+                    ? mergeInstructions(replyOnly, relevantInstructions)
+                    : replyOnly;
 
-                // Maintain oldest-first order matching pageReplySigs
                 const sigOrder = new Map(pageReplySigs.map((s, i) => [s, i]));
                 merged.sort((a, b) => {
                     const aIdx = sigOrder.get(a.__txSignature as string) ?? 999;
@@ -212,7 +166,7 @@ export function usePaginatedReplies(
                     return aIdx - bIdx;
                 });
 
-                if (!cancelled) setReplies(merged as unknown as Reply[]);
+                if (!cancelled) setReplies(merged as Reply[]);
             } catch (e) {
                 if (!cancelled) setError(e instanceof Error ? e : new Error(String(e)));
             } finally {
@@ -224,7 +178,6 @@ export function usePaginatedReplies(
         return () => { cancelled = true; };
     }, [page, pageSize, indexLoading, replySigsOldestFirst, instrSigs]);
 
-    // ─── Navigation ─────────────────────────────────────────────────────────
     const goToPage = useCallback((n: number) => {
         setPage(Math.max(0, Math.min(n, totalPages - 1)));
     }, [totalPages]);

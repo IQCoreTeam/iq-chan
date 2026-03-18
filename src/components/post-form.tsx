@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
+import { ESTIMATED_SOL_COST } from "../lib/constants";
 
 export default function PostForm({
     mode,
@@ -106,7 +107,7 @@ export default function PostForm({
             {/* ─── Submit ───────────────────────────────────────── */}
             <div className="flex items-center justify-between">
                 <span className="text-xs text-gray-500">
-                    ~{mode === "thread" ? "0.023" : "0.003"} SOL
+                    ~{ESTIMATED_SOL_COST[mode]} SOL
                 </span>
                 <button
                     type="submit"

@@ -3,8 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import WalletButton from "./wallet-button";
-
-const BOARDS = ["po", "biz", "a", "g"];
+import { BOARDS } from "../lib/constants";
 
 export default function Header() {
     const pathname = usePathname();

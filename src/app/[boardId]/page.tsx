@@ -12,30 +12,22 @@ export default function BoardPage({
     params: { boardId: string };
 }) {
     const { boardId } = params;
-    const [mode, setMode] = useState<"catalog" | "bump">("bump");
     const [showForm, setShowForm] = useState(false);
-    const { threads, loading, error } = useThreads(boardId, mode);
+    const { threads, loading, error, hasMore, loadMore, refresh } = useThreads(boardId);
     const { createThread, loading: postLoading } = usePost();
 
-    if (loading) return <div className="p-4 text-center text-sm text-gray-500">Loading threads...</div>;
+    if (loading && threads.length === 0) return <div className="p-4 text-center text-sm text-gray-500">Loading threads...</div>;
     if (error) return <div className="p-4 text-center text-sm text-red-600">Error: {error.message}</div>;
 
     return (
         <>
-            {/* ─── View toggle ────────────────────────────────────── */}
+            {/* ─── Controls ─────────────────────────────────────── */}
             <div className="flex items-center gap-2 mb-3 text-sm">
-                <span className="text-gray-500">Sort:</span>
                 <button
-                    onClick={() => setMode("bump")}
-                    className={mode === "bump" ? "font-bold underline" : "text-blue-700 hover:underline"}
+                    onClick={refresh}
+                    className="text-blue-700 hover:underline"
                 >
-                    Bump Order
-                </button>
-                <button
-                    onClick={() => setMode("catalog")}
-                    className={mode === "catalog" ? "font-bold underline" : "text-blue-700 hover:underline"}
-                >
-                    Catalog
+                    Refresh
                 </button>
             </div>
 
@@ -66,7 +58,18 @@ export default function BoardPage({
                         No threads yet. Be the first to post!
                     </div>
                 ) : (
-                    <ThreadList threads={threads} boardId={boardId} />
+                    <>
+                        <ThreadList threads={threads} boardId={boardId} />
+                        {hasMore && (
+                            <button
+                                onClick={loadMore}
+                                disabled={loading}
+                                className="w-full py-2 text-sm text-blue-700 hover:underline disabled:opacity-40"
+                            >
+                                {loading ? "Loading..." : "Load More"}
+                            </button>
+                        )}
+                    </>
                 )}
             </div>
         </>

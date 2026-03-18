@@ -1,11 +1,12 @@
 // Board-specific logic that SDK doesn't provide.
-// getFeedPda + fetchBumpOrderedThreadNos are a paired set.
-// feedPDA is one per board — address-only PDA for tx indexing.
+// getFeedPda — feed PDA derivation (one per board, address-only PDA for tx indexing)
+// fetchFeedThreads — feed-based thread listing with bump ordering
 
 import { Connection, PublicKey } from "@solana/web3.js";
 import iqlabs from "iqlabs-sdk";
-import { FEED_SEED_PREFIX } from "./constants";
-import { fetchTableSlice } from "./gateway";
+import { FEED_SEED_PREFIX, THREADS_PER_PAGE } from "./constants";
+import { fetchTableSlice, fetchAllTableRows } from "./gateway";
+import type { Post } from "./types";
 
 const PROGRAM_ID = iqlabs.contract.PROGRAM_ID;
 
@@ -24,44 +25,82 @@ export function getFeedPda(dbRootKey: PublicKey, boardId: string): PublicKey {
     )[0];
 }
 
-// ─── Bump-ordered thread numbers ────────────────────────────────────────────
+// ─── Feed-based thread listing ──────────────────────────────────────────────
 
-const BUMP_TARGET_THREADS = 20;
-const BUMP_FETCH_LIMIT = 200;
+export interface ThreadEntry {
+    threadPda: string;
+    opData: Post | null;
+    lastActivityTime: number;
+}
 
-export async function fetchBumpOrderedThreadNos(
+const FEED_BATCH_SIZE = 50;
+
+export async function fetchFeedThreads(
     connection: Connection,
     feedPda: PublicKey,
-): Promise<number[]> {
-    // Fetch recent signatures referencing this feed PDA
-    const sigs = await connection.getSignaturesForAddress(feedPda, {
-        limit: BUMP_FETCH_LIMIT,
-    });
+    before?: string,
+): Promise<{ threads: ThreadEntry[]; nextCursor?: string }> {
+    const threads = new Map<string, ThreadEntry>();
+    let cursor = before;
 
-    if (sigs.length === 0) return [];
+    while (threads.size < THREADS_PER_PAGE) {
+        const sigs = await connection.getSignaturesForAddress(feedPda, {
+            limit: FEED_BATCH_SIZE,
+            ...(cursor ? { before: cursor } : {}),
+        });
 
-    // Fetch row data to extract thread_no
-    const sigStrings = sigs.map((s) => s.signature);
-    const rows = await fetchTableSlice(
-        feedPda.toBase58(),
-        sigStrings.slice(0, 50), // first batch
-    );
+        if (sigs.length === 0) break;
 
-    // Group by thread_no, track most recent activity
-    const latestByThread = new Map<number, number>();
-    for (const row of rows) {
-        const no = row.no as number | undefined;
-        const time = row.time as number | undefined;
-        if (no === undefined) continue;
-        const existing = latestByThread.get(no);
-        if (!existing || (time && time > existing)) {
-            latestByThread.set(no, time ?? 0);
+        const sigStrings = sigs.map((s) => s.signature);
+        const rows = await fetchTableSlice(feedPda.toBase58(), sigStrings);
+
+        for (const row of rows) {
+            const pda = row.threadPda as string | undefined;
+            if (!pda) continue; // skip old data without threadPda
+
+            const time = row.time as number ?? 0;
+            const existing = threads.get(pda);
+
+            if (row.sub && (row.sub as string).length > 0) {
+                // OP row
+                const post = row as Post;
+                if (existing) {
+                    existing.opData = post;
+                    existing.lastActivityTime = Math.max(existing.lastActivityTime, time);
+                } else {
+                    threads.set(pda, { threadPda: pda, opData: post, lastActivityTime: time });
+                }
+            } else {
+                // Reply row
+                if (existing) {
+                    existing.lastActivityTime = Math.max(existing.lastActivityTime, time);
+                } else {
+                    threads.set(pda, { threadPda: pda, opData: null, lastActivityTime: time });
+                }
+            }
+
+            if (threads.size >= THREADS_PER_PAGE) break;
         }
-        if (latestByThread.size >= BUMP_TARGET_THREADS) break;
+
+        cursor = sigStrings[sigStrings.length - 1];
+    }
+
+    // For threads where we haven't seen the OP yet, fetch it from the thread table
+    const missingOp = [...threads.values()].filter((t) => t.opData === null);
+    if (missingOp.length > 0) {
+        await Promise.all(
+            missingOp.map(async (entry) => {
+                const rows = await fetchAllTableRows(entry.threadPda, 10);
+                const op = rows.find((r) => r.sub && (r.sub as string).length > 0);
+                if (op) entry.opData = op as Post;
+            }),
+        );
     }
 
     // Sort by latest activity descending
-    return [...latestByThread.entries()]
-        .sort((a, b) => b[1] - a[1])
-        .map(([no]) => no);
+    const sorted = [...threads.values()]
+        .filter((t) => t.opData !== null)
+        .sort((a, b) => b.lastActivityTime - a.lastActivityTime);
+
+    return { threads: sorted, nextCursor: cursor };
 }

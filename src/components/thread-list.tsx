@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import Post from "./post";
+import { ThreadEntry } from "../lib/board";
 
 const PREVIEW_LENGTH = 200;
 
@@ -9,14 +10,16 @@ export default function ThreadList({
     threads,
     boardId,
 }: {
-    threads: Record<string, unknown>[];
+    threads: ThreadEntry[];
     boardId: string;
 }) {
     return (
         <div className="divide-y divide-gray-300">
             {threads.map((thread) => {
-                const no = thread.no as number;
-                const com = thread.com as string;
+                const op = thread.opData;
+                if (!op) return null;
+
+                const com = (op.com as string) ?? "";
                 const truncated =
                     com.length > PREVIEW_LENGTH
                         ? com.slice(0, PREVIEW_LENGTH) + "..."
@@ -24,17 +27,17 @@ export default function ThreadList({
 
                 return (
                     <Link
-                        key={no}
-                        href={`/${boardId}/${no}`}
+                        key={thread.threadPda}
+                        href={`/${boardId}/${thread.threadPda}`}
                         className="block hover:bg-[#eef0f7] transition-colors"
                     >
                         <Post
-                            no={no}
+                            txSig={op.__txSignature as string ?? thread.threadPda}
                             com={truncated}
-                            name={thread.name as string}
-                            time={thread.time as number}
-                            sub={thread.sub as string | undefined}
-                            img={thread.img as string | undefined}
+                            name={op.name as string}
+                            time={op.time as number}
+                            sub={op.sub as string | undefined}
+                            img={op.img as string | undefined}
                         />
                     </Link>
                 );

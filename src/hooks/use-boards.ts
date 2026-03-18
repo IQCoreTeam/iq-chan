@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { fetchTableIndex, fetchTableSliceBatched } from "../lib/gateway";
-import { boardsTableSeed, deriveTablePda } from "../lib/constants";
+import { fetchAllTableRows } from "../lib/gateway";
+import { deriveTablePda } from "../lib/constants";
+import type { Board } from "../lib/types";
 
 export function useBoards() {
-    const [boards, setBoards] = useState<Record<string, unknown>[]>([]);
+    const [boards, setBoards] = useState<Board[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<Error | null>(null);
 
@@ -14,11 +15,9 @@ export function useBoards() {
 
         async function load() {
             try {
-                const pda = deriveTablePda(boardsTableSeed());
-                const sigs = await fetchTableIndex(pda);
-                if (cancelled) return;
-                const rows = await fetchTableSliceBatched(pda, sigs);
-                if (!cancelled) setBoards(rows);
+                const pda = deriveTablePda("boards");
+                const rows = await fetchAllTableRows(pda);
+                if (!cancelled) setBoards(rows as unknown as Board[]);
             } catch (e) {
                 if (!cancelled) setError(e instanceof Error ? e : new Error(String(e)));
             } finally {

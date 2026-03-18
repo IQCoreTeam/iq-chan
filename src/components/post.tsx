@@ -1,10 +1,7 @@
 "use client";
 
-import { segmentPostBody } from "../lib/parse";
-import QuoteLink from "./quote-link";
-
 export default function Post({
-    no,
+    txSig,
     com,
     name,
     time,
@@ -14,7 +11,7 @@ export default function Post({
     onEdit,
     onDelete,
 }: {
-    no: number;
+    txSig: string;
     com: string;
     name: string;
     time: number;
@@ -25,10 +22,9 @@ export default function Post({
     onDelete?: () => void;
 }) {
     const timeStr = new Date(time * 1000).toLocaleString();
-    const segments = segmentPostBody(com);
 
     return (
-        <div id={`post-${no}`} className="p-2 transition-colors duration-300">
+        <div id={`post-${txSig}`} className="p-2 transition-colors duration-300">
             {/* ─── Image ────────────────────────────────────────── */}
             {img && (
                 <div className="float-left mr-3 mb-1">
@@ -46,7 +42,7 @@ export default function Post({
             <div className="text-sm">
                 <span className="font-bold text-green-800">{name}</span>
                 {" "}
-                <span className="text-gray-500">No.{no}</span>
+                <span className="text-gray-500">{txSig.slice(0, 8)}</span>
                 {" "}
                 <span className="text-gray-400">{timeStr}</span>
                 {isOwner && (
@@ -70,13 +66,7 @@ export default function Post({
 
             {/* ─── Body ─────────────────────────────────────────── */}
             <div className="mt-1 text-sm whitespace-pre-wrap clear-both">
-                {segments.map((seg, i) =>
-                    seg.type === "quote" ? (
-                        <QuoteLink key={i} no={seg.no} />
-                    ) : (
-                        <span key={i}>{seg.value}</span>
-                    ),
-                )}
+                {com}
             </div>
         </div>
     );

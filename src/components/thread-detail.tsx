@@ -1,5 +1,6 @@
 "use client";
 
+import type { Post as PostType, Reply } from "../lib/types";
 import Post from "./post";
 
 export default function ThreadDetail({
@@ -14,22 +15,8 @@ export default function ThreadDetail({
     onRefresh,
     loading,
 }: {
-    thread?: {
-        no: number;
-        sub?: string;
-        com: string;
-        name: string;
-        time: number;
-        img?: string;
-    };
-    replies: {
-        no: number;
-        com: string;
-        name: string;
-        time: number;
-        img?: string;
-        __txSignature?: string;
-    }[];
+    thread?: PostType;
+    replies: Reply[];
     page: number;
     totalPages: number;
     totalReplies: number;
@@ -45,7 +32,7 @@ export default function ThreadDetail({
             {thread && (
                 <>
                     <Post
-                        no={thread.no}
+                        txSig={thread.__txSignature ?? ""}
                         sub={thread.sub}
                         com={thread.com}
                         name={thread.name}
@@ -63,9 +50,9 @@ export default function ThreadDetail({
                 </div>
             ) : (
                 replies.map((reply, i) => (
-                    <div key={reply.__txSignature ?? reply.no}>
+                    <div key={reply.__txSignature ?? i}>
                         <Post
-                            no={reply.no}
+                            txSig={reply.__txSignature ?? ""}
                             com={reply.com}
                             name={reply.name}
                             time={reply.time}
