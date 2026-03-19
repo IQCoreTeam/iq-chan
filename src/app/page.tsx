@@ -2,68 +2,78 @@
 
 import Link from "next/link";
 import { BOARDS } from "../lib/constants";
+import "./home.css";
 
 export default function HomePage() {
     return (
-        <div className="max-w-[900px] mx-auto">
-            {/* Logo */}
-            <div className="text-center py-8">
-                <Link href="/" className="text-4xl font-bold text-blue-800">
-                    iqchan
-                </Link>
+        <div className="fp-wrap">
+            <div className="fp-logo">
+                <Link href="/" title="Home">iqchan</Link>
             </div>
 
             {/* What is iqchan */}
-            <div className="border border-gray-300 mb-4">
-                <div className="bg-[#d6daf0] border-b border-gray-300 px-3 py-1">
-                    <h2 className="font-bold text-sm">What is iqchan?</h2>
+            <div className="box-outer">
+                <div className="boxbar">
+                    <h2>What is iqchan?</h2>
                 </div>
-                <div className="bg-[#eef2ff] px-4 py-3 text-sm">
+                <div className="boxcontent">
                     <p>
-                        iqchan is a fully on-chain imageboard on Solana. Every post is a transaction,
-                        every thread is its own on-chain table. No accounts needed — just connect
-                        your wallet and post.
+                        iqchan is a fully on-chain imageboard built on Solana. Every post is a
+                        transaction, every thread is its own on-chain table. No accounts needed
+                        &mdash; just connect your wallet and post. All data lives on Solana, powered
+                        by the <a href="https://iqlabs.dev" target="_blank" rel="noopener noreferrer">IQ Labs</a> DB
+                        contract.
                     </p>
                     <br />
                     <p>
-                        Built on{" "}
-                        <a href="https://iqlabs.dev" className="text-blue-700 hover:underline" target="_blank" rel="noopener noreferrer">
-                            IQ Labs
-                        </a>
-                        {" "}DB contract. All data lives on Solana — no servers, no censorship, no takedowns.
+                        Click on a board below that interests you and jump right in!
                     </p>
                 </div>
             </div>
 
             {/* Boards */}
-            <div className="border border-gray-300 mb-4">
-                <div className="bg-[#d6daf0] border-b border-gray-300 px-3 py-1">
-                    <h2 className="font-bold text-sm">Boards</h2>
+            <div className="box-outer">
+                <div className="boxbar">
+                    <h2>Boards</h2>
                 </div>
-                <div className="bg-[#eef2ff] px-4 py-3">
-                    <ul className="space-y-1">
-                        {BOARDS.map((b) => (
-                            <li key={b.id}>
-                                <Link
-                                    href={`/${b.id}`}
-                                    className="text-blue-700 hover:underline text-sm"
-                                >
-                                    {b.title}
-                                </Link>
-                                <span className="text-xs text-gray-500 ml-1">
-                                    /{b.id}/
-                                </span>
-                            </li>
-                        ))}
-                    </ul>
+                <div className="boxcontent">
+                    <div className="board-columns">
+                        <div className="column">
+                            <h3>General</h3>
+                            <ul>
+                                {BOARDS.map((b) => (
+                                    <li key={b.id}>
+                                        <Link href={`/${b.id}`}>{b.title}</Link>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Stats */}
+            <div className="box-outer">
+                <div className="boxbar">
+                    <h2>Stats</h2>
+                </div>
+                <div className="boxcontent">
+                    <div className="stat-cell"><b>Network:</b> Solana Mainnet</div>
+                    <div className="stat-cell"><b>Contract:</b> IQ Labs DB</div>
+                    <div className="stat-cell"><b>Storage:</b> Fully On-Chain</div>
                 </div>
             </div>
 
             {/* Footer */}
-            <div className="text-center text-xs text-gray-500 py-4 border-t border-gray-300">
-                <a href="https://iqlabs.dev" className="hover:underline" target="_blank" rel="noopener noreferrer">About</a>
-                {" • "}
-                <span>Powered by IQ Labs on Solana</span>
+            <div className="fp-footer">
+                <ul>
+                    <li><Link href="/">Home</Link></li>
+                    <li><a href="https://iqlabs.dev" target="_blank" rel="noopener noreferrer">IQ Labs</a></li>
+                    <li><a href="https://github.com/IQCoreTeam" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+                </ul>
+                <div className="fp-copyright">
+                    Powered by <a href="https://iqlabs.dev" target="_blank" rel="noopener noreferrer">IQ Labs</a> on Solana
+                </div>
             </div>
         </div>
     );

@@ -1,0 +1,137 @@
+/* 4chan-style homepage */
+.fp-wrap {
+    max-width: 900px;
+    margin: 0 auto;
+    font-family: arial, helvetica, sans-serif;
+    font-size: 13px;
+    color: #333;
+}
+
+/* Logo */
+.fp-logo {
+    text-align: center;
+    padding: 20px 0;
+}
+.fp-logo a {
+    font-size: 48px;
+    font-weight: bold;
+    color: #34345c;
+    text-decoration: none;
+    font-family: 'Tahoma', sans-serif;
+}
+.fp-logo a:hover {
+    color: #d00;
+}
+
+/* Box containers */
+.box-outer {
+    border: 1px solid #b7c5d9;
+    margin-bottom: 10px;
+}
+.boxbar {
+    background: #98b0d7;
+    padding: 3px 7px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.boxbar h2 {
+    font-size: 13px;
+    font-weight: bold;
+    color: #000;
+    margin: 0;
+}
+.boxcontent {
+    background: #d6daf0;
+    padding: 10px;
+    font-size: 13px;
+    line-height: 1.5;
+}
+.boxcontent a {
+    color: #34345c;
+    text-decoration: none;
+}
+.boxcontent a:hover {
+    color: #d00;
+}
+
+/* Board columns */
+.board-columns {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0;
+}
+.board-columns .column {
+    flex: 1;
+    min-width: 160px;
+    padding: 0 5px;
+}
+.board-columns .column h3 {
+    font-size: 13px;
+    font-weight: bold;
+    text-decoration: underline;
+    display: inline;
+    margin: 0;
+}
+.board-columns .column ul {
+    list-style: none;
+    padding: 0;
+    margin: 5px 0 15px;
+}
+.board-columns .column li {
+    padding: 1px 0;
+}
+.board-columns .column li a {
+    color: #34345c;
+    text-decoration: none;
+}
+.board-columns .column li a:hover {
+    color: #d00;
+}
+
+/* Stats */
+.stat-cell {
+    display: inline-block;
+    margin-right: 20px;
+    font-size: 13px;
+}
+
+/* Footer */
+.fp-footer {
+    text-align: center;
+    padding: 15px 0;
+    border-top: 1px solid #b7c5d9;
+    margin-top: 10px;
+}
+.fp-footer ul {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 10px;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+.fp-footer li a {
+    color: #34345c;
+    text-decoration: none;
+    font-size: 13px;
+}
+.fp-footer li a:hover {
+    color: #d00;
+}
+.fp-footer li::before {
+    content: "[ ";
+}
+.fp-footer li::after {
+    content: " ]";
+}
+.fp-copyright {
+    font-size: 11px;
+    color: #999;
+    margin-top: 10px;
+}
+.fp-copyright a {
+    color: #34345c;
+    text-decoration: none;
+}
