@@ -46,11 +46,13 @@ export default function ThreadPage({
                 [<Link href={`/${boardId}`}>Return</Link>]
                 {" "}
                 [<a href="#bottom">Bottom</a>]
+                <div className="thread-stats" style={{ display: "inline", marginLeft: 10 }}>
+                    <span>{totalReplies}</span>
+                    {" / "}
+                    <span>{replies.filter((r) => r.img).length}</span>
+                </div>
                 {" "}
                 [<a href="#" onClick={(e) => { e.preventDefault(); refresh(); }}>Update</a>]
-                <span className="thread-stats" style={{ marginLeft: 10 }}>
-                    {totalReplies} replies
-                </span>
             </div>
 
             {threadSeed && (
