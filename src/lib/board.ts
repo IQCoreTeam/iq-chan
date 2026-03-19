@@ -2,14 +2,18 @@ import { Connection, PublicKey } from "@solana/web3.js";
 import iqlabs from "iqlabs-sdk";
 import { FEED_SEED_PREFIX, THREADS_PER_PAGE } from "./constants";
 import { fetchTableSlice, fetchAllTableRows } from "./gateway";
-import type { Post } from "./types";
+import type { Post, Reply } from "./types";
 
 const PROGRAM_ID = iqlabs.contract.PROGRAM_ID;
+
+const REPLY_PREVIEW_COUNT = 5;
 
 export interface ThreadEntry {
     threadPda: string;
     opData: Post | null;
     lastActivityTime: number;
+    replyCount: number;
+    lastReplies: Reply[];
 }
 
 export function getFeedPda(dbRootKey: PublicKey, boardId: string): PublicKey {
@@ -61,6 +65,8 @@ export async function fetchFeedThreads(
                     threadPda: post.threadPda,
                     opData: isOp ? post : null,
                     lastActivityTime: time,
+                    replyCount: 0,
+                    lastReplies: [],
                 });
             }
 
@@ -70,17 +76,21 @@ export async function fetchFeedThreads(
         cursor = sigStrings[sigStrings.length - 1];
     }
 
-    // Fetch OP for threads where we only saw replies in the feed
-    const missingOp = [...threads.values()].filter((t) => t.opData === null);
-    if (missingOp.length > 0) {
-        await Promise.all(
-            missingOp.map(async (entry) => {
-                const rows = await fetchAllTableRows(entry.threadPda, 10);
-                const op = rows.find((r) => r.sub && r.sub.length > 0) as Post | undefined;
-                if (op) entry.opData = op;
-            }),
-        );
-    }
+    // Fetch OP + reply previews for each thread
+    await Promise.all(
+        [...threads.values()].map(async (entry) => {
+            const rows = await fetchAllTableRows(entry.threadPda, 50);
+            const op = rows.find((r) => r.sub && r.sub.length > 0) as Post | undefined;
+            if (op && !entry.opData) entry.opData = op;
+
+            const replies = rows
+                .filter((r) => !r.sub || r.sub.length === 0)
+                .sort((a, b) => (a.time as number) - (b.time as number));
+
+            entry.replyCount = replies.length;
+            entry.lastReplies = replies.slice(-REPLY_PREVIEW_COUNT) as Reply[];
+        }),
+    );
 
     const sorted = [...threads.values()]
         .filter((t) => t.opData !== null)

@@ -204,6 +204,28 @@
     max-height: 150px;
 }
 
+/* Summary (X replies omitted) */
+.summary {
+    margin-left: 25px;
+    display: block;
+    font-size: 12px;
+    color: #707070;
+    padding: 4px 0;
+}
+
+.summary a {
+    color: #34345c;
+}
+
+.replylink {
+    color: #34345c;
+    text-decoration: none;
+}
+
+.replylink:hover {
+    color: #d00;
+}
+
 /* Thread stats */
 .thread-stats {
     display: inline;
