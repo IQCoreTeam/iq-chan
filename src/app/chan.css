@@ -193,6 +193,20 @@
     margin: 3px 20px 5px;
 }
 
+.fileText {
+    font-size: 12px;
+    margin-bottom: 2px;
+}
+
+.fileText a {
+    color: #34345c;
+    text-decoration: underline;
+}
+
+.fileText a:hover {
+    color: #d00;
+}
+
 .fileThumb {
     float: left;
     margin: 3px 20px 5px;

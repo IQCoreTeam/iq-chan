@@ -45,6 +45,14 @@ export default function Post({
             <div id={`p${shortSig}`} className={postClass}>
                 {img && (
                     <div className="file">
+                        <div className="fileText">
+                            File: <a href={img} target="_blank" rel="noopener noreferrer">
+                                {(() => {
+                                    try { return decodeURIComponent(new URL(img).pathname.split("/").pop() ?? "image"); }
+                                    catch { return "image"; }
+                                })()}
+                            </a>
+                        </div>
                         <a
                             className="fileThumb"
                             href={img}
