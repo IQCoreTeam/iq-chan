@@ -108,15 +108,6 @@ export default function BoardPage({
                 [<a href="#top">Top</a>]
             </div>
 
-            <div className="bottomCtrl" style={{ textAlign: "center", margin: "10px 0", fontSize: 12 }}>
-                <span className="stylechanger">
-                    Style:{" "}
-                    <select id="styleSelector" style={{ fontSize: 12 }} disabled>
-                        <option value="Yotsuba B New">Yotsuba B</option>
-                    </select>
-                </span>
-            </div>
-
             <div id="absbot">
                 All trademarks and copyrights on this page are owned by their respective parties.
                 Images uploaded are the responsibility of the Poster.

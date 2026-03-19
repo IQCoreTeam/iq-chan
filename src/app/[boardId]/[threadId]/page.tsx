@@ -109,15 +109,6 @@ export default function ThreadPage({
                 [<a href="#top">Top</a>]
             </div>
 
-            <div className="bottomCtrl" style={{ textAlign: "center", margin: "10px 0", fontSize: 12 }}>
-                <span className="stylechanger">
-                    Style:{" "}
-                    <select id="styleSelector" style={{ fontSize: 12 }} disabled>
-                        <option value="Yotsuba B New">Yotsuba B</option>
-                    </select>
-                </span>
-            </div>
-
             <div id="absbot">
                 All posts are Solana transactions. Powered by IQ Labs.
                 <br />
