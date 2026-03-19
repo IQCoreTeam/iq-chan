@@ -4,8 +4,8 @@ import { useState, useEffect } from "react";
 import { useConnection } from "@solana/wallet-adapter-react";
 import Link from "next/link";
 import iqlabs from "iqlabs-sdk";
-import { BOARDS, DB_ROOT_KEY } from "../lib/constants";
-import { getFeedPda } from "../lib/board";
+import { PublicKey } from "@solana/web3.js";
+import { BOARDS } from "../lib/constants";
 import "./home.css";
 
 function useSiteStats() {
@@ -18,17 +18,20 @@ function useSiteStats() {
 
         async function load() {
             try {
+                const result = await iqlabs.reader.getTablelistFromRoot(connection, "iqchan");
+                const threadSeeds = result.globalTableSeeds;
+                if (cancelled) return;
+                setTotalThreads(threadSeeds.length);
+
+                const dbRootKey = new PublicKey(result.rootPda);
                 const postCounts = await Promise.all(
-                    BOARDS.map(async (b) => {
-                        const feedPda = getFeedPda(DB_ROOT_KEY, b.id);
-                        const sigs = await connection.getSignaturesForAddress(feedPda, { limit: 1000 });
+                    threadSeeds.map(async (seedHex: string) => {
+                        const pda = iqlabs.contract.getTablePda(dbRootKey, Buffer.from(seedHex, "hex"));
+                        const sigs = await connection.getSignaturesForAddress(pda, { limit: 1000 });
                         return sigs.length;
                     }),
                 );
                 if (!cancelled) setTotalPosts(postCounts.reduce((a, b) => a + b, 0));
-
-                const result = await iqlabs.reader.getTablelistFromRoot(connection, "iqchan");
-                if (!cancelled) setTotalThreads(result.globalTableSeeds.length);
             } catch (e) {
                 console.error("stats fetch failed:", e);
             }
