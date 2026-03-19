@@ -20,11 +20,11 @@ export default function Header() {
                     <div className="flex gap-1 text-sm">
                         {BOARDS.map((b) => (
                             <Link
-                                key={b}
-                                href={`/${b}`}
+                                key={b.id}
+                                href={`/${b.id}`}
                                 className="text-blue-700 hover:underline"
                             >
-                                [{b}]
+                                [{b.id}]
                             </Link>
                         ))}
                     </div>

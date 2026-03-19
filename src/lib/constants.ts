@@ -10,7 +10,12 @@ import iqlabs from "iqlabs-sdk";
 export const DB_ROOT_ID = "iqchan";
 export const THREADS_PER_PAGE = 20;
 export const FEED_SEED_PREFIX = "feedmY}AGBJiqLabs";
-export const BOARDS = ["po", "biz", "a", "g"];
+export const BOARDS: { id: string; title: string; description: string }[] = [
+    { id: "po", title: "Politically Incorrect", description: "Political discussion" },
+    { id: "biz", title: "Business & Finance", description: "Business and finance discussion" },
+    { id: "a", title: "Anime & Manga", description: "Anime and manga discussion" },
+    { id: "g", title: "Technology", description: "Technology discussion" },
+];
 
 export const ESTIMATED_SOL_COST = {
     thread: "0.023",
