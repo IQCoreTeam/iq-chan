@@ -19,7 +19,7 @@ export default function ThreadList({
                 const op = thread.opData;
                 if (!op) return null;
 
-                const com = (op.com as string) ?? "";
+                const com = op.com ?? "";
                 const truncated =
                     com.length > PREVIEW_LENGTH
                         ? com.slice(0, PREVIEW_LENGTH) + "..."
@@ -32,12 +32,12 @@ export default function ThreadList({
                         className="block hover:bg-[#eef0f7] transition-colors"
                     >
                         <Post
-                            txSig={op.__txSignature as string ?? thread.threadPda}
+                            txSig={op.__txSignature ?? thread.threadPda}
                             com={truncated}
-                            name={op.name as string}
-                            time={op.time as number}
-                            sub={op.sub as string | undefined}
-                            img={op.img as string | undefined}
+                            name={op.name}
+                            time={op.time}
+                            sub={op.sub}
+                            img={op.img}
                             disableLinks
                         />
                     </Link>
