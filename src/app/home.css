@@ -1,141 +1,253 @@
-/* 4chan-style homepage */
+/* 4chan frontpage style — adapted from frontpage.18.css */
+
 .fp-wrap {
-    max-width: 900px;
-    margin: 0 auto;
-    font-family: arial, helvetica, sans-serif;
-    font-size: 13px;
-    color: #333;
+    margin: auto;
+    text-align: left;
+    width: 57.69em;
+    min-width: 750px;
+    font: 13px/1.231 arial, helvetica, clean, sans-serif;
 }
 
 /* Logo */
 .fp-logo {
     text-align: center;
-    padding: 20px 0;
+    margin-bottom: 0;
+    padding: 15px 0;
 }
 .fp-logo a {
     font-size: 48px;
     font-weight: bold;
-    color: #34345c;
+    color: #800;
     text-decoration: none;
-    font-family: 'Tahoma', sans-serif;
+    font-family: Tahoma, sans-serif;
 }
 .fp-logo a:hover {
-    color: #d00;
+    color: #e00;
 }
 
-/* Box containers */
+/* Boxes */
 .box-outer {
     border: 1px solid #b7c5d9;
-    margin-bottom: 10px;
+    zoom: 100%;
+    margin-bottom: .5em;
+    padding-bottom: .5em;
+    background: #fff;
 }
-.box-inner {
+
+#announce {
+    background: #fff;
+    color: #000;
 }
+
+#announce .boxbar {
+    background: #800;
+    color: #fff;
+}
+
+#announce .boxbar h2 {
+    color: #fff;
+}
+
 .boxbar {
-    background: #98b0d7;
-    padding: 3px 7px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    padding-left: .5em;
+    line-height: 2em;
+    background: #fca;
+    color: #800;
+    position: relative;
+    zoom: 100%;
 }
+
 .boxbar h2 {
     font-size: 13px;
     font-weight: bold;
-    color: #000;
     margin: 0;
 }
+
 .boxcontent {
-    background: #d6daf0;
-    padding: 10px;
-    font-size: 13px;
-    line-height: 1.5;
+    padding: .5em;
+    padding-top: .25em;
+    padding-bottom: 0;
+    line-height: 130%;
 }
+
 .boxcontent a {
-    color: #34345c;
+    color: #800;
     text-decoration: none;
 }
 .boxcontent a:hover {
-    color: #d00;
+    color: #e00;
 }
 
-/* Board columns */
-.board-columns {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0;
+/* Boards */
+#boards .column {
+    float: left;
+    width: 12em;
 }
-.board-columns .column {
-    flex: 1;
-    min-width: 160px;
-    padding: 0 5px;
-}
-.board-columns .column h3 {
+
+#boards .column h3 {
     font-size: 13px;
     font-weight: bold;
     text-decoration: underline;
     display: inline;
     margin: 0;
 }
-.board-columns .column ul {
+
+#boards .column ul {
     list-style: none;
     padding: 0;
     margin: 5px 0 15px;
 }
-.board-columns .column li {
+
+#boards .column li {
     padding: 1px 0;
 }
-.board-columns .column li a {
-    color: #34345c;
+
+#boards a {
+    color: #800;
     text-decoration: none;
 }
-.board-columns .column li a:hover {
-    color: #d00;
+
+#boards a:hover {
+    color: #e00;
+    text-decoration: underline;
+}
+
+br.clear-bug {
+    height: 0;
+    line-height: 0;
+    clear: both;
 }
 
 /* Stats */
+#site-stats .boxcontent {
+    margin-top: 5px;
+    text-align: center;
+}
+
 .stat-cell {
     display: inline-block;
-    margin-right: 20px;
+    width: 33%;
     font-size: 13px;
 }
 
-/* Footer — matches 4chan #ft */
+/* Footer */
 #ft {
-    margin-top: 20px;
+    clear: both;
     text-align: center;
 }
+
 #ft ul {
+    margin: 0;
+    width: 750px;
+    border-top: 1px solid #b7c5d9;
+    display: table;
+    margin: auto;
     list-style: none;
     padding: 0;
-    margin: 0;
-    display: flex;
-    justify-content: center;
-    flex-wrap: wrap;
 }
+
 #ft li {
-    margin: 0;
+    display: block;
+    float: left;
+    border: 1px solid #b7c5d9;
+    padding-left: 1em;
+    padding-right: 1em;
+    padding-bottom: 2px;
+    border-left: none;
+    margin-top: -1px;
+    padding-top: 2px;
+    background: #fed;
 }
-#ft li a {
-    color: #34345c;
-    text-decoration: none;
-    font-size: 13px;
-    padding: 0 5px;
-}
-#ft li a:hover {
-    color: #d00;
-}
-#ft li + li {
+
+#ft li.first {
     border-left: 1px solid #b7c5d9;
 }
+
+#ft li.fill {
+    border: 0;
+    padding-bottom: 4px;
+    border-top: 1px solid #b7c5d9;
+    width: 68px;
+    background: #ffe;
+    color: #800;
+}
+
+#ft li a {
+    color: #800;
+    text-decoration: none;
+    font-size: 13px;
+}
+
+#ft li a:hover {
+    color: #c63;
+}
+
 #copyright {
+    text-align: center;
+    margin-top: 1em;
+    margin-bottom: 1em;
     font-size: 11px;
     color: #999;
-    margin-top: 15px;
-    padding-bottom: 20px;
 }
+
 #copyright a {
-    color: #34345c;
+    color: #800;
     text-decoration: none;
 }
+
 #copyright a:hover {
-    color: #d00;
+    color: #e00;
+}
+
+/* Mobile */
+@media all and (max-device-width: 640px) {
+    .fp-wrap {
+        min-width: 0;
+        width: auto;
+        padding: 10px;
+    }
+
+    #boards .column {
+        float: none;
+        width: auto;
+        margin-bottom: 25px;
+    }
+
+    .boardlink {
+        display: inline-block;
+        font-size: 1.2em;
+        padding: 5px 10px 5px 0;
+    }
+
+    #ft ul {
+        width: auto;
+        border-top: none;
+        line-height: 2;
+        display: block;
+    }
+
+    #ft li {
+        background: inherit;
+        display: inline;
+        float: none;
+        border: none;
+        white-space: nowrap;
+    }
+
+    #ft li.first {
+        border-left: none;
+    }
+
+    #ft li.fill {
+        display: none;
+    }
+
+    #ft li a {
+        color: blue;
+        text-decoration: underline;
+    }
+
+    .fp-logo a {
+        font-size: 36px;
+    }
 }

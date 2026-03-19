@@ -55,6 +55,7 @@ export default function HomePage() {
                                 </ul>
                             </div>
                         </div>
+                        <br className="clear-bug" />
                     </div>
                 </div>
             </div>
@@ -74,12 +75,14 @@ export default function HomePage() {
 
             <div id="ft">
                 <ul>
+                    <li className="fill"></li>
                     <li className="first"><Link href="/">Home</Link></li>
                     <li><a href="https://iqlabs.dev" target="_blank" rel="noopener noreferrer">IQ Labs</a></li>
                     <li><a href="https://x.com/IQLabsOfficial" target="_blank" rel="noopener noreferrer">Twitter</a></li>
                     <li><a href="https://t.me/IQLabsPortal" target="_blank" rel="noopener noreferrer">Telegram</a></li>
                     <li><a href="https://github.com/IQCoreTeam" target="_blank" rel="noopener noreferrer">GitHub</a></li>
                 </ul>
+                <br className="clear-bug" />
                 <div id="copyright">
                     <a href="https://iqlabs.dev" target="_blank" rel="noopener noreferrer">About</a>
                     {" \u2022 "}
