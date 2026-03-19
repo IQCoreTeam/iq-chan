@@ -1,6 +1,8 @@
 import { GATEWAY_URL } from "./config";
 import type { Post } from "./types";
 
+const isDev = process.env.NODE_ENV === "development";
+
 export type Row = Post & Record<string, unknown>;
 
 export async function fetchTableRows(
@@ -11,13 +13,16 @@ export async function fetchTableRows(
     let url = `${GATEWAY_URL}/table/${tablePda}/rows?limit=${limit}`;
     if (before) url += `&before=${before}`;
 
+    if (isDev) console.log("[gateway] rows →", tablePda.slice(0, 8), limit);
     const res = await fetch(url);
     if (!res.ok) {
         if (res.status === 404) return { rows: [] };
         throw new Error(`fetchTableRows failed: ${res.status}`);
     }
     const data = await res.json();
-    return { rows: data.rows ?? [], nextCursor: data.nextCursor ?? undefined };
+    const rows: Row[] = data.rows ?? [];
+    if (isDev) console.log("[gateway] rows ←", rows.length);
+    return { rows, nextCursor: data.nextCursor ?? undefined };
 }
 
 export async function fetchAllTableRows(
@@ -46,8 +51,11 @@ export async function fetchTableSlice(
     if (sigs.length > 50) throw new Error("fetchTableSlice: max 50 sigs");
 
     const url = `${GATEWAY_URL}/table/${tablePda}/slice?sigs=${sigs.join(",")}`;
+    if (isDev) console.log("[gateway] slice →", tablePda.slice(0, 8), sigs.length, "sigs");
     const res = await fetch(url);
     if (!res.ok) throw new Error(`fetchTableSlice failed: ${res.status}`);
     const data = await res.json();
-    return data.rows ?? [];
+    const rows = data.rows ?? [];
+    if (isDev) console.log("[gateway] slice ←", rows.length);
+    return rows;
 }
