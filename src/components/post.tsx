@@ -14,9 +14,6 @@ export default function Post({
     isOp,
     replyLink,
     backlinks,
-    isOwner,
-    onEdit,
-    onDelete,
     onQuote,
 }: {
     txSig: string;
@@ -28,12 +25,9 @@ export default function Post({
     isOp?: boolean;
     replyLink?: string;
     backlinks?: string[];
-    isOwner?: boolean;
-    onEdit?: () => void;
-    onDelete?: () => void;
     onQuote?: (sig: string) => void;
 }) {
-    const shortSig = txSig.slice(0, 8);
+    const display = txSig.slice(0, 8);
     const [expanded, setExpanded] = useState(false);
     const [menuOpen, setMenuOpen] = useState(false);
     const menuRef = useRef<HTMLSpanElement>(null);
@@ -56,8 +50,8 @@ export default function Post({
     }
 
     const fileBlock = img ? (
-        <div className="file" id={`f${shortSig}`}>
-            <div className="fileText" id={`fT${shortSig}`}>
+        <div className="file" id={`f${txSig}`}>
+            <div className="fileText" id={`fT${txSig}`}>
                 File: <a href={img} target="_blank" rel="noopener noreferrer">{fileName}</a>
             </div>
             <a
@@ -79,14 +73,14 @@ export default function Post({
     ) : null;
 
     const digitsLink = onQuote
-        ? <a href="#" title="Reply to this post" onClick={(e) => { e.preventDefault(); onQuote(txSig); }}>{shortSig}</a>
+        ? <a href="#" title="Reply to this post" onClick={(e) => { e.preventDefault(); onQuote(txSig); }}>{display}</a>
         : replyLink
-            ? <a href={replyLink} title="Reply to this post">{shortSig}</a>
-            : <a href={`https://solscan.io/tx/${txSig}`} target="_blank" rel="noopener noreferrer" title="View on Solscan">{shortSig}</a>;
+            ? <a href={replyLink} title="Reply to this post">{display}</a>
+            : <a href={`https://solscan.io/tx/${txSig}`} target="_blank" rel="noopener noreferrer" title="View on Solscan">{display}</a>;
 
     const postInfoBlock = (
-        <div className="postInfo desktop" id={`pi${shortSig}`}>
-            <input type="checkbox" name={shortSig} value="delete" />
+        <div className="postInfo desktop" id={`pi${txSig}`}>
+            <input type="checkbox" name={txSig} value="delete" />
             {" "}
             {sub && <span className="subject">{sub}</span>}
             {" "}
@@ -98,7 +92,7 @@ export default function Post({
             <span className="dateTime" data-utc={time}>{new Date(time * 1000).toLocaleString()}</span>
             {" "}
             <span className="postNum desktop">
-                <a href={replyLink ?? `#p${shortSig}`} title="Link to this post">No.</a>
+                <a href={replyLink ?? `#p${txSig}`} title="Link to this post">No.</a>
                 {digitsLink}
                 {replyLink && (
                     <> &nbsp; <span>[<a href={replyLink} className="replylink">Reply</a>]</span></>
@@ -128,49 +122,32 @@ export default function Post({
                 )}
             </span>
             {backlinks && backlinks.length > 0 && (
-                <div id={`bl_${shortSig}`} className="backlink">
-                    {backlinks.map((bl) => {
-                        const s = bl.slice(0, 8);
-                        return (
-                            <span key={bl}>
-                                <a
-                                    href={`#p${s}`}
-                                    className="quotelink"
-                                    onClick={(e) => { e.preventDefault(); scrollToPost(s); }}
-                                    onMouseEnter={() => highlightPost(s, true)}
-                                    onMouseLeave={() => highlightPost(s, false)}
-                                >
-                                    &gt;&gt;{s}
-                                </a>
-                                {" "}
-                            </span>
-                        );
-                    })}
+                <div id={`bl_${txSig}`} className="backlink">
+                    {backlinks.map((bl) => (
+                        <span key={bl}>
+                            <a
+                                href={`#p${bl}`}
+                                className="quotelink"
+                                onClick={(e) => { e.preventDefault(); scrollToPost(bl); }}
+                                onMouseEnter={() => highlightPost(bl, true)}
+                                onMouseLeave={() => highlightPost(bl, false)}
+                            >
+                                &gt;&gt;{bl.slice(0, 8)}
+                            </a>
+                            {" "}
+                        </span>
+                    ))}
                 </div>
-            )}
-            {isOwner && (
-                <span style={{ marginLeft: 5 }}>
-                    {onEdit && (
-                        <button onClick={onEdit} style={{ color: "#34345c", fontSize: 12, background: "none", border: "none", cursor: "pointer", textDecoration: "underline" }}>
-                            [Edit]
-                        </button>
-                    )}
-                    {onDelete && (
-                        <button onClick={onDelete} style={{ color: "#d00", fontSize: 12, background: "none", border: "none", cursor: "pointer", textDecoration: "underline" }}>
-                            [Delete]
-                        </button>
-                    )}
-                </span>
             )}
         </div>
     );
 
     return (
-        <div className={`postContainer ${isOp ? "opContainer" : "replyContainer"}`} id={`pc${shortSig}`}>
-            {!isOp && <div className="sideArrows" id={`sa${shortSig}`}>&gt;&gt;</div>}
-            <div id={`p${shortSig}`} className={isOp ? "post op" : "post reply"}>
+        <div className={`postContainer ${isOp ? "opContainer" : "replyContainer"}`} id={`pc${txSig}`}>
+            {!isOp && <div className="sideArrows" id={`sa${txSig}`}>&gt;&gt;</div>}
+            <div id={`p${txSig}`} className={isOp ? "post op" : "post reply"}>
                 {isOp ? <>{fileBlock}{postInfoBlock}</> : <>{postInfoBlock}{fileBlock}</>}
-                <blockquote className="postMessage" id={`m${shortSig}`}>
+                <blockquote className="postMessage" id={`m${txSig}`}>
                     {formatPostMessage(com)}
                 </blockquote>
             </div>

@@ -12,15 +12,16 @@ export default function QuickReply({
     initialQuote,
 }: {
     threadSig: string;
-    onSubmit: (data: { com: string; name: string; img?: string }) => void;
+    onSubmit: (data: { com: string; name: string; img?: string; options?: string }) => void;
     loading: boolean;
     onClose: () => void;
     initialQuote?: string;
 }) {
     const { publicKey } = useWallet();
-    const [name, setName] = useState("Anonymous");
+    const [name, setName] = useState("");
     const [com, setCom] = useState(initialQuote ? `>>${initialQuote}\n` : "");
     const [img, setImg] = useState("");
+    const [options, setOptions] = useState("");
     const [pos, setPos] = useState({ x: 0, y: 0 });
     const [dragging, setDragging] = useState(false);
     const dragOffset = useRef({ x: 0, y: 0 });
@@ -78,9 +79,11 @@ export default function QuickReply({
             com: com.trim(),
             name: name.trim() || "Anonymous",
             ...(img.trim() ? { img: img.trim() } : {}),
+            ...(options.trim() ? { options: options.trim().toLowerCase() } : {}),
         });
         setCom("");
         setImg("");
+        setOptions("");
         onClose();
     }
 
@@ -99,7 +102,8 @@ export default function QuickReply({
                 background: "#d6daf0",
                 border: "1px solid #b7c5d9",
                 boxShadow: "2px 2px 4px rgba(0,0,0,0.2)",
-                width: 350,
+                minWidth: 350,
+                width: "auto",
                 fontSize: 13,
             }}
         >
@@ -113,9 +117,8 @@ export default function QuickReply({
                     cursor: "move",
                     fontWeight: "bold",
                     fontSize: 12,
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
+                    textAlign: "center",
+                    position: "relative",
                     userSelect: "none",
                 }}
             >
@@ -123,7 +126,7 @@ export default function QuickReply({
                 <a
                     href="#"
                     onClick={(e) => { e.preventDefault(); onClose(); }}
-                    style={{ color: "#34345c", textDecoration: "none", fontSize: 14 }}
+                    style={{ color: "#34345c", textDecoration: "none", fontSize: 14, position: "absolute", right: 5, top: 2 }}
                 >
                     X
                 </a>
@@ -133,10 +136,10 @@ export default function QuickReply({
                     <input
                         name="name"
                         type="text"
-                        placeholder="Name"
+                        placeholder="Anonymous"
                         value={name}
                         onChange={(e) => setName(e.target.value)}
-                        style={{ width: "100%", fontSize: 12, padding: "1px 3px", border: "1px solid #aaa", boxSizing: "border-box" }}
+                        style={{ width: "100%", fontSize: 12, padding: "1px 3px", border: "1px solid #aaa", boxSizing: "border-box", outline: "none" }}
                     />
                 </div>
                 <div style={{ marginBottom: 3 }}>
@@ -144,7 +147,9 @@ export default function QuickReply({
                         name="email"
                         type="text"
                         placeholder="Options"
-                        style={{ width: "100%", fontSize: 12, padding: "1px 3px", border: "1px solid #aaa", boxSizing: "border-box" }}
+                        value={options}
+                        onChange={(e) => setOptions(e.target.value)}
+                        style={{ width: "100%", fontSize: 12, padding: "1px 3px", border: "1px solid #aaa", boxSizing: "border-box", outline: "none" }}
                     />
                 </div>
                 <div style={{ marginBottom: 3 }}>
@@ -156,8 +161,11 @@ export default function QuickReply({
                         value={com}
                         onChange={(e) => setCom(e.target.value)}
                         placeholder="Comment"
-                        style={{ width: "100%", fontSize: 12, padding: "2px 3px", border: "1px solid #aaa", boxSizing: "border-box", resize: "vertical" }}
+                        style={{ width: "100%", fontSize: 12, padding: "2px 3px", border: "1px solid #aaa", boxSizing: "border-box", resize: "both", outline: "none" }}
                     />
+                </div>
+                <div style={{ marginBottom: 3, fontSize: 11, color: "#707070" }}>
+                    ~{ESTIMATED_SOL_COST.reply} SOL per reply
                 </div>
                 <div style={{ marginBottom: 3 }}>
                     <input
@@ -166,7 +174,7 @@ export default function QuickReply({
                         placeholder="Image URL"
                         value={img}
                         onChange={(e) => setImg(e.target.value)}
-                        style={{ width: 200, fontSize: 12, padding: "1px 3px", border: "1px solid #aaa" }}
+                        style={{ width: 200, fontSize: 12, padding: "1px 3px", border: "1px solid #aaa", outline: "none" }}
                     />
                     <input
                         type="submit"
@@ -174,9 +182,6 @@ export default function QuickReply({
                         disabled={loading || !com.trim()}
                         style={{ marginLeft: 5, background: "#f0e0d6", border: "1px solid #c0a89a", padding: "1px 6px", fontSize: 12, cursor: "pointer" }}
                     />
-                </div>
-                <div style={{ fontSize: 11, color: "#707070" }}>
-                    ~{ESTIMATED_SOL_COST.reply} SOL per reply
                 </div>
             </form>
         </div>

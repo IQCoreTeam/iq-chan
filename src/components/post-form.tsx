@@ -10,15 +10,16 @@ export default function PostForm({
     loading,
 }: {
     mode: "thread" | "reply";
-    onSubmit: (data: { sub?: string; com: string; name: string; img?: string }) => void;
+    onSubmit: (data: { sub?: string; com: string; name: string; img?: string; options?: string }) => void;
     loading: boolean;
 }) {
     const { publicKey } = useWallet();
     const [showForm, setShowForm] = useState(false);
     const [sub, setSub] = useState("");
     const [com, setCom] = useState("");
-    const [name, setName] = useState("Anonymous");
+    const [name, setName] = useState("");
     const [img, setImg] = useState("");
+    const [options, setOptions] = useState("");
 
     if (!publicKey) {
         return (
@@ -36,10 +37,12 @@ export default function PostForm({
             com: com.trim(),
             name: name.trim() || "Anonymous",
             ...(img.trim() ? { img: img.trim() } : {}),
+            ...(options.trim() ? { options: options.trim().toLowerCase() } : {}),
         });
         setSub("");
         setCom("");
         setImg("");
+        setOptions("");
         setShowForm(false);
     }
 
@@ -72,7 +75,13 @@ export default function PostForm({
                     <tr data-type="Options">
                         <td>Options</td>
                         <td>
-                            <input name="email" type="text" tabIndex={2} placeholder="sage" />
+                            <input
+                                name="email"
+                                type="text"
+                                tabIndex={2}
+                                value={options}
+                                onChange={(e) => setOptions(e.target.value)}
+                            />
                             {mode === "reply" && (
                                 <input
                                     type="submit"
@@ -155,8 +164,8 @@ export default function PostForm({
                     )}
                     <tr className="rules">
                         <td colSpan={2}>
-                            <ul className="rules" style={{ listStyle: "none", padding: 0, margin: "5px 0", fontSize: 11, color: "#707070" }}>
-                                <li>Every post is a Solana transaction (~{ESTIMATED_SOL_COST[mode]} SOL).</li>
+                            <ul>
+                                <li>Every {mode === "thread" ? "thread" : "reply"} is a Solana transaction (~{ESTIMATED_SOL_COST[mode]} SOL).</li>
                             </ul>
                         </td>
                     </tr>
