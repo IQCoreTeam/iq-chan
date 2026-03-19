@@ -57,7 +57,7 @@ export default function BoardPage({
                 <input
                     type="text"
                     id="search-box"
-                    placeholder="Search OPs\u2026"
+                    placeholder="Search OPs..."
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     style={{ fontSize: 12, padding: "1px 4px", border: "1px solid #aaa", marginRight: 5 }}
