@@ -1,13 +1,21 @@
 "use client";
 
-import { useBoards } from "../hooks/use-boards";
+import { BOARDS } from "../lib/constants";
 import BoardList from "../components/board-list";
 
-export default function HomePage() {
-    const { boards, loading, error } = useBoards();
+const BOARD_META: Record<string, { title: string; description: string }> = {
+    po: { title: "Politically Incorrect", description: "Political discussion" },
+    biz: { title: "Business & Finance", description: "Business and finance discussion" },
+    a: { title: "Anime & Manga", description: "Anime and manga discussion" },
+    g: { title: "Technology", description: "Technology discussion" },
+};
 
-    if (loading) return <div className="p-4 text-center text-sm text-gray-500">Loading boards...</div>;
-    if (error) return <div className="p-4 text-center text-sm text-red-600">Error: {error.message}</div>;
+export default function HomePage() {
+    const boards = BOARDS.map((id) => ({
+        board_id: id,
+        title: BOARD_META[id]?.title ?? `/${id}/`,
+        description: BOARD_META[id]?.description ?? "",
+    }));
 
     return <BoardList boards={boards} />;
 }
