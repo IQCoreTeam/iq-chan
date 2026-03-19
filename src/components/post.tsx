@@ -74,13 +74,20 @@ export default function Post({
                     <span className="dateTime">{timeStr}</span>
                     {" "}
                     <span className="postNum">
-                        <a href={`https://solscan.io/tx/${txSig}`} target="_blank" rel="noopener noreferrer" title="Link to this post">No.</a>
                         {replyLink ? (
-                            <a href={replyLink} title="View thread">{shortSig}</a>
-                        ) : onQuote ? (
-                            <a href="#" title="Reply to this post" onClick={(e) => { e.preventDefault(); onQuote(txSig); }}>{shortSig}</a>
+                            <>
+                                <a href={replyLink} title="Link to this post">No.</a>
+                                <a href={replyLink} title="Reply to this post">{shortSig}</a>
+                            </>
                         ) : (
-                            <a href={`https://solscan.io/tx/${txSig}`} target="_blank" rel="noopener noreferrer" title="View on Solscan">{shortSig}</a>
+                            <>
+                                <a href={`#p${shortSig}`} title="Link to this post">No.</a>
+                                {onQuote ? (
+                                    <a href="#" title="Reply to this post" onClick={(e) => { e.preventDefault(); onQuote(txSig); }}>{shortSig}</a>
+                                ) : (
+                                    <a href={`https://solscan.io/tx/${txSig}`} target="_blank" rel="noopener noreferrer" title="View on Solscan">{shortSig}</a>
+                                )}
+                            </>
                         )}
                         {replyLink && (
                             <> &nbsp; <span>[<a href={replyLink} className="replylink">Reply</a>]</span></>
