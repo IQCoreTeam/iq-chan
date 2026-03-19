@@ -2,8 +2,10 @@
 
 import { useState, useCallback } from "react";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
-import { PublicKey, SystemProgram, Transaction, type Signer } from "@solana/web3.js";
+import { PublicKey, SystemProgram, Transaction } from "@solana/web3.js";
 import iqlabs from "iqlabs-sdk";
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const idl = require("iqlabs-sdk/idl/code_in.json");
 import {
     DB_ROOT_ID,
     threadTableSeed,
@@ -12,10 +14,6 @@ import {
     DB_ROOT_KEY,
 } from "../lib/constants";
 import { getFeedPda } from "../lib/board";
-
-// ─── Thread table columns ─────────────────────────────────────
-// OP row:    {sub, com, name, time, img?, threadPda, threadSeed}
-// Reply row: {sub:"", com, name, time, img?, threadPda}
 
 const THREAD_COLUMNS = ["sub", "com", "name", "time", "img", "threadPda", "threadSeed"];
 
@@ -48,7 +46,7 @@ export function usePost() {
                 const instrPda = new PublicKey(deriveInstructionTablePda(seed));
 
                 const builder = iqlabs.contract.createInstructionBuilder(
-                    require("iqlabs-sdk/idl/code_in.json"),
+                    idl,
                     iqlabs.contract.PROGRAM_ID,
                 );
                 const dbRootIdBytes = Buffer.from(iqlabs.utils.toSeedBytes(DB_ROOT_ID));
@@ -122,7 +120,7 @@ export function usePost() {
 
                 await iqlabs.writer.writeRow(
                     connection,
-                    wallet as unknown as Signer,
+                    wallet as any,
                     dbRootIdBytes,
                     seedBytes,
                     rowJson,
@@ -169,7 +167,7 @@ export function usePost() {
 
                 await iqlabs.writer.writeRow(
                     connection,
-                    wallet as unknown as Signer,
+                    wallet as any,
                     dbRootIdBytes,
                     seedBytes,
                     rowJson,
@@ -201,7 +199,7 @@ export function usePost() {
 
                 await iqlabs.writer.manageRowData(
                     connection,
-                    wallet as unknown as Signer,
+                    wallet as any,
                     dbRootIdBytes,
                     seedBytes,
                     JSON.stringify({ target: targetTxSig, com: newCom }),
@@ -233,7 +231,7 @@ export function usePost() {
 
                 await iqlabs.writer.manageRowData(
                     connection,
-                    wallet as unknown as Signer,
+                    wallet as any,
                     dbRootIdBytes,
                     seedBytes,
                     "{}",
