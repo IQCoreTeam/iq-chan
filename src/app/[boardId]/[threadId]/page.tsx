@@ -46,6 +46,11 @@ export default function ThreadPage({
     return (
         <>
             <div className="boardBanner">
+                {boardMeta && (
+                    <div className="title" style={{ textAlign: "center" }}>
+                        <img alt={boardId} src={boardMeta.image} style={{ maxHeight: 100, display: "block", margin: "0 auto" }} />
+                    </div>
+                )}
                 <div className="boardTitle">{boardTitle}</div>
             </div>
 
@@ -102,6 +107,15 @@ export default function ThreadPage({
                 [<Link href={`/${boardId}`}>Return</Link>]
                 {" "}
                 [<a href="#top">Top</a>]
+            </div>
+
+            <div className="bottomCtrl" style={{ textAlign: "center", margin: "10px 0", fontSize: 12 }}>
+                <span className="stylechanger">
+                    Style:{" "}
+                    <select id="styleSelector" style={{ fontSize: 12 }} disabled>
+                        <option value="Yotsuba B New">Yotsuba B</option>
+                    </select>
+                </span>
             </div>
 
             <div id="absbot">

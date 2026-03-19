@@ -34,6 +34,11 @@ export default function BoardPage({
     return (
         <>
             <div className="boardBanner">
+                {boardMeta && (
+                    <div className="title" style={{ textAlign: "center" }}>
+                        <img alt={boardId} src={boardMeta.image} style={{ maxHeight: 100, display: "block", margin: "0 auto" }} />
+                    </div>
+                )}
                 <div className="boardTitle">{boardTitle}</div>
             </div>
 
@@ -82,13 +87,13 @@ export default function BoardPage({
                 <>
                     <ThreadList threads={filteredThreads} boardId={boardId} />
                     {hasMore && (
-                        <div style={{ textAlign: "center", padding: 10 }}>
+                        <div className="pagelist" style={{ textAlign: "center", padding: 10, fontSize: 13 }}>
                             <button
                                 onClick={loadMore}
                                 disabled={loading}
-                                style={{ color: "#34345c", background: "none", border: "none", cursor: "pointer", fontSize: 13, textDecoration: "underline" }}
+                                style={{ color: "#34345c", background: "none", border: "none", cursor: "pointer", fontSize: 13 }}
                             >
-                                {loading ? "Loading..." : "[Load More]"}
+                                {loading ? "Loading..." : "[Next]"}
                             </button>
                         </div>
                     )}
@@ -101,6 +106,15 @@ export default function BoardPage({
                 [<Link href="/">Home</Link>]
                 {" "}
                 [<a href="#top">Top</a>]
+            </div>
+
+            <div className="bottomCtrl" style={{ textAlign: "center", margin: "10px 0", fontSize: 12 }}>
+                <span className="stylechanger">
+                    Style:{" "}
+                    <select id="styleSelector" style={{ fontSize: 12 }} disabled>
+                        <option value="Yotsuba B New">Yotsuba B</option>
+                    </select>
+                </span>
             </div>
 
             <div id="absbot">
