@@ -16,6 +16,7 @@ export default function Post({
     isOwner,
     onEdit,
     onDelete,
+    onQuote,
 }: {
     txSig: string;
     com: string;
@@ -29,6 +30,7 @@ export default function Post({
     isOwner?: boolean;
     onEdit?: () => void;
     onDelete?: () => void;
+    onQuote?: (sig: string) => void;
 }) {
     const timeStr = new Date(time * 1000).toLocaleString();
     const shortSig = txSig.slice(0, 8);
@@ -72,9 +74,11 @@ export default function Post({
                     <span className="dateTime">{timeStr}</span>
                     {" "}
                     <span className="postNum">
-                        No.
+                        <a href={`https://solscan.io/tx/${txSig}`} target="_blank" rel="noopener noreferrer" title="Link to this post">No.</a>
                         {replyLink ? (
                             <a href={replyLink} title="View thread">{shortSig}</a>
+                        ) : onQuote ? (
+                            <a href="#" title="Reply to this post" onClick={(e) => { e.preventDefault(); onQuote(txSig); }}>{shortSig}</a>
                         ) : (
                             <a href={`https://solscan.io/tx/${txSig}`} target="_blank" rel="noopener noreferrer" title="View on Solscan">{shortSig}</a>
                         )}

@@ -1,11 +1,13 @@
 "use client";
 
+import { useState, useCallback } from "react";
 import Link from "next/link";
 import { usePaginatedReplies } from "../../../hooks/use-paginated-replies";
 import { usePost } from "../../../hooks/use-post";
 import { BOARDS } from "../../../lib/constants";
 import ThreadDetail from "../../../components/thread-detail";
 import PostForm from "../../../components/post-form";
+import QuickReply from "../../../components/quick-reply";
 
 export default function ThreadPage({
     params,
@@ -13,6 +15,8 @@ export default function ThreadPage({
     params: { boardId: string; threadId: string };
 }) {
     const { boardId, threadId: threadPda } = params;
+    const [qrOpen, setQrOpen] = useState(false);
+    const [qrQuote, setQrQuote] = useState<string | undefined>();
 
     const {
         op,
@@ -33,6 +37,11 @@ export default function ThreadPage({
     const boardMeta = BOARDS.find((b) => b.id === boardId);
     const boardTitle = boardMeta ? `/${boardId}/ - ${boardMeta.title}` : `/${boardId}/`;
     const threadSeed = op?.threadSeed ?? "";
+
+    const onQuote = useCallback((sig: string) => {
+        setQrQuote(sig);
+        setQrOpen(true);
+    }, []);
 
     return (
         <>
@@ -83,6 +92,7 @@ export default function ThreadPage({
                     onPrevPage={prevPage}
                     onRefresh={refresh}
                     loading={loading}
+                    onQuote={onQuote}
                 />
             )}
 
@@ -105,6 +115,16 @@ export default function ThreadPage({
             </div>
 
             <div id="bottom"></div>
+
+            {qrOpen && threadSeed && (
+                <QuickReply
+                    threadSig={op?.__txSignature ?? threadPda}
+                    onSubmit={(data) => postReply(threadSeed, threadPda, boardId, data)}
+                    loading={postLoading}
+                    onClose={() => setQrOpen(false)}
+                    initialQuote={qrQuote}
+                />
+            )}
         </>
     );
 }

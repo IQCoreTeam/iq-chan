@@ -15,6 +15,7 @@ export default function ThreadDetail({
     onPrevPage,
     onRefresh,
     loading,
+    onQuote,
 }: {
     thread?: PostType;
     replies: Reply[];
@@ -26,6 +27,7 @@ export default function ThreadDetail({
     onPrevPage: () => void;
     onRefresh: () => void;
     loading: boolean;
+    onQuote?: (sig: string) => void;
 }) {
     // Build backlink map: for each post, which other posts reference it via >>
     const backlinkMap = useMemo(() => {
@@ -68,6 +70,7 @@ export default function ThreadDetail({
                         img={thread.img}
                         isOp
                         backlinks={backlinkMap[thread.__txSignature ?? ""]}
+                        onQuote={onQuote}
                     />
                 )}
 
@@ -83,6 +86,7 @@ export default function ThreadDetail({
                             time={reply.time}
                             img={reply.img}
                             backlinks={backlinkMap[reply.__txSignature ?? ""]}
+                            onQuote={onQuote}
                         />
                     ))
                 )}
