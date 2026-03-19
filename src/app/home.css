@@ -78,38 +78,51 @@
     color: #d00;
 }
 
-/* Boards */
-#boards .column {
-    float: left;
-    width: 12em;
+/* Board grid */
+.board-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 10px;
+    padding: 5px 0;
 }
 
-#boards .column h3 {
-    font-size: 13px;
-    font-weight: bold;
-    text-decoration: underline;
-    display: inline;
-    margin: 0;
-}
-
-#boards .column ul {
-    list-style: none;
-    padding: 0;
-    margin: 5px 0 15px;
-}
-
-#boards .column li {
-    padding: 1px 0;
-}
-
-#boards a {
-    color: #34345c;
+.board-card {
+    display: block;
+    text-align: center;
     text-decoration: none;
+    color: #34345c;
 }
 
-#boards a:hover {
+.board-card:hover {
     color: #d00;
-    text-decoration: underline;
+}
+
+.board-card:hover .board-thumb {
+    border-color: #d00;
+}
+
+.board-thumb {
+    width: 150px;
+    height: 150px;
+    object-fit: cover;
+    border: 1px solid #b7c5d9;
+    display: block;
+    margin: 0 auto 5px;
+}
+
+.board-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.board-title {
+    font-weight: bold;
+    font-size: 12px;
+}
+
+.board-desc {
+    font-size: 11px;
+    color: #999;
 }
 
 br.clear-bug {
