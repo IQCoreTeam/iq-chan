@@ -347,9 +347,12 @@ blockquote.postMessage {
 /* Thread stats */
 .thread-stats {
     display: inline;
-    font-size: 12px;
-    color: #707070;
+    font-size: 14px;
+    color: #000;
+    cursor: default;
+    user-select: none;
 }
+
 
 /* Bottom nav */
 .navLinksBot {
@@ -414,7 +417,7 @@ blockquote.postMessage {
     text-align: center;
     font-size: 11px;
     color: #999;
-    margin: 20px 0;
+    margin: 5px 0;
 }
 
 #absbot a {
@@ -440,7 +443,36 @@ blockquote.postMessage {
     font-size: 13px;
 }
 
-/* Pagination */
+/* Pagelist (board page) */
+.pagelist {
+    font-size: 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    padding: 3px 0;
+    clear: both;
+}
+
+.pagelist .prev,
+.pagelist .next,
+.pagelist .pages {
+    display: inline;
+}
+
+.pagelist a {
+    color: #34345c;
+    text-decoration: none;
+}
+
+.pagelist a:hover {
+    color: #d00;
+}
+
+.pagelist .muted {
+    color: #89a;
+}
+
+/* Pagination (thread page) */
 .pagination {
     text-align: center;
     padding: 10px;

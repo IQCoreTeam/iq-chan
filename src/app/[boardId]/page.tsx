@@ -1,21 +1,65 @@
 "use client";
 
+import { useState, useMemo } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useThreads } from "../../hooks/use-threads";
 import { usePost } from "../../hooks/use-post";
-import { BOARDS } from "../../lib/constants";
+import { BOARDS, THREADS_PER_PAGE } from "../../lib/constants";
 import ThreadList from "../../components/thread-list";
 import PostForm from "../../components/post-form";
 import { FooterNav } from "../../components/board-nav";
+
+function PageList({ page, totalPages, onPage }: { page: number; totalPages: number; onPage: (n: number) => void }) {
+    return (
+        <div className="pagelist desktop">
+            <div className="prev">
+                <span>[{page > 0
+                    ? <a href="#" onClick={(e) => { e.preventDefault(); onPage(page - 1); }}>Previous</a>
+                    : <span className="muted">Previous</span>
+                }]</span>
+            </div>
+            <div className="pages">
+                {Array.from({ length: totalPages }, (_, i) => (
+                    <span key={i}>
+                        [{i === page
+                            ? <strong><a href="#" onClick={(e) => { e.preventDefault(); onPage(i); }}>{i + 1}</a></strong>
+                            : <a href="#" onClick={(e) => { e.preventDefault(); onPage(i); }}>{i + 1}</a>
+                        }]{" "}
+                    </span>
+                ))}
+            </div>
+            <div className="next">
+                <span>[{page < totalPages - 1
+                    ? <a href="#" onClick={(e) => { e.preventDefault(); onPage(page + 1); }}>Next</a>
+                    : <span className="muted">Next</span>
+                }]</span>
+            </div>
+        </div>
+    );
+}
 
 export default function BoardPage() {
     const { boardId } = useParams<{ boardId: string }>();
     const { threads, loading, error, hasMore, loadMore, refresh } = useThreads(boardId);
     const { createThread, loading: postLoading } = usePost();
+    const [page, setPage] = useState(0);
 
     const boardMeta = BOARDS.find((b) => b.id === boardId);
     const boardTitle = boardMeta ? `/${boardId}/ - ${boardMeta.title}` : `/${boardId}/`;
+
+    const totalPages = Math.max(1, Math.ceil(threads.length / THREADS_PER_PAGE));
+    const pageThreads = useMemo(() => {
+        const start = page * THREADS_PER_PAGE;
+        return threads.slice(start, start + THREADS_PER_PAGE);
+    }, [threads, page]);
+
+    function handlePage(n: number) {
+        setPage(n);
+        // Load more from server if near the end
+        if (n >= totalPages - 1 && hasMore) loadMore();
+        window.scrollTo(0, 0);
+    }
 
     return (
         <>
@@ -46,7 +90,7 @@ export default function BoardPage() {
             <div className="navLinks desktop">
                 [<Link href="/">Home</Link>]
                 {" "}
-                [<a href="#" onClick={(e) => { e.preventDefault(); refresh(); }}>Refresh</a>]
+                [<a href="#" onClick={(e) => { e.preventDefault(); refresh(); setPage(0); }}>Refresh</a>]
                 {" "}
                 [<a href="#bottom">Bottom</a>]
             </div>
@@ -60,23 +104,10 @@ export default function BoardPage() {
             ) : threads.length === 0 ? (
                 <div className="loading-text">No threads yet. Be the first to post!</div>
             ) : (
-                <>
-                    <ThreadList threads={threads} boardId={boardId} />
-                    {hasMore && (
-                        <div className="pagelist" style={{ textAlign: "center", padding: 10, fontSize: 13 }}>
-                            <button
-                                onClick={loadMore}
-                                disabled={loading}
-                                style={{ color: "#34345c", background: "none", border: "none", cursor: "pointer", fontSize: 13 }}
-                            >
-                                {loading ? "Loading..." : "[Next]"}
-                            </button>
-                        </div>
-                    )}
-                </>
+                <ThreadList threads={pageThreads} boardId={boardId} />
             )}
 
-            <hr style={{ border: "none", borderTop: "1px solid #b7c5d9" }} />
+            <PageList page={page} totalPages={totalPages} onPage={handlePage} />
 
             <FooterNav />
 

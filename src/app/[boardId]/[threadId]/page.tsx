@@ -22,13 +22,9 @@ export default function ThreadPage() {
         op,
         replies,
         page,
-        totalPages,
         totalReplies,
         loading,
         error,
-        goToPage,
-        nextPage,
-        prevPage,
         refresh,
     } = usePaginatedReplies(threadPda);
 
@@ -68,17 +64,21 @@ export default function ThreadPage() {
 
             <hr className="desktop" id="op" style={{ border: "none", borderTop: "1px solid #b7c5d9" }} />
 
-            <div className="navLinks desktop">
-                [<Link href={`/${boardId}`} accessKey="a">Return</Link>]
-                {" "}
-                [<a href="#bottom">Bottom</a>]
-                <div className="thread-stats" style={{ display: "inline", marginLeft: 10 }}>
-                    <span data-tip="Replies">{totalReplies}</span>
-                    {" / "}
-                    <span data-tip="Images">{replies.filter((r) => r.img).length}</span>
+            <div className="navLinks desktop" style={{ display: "flex", alignItems: "center" }}>
+                <div>
+                    [<Link href={`/${boardId}`} accessKey="a">Return</Link>]
+                    {" "}
+                    [<a href="#bottom">Bottom</a>]
+                    {" "}
+                    [<a href="#" onClick={(e) => { e.preventDefault(); refresh(); }}>Update</a>]
                 </div>
-                {" "}
-                [<a href="#" onClick={(e) => { e.preventDefault(); refresh(); }}>Update</a>]
+                <div className="thread-stats" style={{ marginLeft: "auto" }}>
+                    <span className="ts-replies" title="Replies">{totalReplies}</span>
+                    {" / "}
+                    <span className="ts-images" title="Images">{replies.filter((r) => r.img).length}</span>
+                    {" / "}
+                    <span className="ts-page" title="Page">{page + 1}</span>
+                </div>
             </div>
 
             <hr style={{ border: "none", borderTop: "1px solid #b7c5d9" }} />
@@ -91,19 +91,32 @@ export default function ThreadPage() {
                 <ThreadDetail
                     thread={op ?? undefined}
                     replies={replies}
-                    page={page}
-                    totalPages={totalPages}
-                    totalReplies={totalReplies}
-                    onPageChange={goToPage}
-                    onNextPage={nextPage}
-                    onPrevPage={prevPage}
-                    onRefresh={refresh}
                     loading={loading}
                     onQuote={onQuote}
                 />
             )}
 
             <hr style={{ border: "none", borderTop: "1px solid #b7c5d9" }} />
+
+            <div className="navLinks navLinksBot desktop" style={{ position: "relative", display: "flex", alignItems: "center" }}>
+                <div>
+                    [<Link href={`/${boardId}`} accessKey="a">Return</Link>]
+                    {" "}
+                    [<a href="#top">Top</a>]
+                    {" "}
+                    [<a href="#" onClick={(e) => { e.preventDefault(); refresh(); }}>Update</a>]
+                </div>
+                <div style={{ position: "absolute", left: "50%", transform: "translateX(-50%)", fontSize: "110%" }}>
+                    [<a href="#" onClick={(e) => { e.preventDefault(); setQrOpen(true); }} style={{ color: "#34345c", textDecoration: "none" }}>Post a Reply</a>]
+                </div>
+                <div className="thread-stats" style={{ marginLeft: "auto" }}>
+                    <span className="ts-replies" title="Replies">{totalReplies}</span>
+                    {" / "}
+                    <span className="ts-images" title="Images">{replies.filter((r) => r.img).length}</span>
+                    {" / "}
+                    <span className="ts-page" title="Page">{page + 1}</span>
+                </div>
+            </div>
 
             <FooterNav />
 

@@ -7,35 +7,17 @@ import Post from "./post";
 export default function ThreadDetail({
     thread,
     replies,
-    page,
-    totalPages,
-    totalReplies,
-    onPageChange,
-    onNextPage,
-    onPrevPage,
-    onRefresh,
     loading,
     onQuote,
 }: {
     thread?: PostType;
     replies: Reply[];
-    page: number;
-    totalPages: number;
-    totalReplies: number;
-    onPageChange: (page: number) => void;
-    onNextPage: () => void;
-    onPrevPage: () => void;
-    onRefresh: () => void;
     loading: boolean;
     onQuote?: (sig: string) => void;
 }) {
-    // Build backlink map: for each post, which other posts reference it via >>
     const backlinkMap = useMemo(() => {
         const map: Record<string, string[]> = {};
-        const allPosts = [
-            ...(thread ? [thread] : []),
-            ...replies,
-        ];
+        const allPosts = [...(thread ? [thread] : []), ...replies];
         for (const post of allPosts) {
             const sig = post.__txSignature;
             if (!sig) continue;
@@ -43,7 +25,6 @@ export default function ThreadDetail({
             if (!matches) continue;
             for (const match of matches) {
                 const targetSig = match.slice(2);
-                // Find if any post's txSig starts with this
                 for (const target of allPosts) {
                     if (target.__txSignature?.startsWith(targetSig)) {
                         if (!map[target.__txSignature]) map[target.__txSignature] = [];
@@ -73,7 +54,6 @@ export default function ThreadDetail({
                         onQuote={onQuote}
                     />
                 )}
-
                 {loading && replies.length === 0 ? (
                     <div className="loading-text">Loading replies...</div>
                 ) : (
@@ -89,33 +69,6 @@ export default function ThreadDetail({
                             onQuote={onQuote}
                         />
                     ))
-                )}
-            </div>
-
-            <hr style={{ borderTop: "1px solid #b7c5d9", border: "none", borderTopWidth: 1, borderTopStyle: "solid", borderTopColor: "#b7c5d9" }} />
-
-            <div className="navLinksBot">
-                [<a href="#" onClick={(e) => { e.preventDefault(); onRefresh(); }}>Update</a>]
-                {" "}
-                <span className="thread-stats">
-                    {totalReplies} replies
-                </span>
-
-                {totalPages > 1 && (
-                    <div className="pagination">
-                        <button onClick={onPrevPage} disabled={page === 0 || loading}>[Prev]</button>
-                        {Array.from({ length: totalPages }, (_, i) => (
-                            <button
-                                key={i}
-                                onClick={() => onPageChange(i)}
-                                disabled={loading}
-                                className={i === page ? "current" : ""}
-                            >
-                                {i + 1}
-                            </button>
-                        ))}
-                        <button onClick={onNextPage} disabled={page === totalPages - 1 || loading}>[Next]</button>
-                    </div>
                 )}
             </div>
         </div>

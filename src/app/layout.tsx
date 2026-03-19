@@ -38,7 +38,7 @@ export default function RootLayout({
             <body className="yotsuba-b">
                 <Providers>
                     <Header />
-                    <main style={{ maxWidth: 900, margin: "0 auto", padding: "0 10px" }}>
+                    <main style={{ padding: "0 5px" }}>
                         {children}
                     </main>
                 </Providers>
