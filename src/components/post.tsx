@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+
 export default function Post({
     txSig,
     com,
@@ -27,6 +29,7 @@ export default function Post({
 }) {
     const timeStr = new Date(time * 1000).toLocaleString();
     const shortSig = txSig.slice(0, 8);
+    const [expanded, setExpanded] = useState(false);
 
     const postClass = isOp ? "post op" : "post reply";
 
@@ -36,11 +39,21 @@ export default function Post({
             <div id={`p${shortSig}`} className={postClass}>
                 {img && (
                     <div className="file">
-                        <a className="fileThumb" href={img} target="_blank" rel="noopener noreferrer">
+                        <a
+                            className="fileThumb"
+                            href={img}
+                            onClick={(e) => {
+                                e.preventDefault();
+                                setExpanded((v) => !v);
+                            }}
+                        >
                             <img
                                 src={img}
                                 alt=""
-                                style={{ maxHeight: 150, maxWidth: 150 }}
+                                style={expanded
+                                    ? { maxWidth: "100%", maxHeight: "none" }
+                                    : { maxHeight: 150, maxWidth: 150 }
+                                }
                                 loading="lazy"
                             />
                         </a>
