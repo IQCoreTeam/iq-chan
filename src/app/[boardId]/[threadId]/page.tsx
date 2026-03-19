@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from "react";
 import Link from "next/link";
+import { useParams } from "next/navigation";
 import { usePaginatedReplies } from "../../../hooks/use-paginated-replies";
 import { usePost } from "../../../hooks/use-post";
 import { BOARDS } from "../../../lib/constants";
@@ -9,12 +10,10 @@ import ThreadDetail from "../../../components/thread-detail";
 import PostForm from "../../../components/post-form";
 import QuickReply from "../../../components/quick-reply";
 
-export default function ThreadPage({
-    params,
-}: {
-    params: { boardId: string; threadId: string };
-}) {
-    const { boardId, threadId: threadPda } = params;
+export default function ThreadPage() {
+    const params = useParams<{ boardId: string; threadId: string }>();
+    const boardId = params.boardId;
+    const threadPda = params.threadId;
     const [qrOpen, setQrOpen] = useState(false);
     const [qrQuote, setQrQuote] = useState<string | undefined>();
 
@@ -56,19 +55,6 @@ export default function ThreadPage({
 
             <hr style={{ border: "none", borderTop: "1px solid #b7c5d9" }} />
 
-            <div className="navLinks">
-                [<Link href={`/${boardId}`}>Return</Link>]
-                {" "}
-                [<a href="#bottom">Bottom</a>]
-                <div className="thread-stats" style={{ display: "inline", marginLeft: 10 }}>
-                    <span>{totalReplies}</span>
-                    {" / "}
-                    <span>{replies.filter((r) => r.img).length}</span>
-                </div>
-                {" "}
-                [<a href="#" onClick={(e) => { e.preventDefault(); refresh(); }}>Update</a>]
-            </div>
-
             {threadSeed && (
                 <PostForm
                     mode="reply"
@@ -78,6 +64,21 @@ export default function ThreadPage({
                     loading={postLoading}
                 />
             )}
+
+            <hr className="desktop" id="op" style={{ border: "none", borderTop: "1px solid #b7c5d9" }} />
+
+            <div className="navLinks desktop">
+                [<Link href={`/${boardId}`} accessKey="a">Return</Link>]
+                {" "}
+                [<a href="#bottom">Bottom</a>]
+                <div className="thread-stats" style={{ display: "inline", marginLeft: 10 }}>
+                    <span data-tip="Replies">{totalReplies}</span>
+                    {" / "}
+                    <span data-tip="Images">{replies.filter((r) => r.img).length}</span>
+                </div>
+                {" "}
+                [<a href="#" onClick={(e) => { e.preventDefault(); refresh(); }}>Update</a>]
+            </div>
 
             <hr style={{ border: "none", borderTop: "1px solid #b7c5d9" }} />
 

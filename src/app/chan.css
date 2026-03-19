@@ -113,10 +113,6 @@
     margin: 5px 0;
 }
 
-.post.op .postInfo {
-    display: inline;
-}
-
 /* Reply post */
 .replyContainer {
     margin-left: 25px;
@@ -145,6 +141,20 @@
 .postInfo {
     padding: 2px 5px;
     font-size: 13px;
+    position: relative;
+}
+
+.postInfo.desktop {
+    display: block;
+}
+
+.post.op .postInfo.desktop {
+    display: inline;
+}
+
+.postInfo input[type="checkbox"] {
+    margin: 0 2px 0 0;
+    vertical-align: middle;
 }
 
 .subject {
@@ -170,6 +180,10 @@
     color: #d00;
 }
 
+.postNum.desktop {
+    display: inline;
+}
+
 /* Post message */
 .postMessage {
     font-size: 13px;
@@ -186,6 +200,11 @@
 .quotelink {
     color: #d00;
     text-decoration: underline;
+}
+
+.deadlink {
+    color: #789922;
+    text-decoration: line-through;
 }
 
 /* File / thumbnail */
@@ -208,14 +227,35 @@
 }
 
 .fileThumb {
-    float: left;
+    display: inline-block;
     margin: 3px 20px 5px;
+}
+
+.post.op .fileThumb {
+    float: left;
+}
+
+.post.reply .file {
+    margin: 3px 20px 0;
+}
+
+.post.reply .fileThumb {
+    float: left;
+    margin: 3px 20px 5px 0;
 }
 
 .fileThumb img {
     border: none;
-    max-width: 150px;
-    max-height: 150px;
+}
+
+.post.op .fileThumb img {
+    max-width: 250px;
+    max-height: 250px;
+}
+
+.post.reply .fileThumb img {
+    max-width: 125px;
+    max-height: 125px;
 }
 
 /* Summary (X replies omitted) */
@@ -266,7 +306,8 @@
 /* Backlinks */
 .backlink {
     font-size: 12px;
-    margin-top: 2px;
+    display: inline-block;
+    margin-left: 5px;
 }
 
 .backlink a {
@@ -298,28 +339,12 @@
     color: #d00;
 }
 
-/* Board page thread preview */
-.threadPreview {
-    background: #d6daf0;
-    border: 1px solid #b7c5d9;
-    border-left: none;
-    border-top: none;
-    margin: 5px 0;
-    padding: 5px;
-    display: block;
-    text-decoration: none;
-    color: #000;
-}
-
-.threadPreview:hover {
-    background: #d0d4ea;
-}
-
 /* Toggle post form */
 #togglePostFormLink {
     text-align: center;
-    margin: 10px 0;
-    font-size: 13px;
+    margin: 16px 0;
+    font-size: 24px;
+    font-weight: bold;
 }
 
 #togglePostFormLink a {
@@ -349,6 +374,13 @@
 #absbot a {
     color: #34345c;
     text-decoration: none;
+}
+
+/* Highlight on hover/click */
+.post.highlight,
+.post.reply.highlight {
+    background: #d6bad0 !important;
+    transition: background 0.3s ease;
 }
 
 /* Loading */
@@ -385,12 +417,6 @@
 .pagination .current {
     font-weight: bold;
     text-decoration: underline;
-}
-
-/* Wallet cost */
-.postCost {
-    font-size: 11px;
-    color: #707070;
 }
 
 /* Image preview in form */

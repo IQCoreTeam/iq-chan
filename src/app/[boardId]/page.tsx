@@ -1,35 +1,20 @@
 "use client";
 
-import { useState, useMemo } from "react";
 import Link from "next/link";
+import { useParams } from "next/navigation";
 import { useThreads } from "../../hooks/use-threads";
 import { usePost } from "../../hooks/use-post";
 import { BOARDS } from "../../lib/constants";
 import ThreadList from "../../components/thread-list";
 import PostForm from "../../components/post-form";
 
-export default function BoardPage({
-    params,
-}: {
-    params: { boardId: string };
-}) {
-    const { boardId } = params;
-    const [search, setSearch] = useState("");
+export default function BoardPage() {
+    const { boardId } = useParams<{ boardId: string }>();
     const { threads, loading, error, hasMore, loadMore, refresh } = useThreads(boardId);
     const { createThread, loading: postLoading } = usePost();
 
     const boardMeta = BOARDS.find((b) => b.id === boardId);
     const boardTitle = boardMeta ? `/${boardId}/ - ${boardMeta.title}` : `/${boardId}/`;
-
-    const filteredThreads = useMemo(() => {
-        const q = search.toLowerCase().trim();
-        if (!q) return threads;
-        return threads.filter((t) => {
-            const op = t.opData;
-            if (!op) return false;
-            return (op.sub?.toLowerCase().includes(q)) || op.com.toLowerCase().includes(q);
-        });
-    }, [threads, search]);
 
     return (
         <>
@@ -44,26 +29,6 @@ export default function BoardPage({
 
             <hr style={{ border: "none", borderTop: "1px solid #b7c5d9" }} />
 
-            <div className="navLinks">
-                [<Link href="/">Home</Link>]
-                {" "}
-                [<a href="#" onClick={(e) => { e.preventDefault(); refresh(); }}>Refresh</a>]
-                {" "}
-                [<a href="#bottom">Bottom</a>]
-            </div>
-
-            <div id="ctrl-top" style={{ fontSize: 12, margin: "5px 0" }}>
-                <hr style={{ border: "none", borderTop: "1px solid #b7c5d9" }} />
-                <input
-                    type="text"
-                    id="search-box"
-                    placeholder="Search OPs..."
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    style={{ fontSize: 12, padding: "1px 4px", border: "1px solid #aaa", marginRight: 5 }}
-                />
-            </div>
-
             <PostForm
                 mode="thread"
                 onSubmit={(data) =>
@@ -77,15 +42,25 @@ export default function BoardPage({
 
             <hr style={{ border: "none", borderTop: "1px solid #b7c5d9" }} />
 
-            {loading && filteredThreads.length === 0 ? (
+            <div className="navLinks desktop">
+                [<Link href="/">Home</Link>]
+                {" "}
+                [<a href="#" onClick={(e) => { e.preventDefault(); refresh(); }}>Refresh</a>]
+                {" "}
+                [<a href="#bottom">Bottom</a>]
+            </div>
+
+            <hr style={{ border: "none", borderTop: "1px solid #b7c5d9" }} />
+
+            {loading && threads.length === 0 ? (
                 <div className="loading-text">Loading threads...</div>
             ) : error ? (
                 <div className="loading-text" style={{ color: "#d00" }}>Error: {error.message}</div>
-            ) : filteredThreads.length === 0 ? (
+            ) : threads.length === 0 ? (
                 <div className="loading-text">No threads yet. Be the first to post!</div>
             ) : (
                 <>
-                    <ThreadList threads={filteredThreads} boardId={boardId} />
+                    <ThreadList threads={threads} boardId={boardId} />
                     {hasMore && (
                         <div className="pagelist" style={{ textAlign: "center", padding: 10, fontSize: 13 }}>
                             <button
