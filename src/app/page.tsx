@@ -18,15 +18,17 @@ export default function HomePage() {
                 </div>
                 <div className="boxcontent">
                     <p>
-                        iqchan is a fully on-chain imageboard built on Solana. Every post is a
-                        transaction, every thread is its own on-chain table. No accounts needed
-                        &mdash; just connect your wallet and post. All data lives on Solana, powered
-                        by the <a href="https://iqlabs.dev" target="_blank" rel="noopener noreferrer">IQ Labs</a> DB
-                        contract.
+                        iqchan is a simple on-chain bulletin board where anyone can post comments
+                        and share images. There are boards dedicated to a variety of topics, from
+                        business and finance to technology, anime, and shitposting. Users do not
+                        need to register an account before participating in the community.
+                        Just connect a Solana wallet and jump right in!
                     </p>
                     <br />
                     <p>
-                        Click on a board below that interests you and jump right in!
+                        Every post is a Solana transaction. Every thread is an on-chain table.
+                        Nothing can be taken down. Feel free to click on a board below that
+                        interests you and start posting!
                     </p>
                 </div>
             </div>
@@ -64,7 +66,7 @@ export default function HomePage() {
                 </div>
             </div>
 
-            {/* Footer */}
+            {/* Footer top links */}
             <div className="fp-footer">
                 <ul>
                     <li><Link href="/">Home</Link></li>
@@ -74,7 +76,13 @@ export default function HomePage() {
                     <li><a href="https://github.com/IQCoreTeam" target="_blank" rel="noopener noreferrer">GitHub</a></li>
                 </ul>
                 <div className="fp-copyright">
-                    Powered by <a href="https://iqlabs.dev" target="_blank" rel="noopener noreferrer">IQ Labs</a> on Solana
+                    <a href="https://iqlabs.dev" target="_blank" rel="noopener noreferrer">About</a>
+                    {" \u2022 "}
+                    <a href="https://x.com/IQLabsOfficial" target="_blank" rel="noopener noreferrer">Feedback</a>
+                    {" \u2022 "}
+                    <a href="https://github.com/IQCoreTeam" target="_blank" rel="noopener noreferrer">Source</a>
+                    <br /><br />
+                    All posts are Solana transactions. Powered by IQ Labs.
                 </div>
             </div>
         </div>
