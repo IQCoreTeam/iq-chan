@@ -58,6 +58,35 @@ export default function HomePage() {
                 </div>
             </div>
 
+            <div className="box-outer top-box" id="popular-threads">
+                <div className="box-inner">
+                    <div className="boxbar">
+                        <h2>Popular Boards</h2>
+                    </div>
+                    <div className="boxcontent">
+                        <div id="c-threads">
+                            {BOARDS.map((b) => (
+                                <div key={b.id} className="c-thread">
+                                    <div className="c-board">/{b.id}/</div>
+                                    <Link href={`/${b.id}`} className="boardlink">
+                                        <img
+                                            alt=""
+                                            className="c-thumb"
+                                            src={b.image}
+                                            width="150"
+                                            height="150"
+                                        />
+                                    </Link>
+                                    <div className="c-teaser">
+                                        <b>{b.title}</b>: {b.description}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div className="box-outer top-box" id="site-stats">
                 <div className="box-inner">
                     <div className="boxbar">
