@@ -1,21 +1,10 @@
-// Parsing utilities specific to iqchan — not in SDK
-
 import type { Row } from "./gateway";
 
-// mergeInstructions(posts, instructions)
-//   Apply edit/delete instruction logs to a list of posts.
-//   Instructions are append-only — originals are immutable on-chain.
-//
-// Input:  posts (Row[]) — original posts from readTableRows
-//         instructions (Row[]) — edit/delete logs from instruction table
-// Output: Row[] — posts with edits applied, deleted posts removed
-export function mergeInstructions(
-    posts: Row[],
-    instructions: Row[],
-): Row[] {
+// Apply edit/delete instruction logs to posts.
+// Edits overwrite fields, deletes remove the post.
+export function mergeInstructions(posts: Row[], instructions: Row[]): Row[] {
     if (instructions.length === 0) return posts;
 
-    // Group instructions by target signature
     const byTarget = new Map<string, Row[]>();
     for (const instr of instructions) {
         const target = instr.target as string | undefined;
@@ -34,7 +23,6 @@ export function mergeInstructions(
 
         let merged = { ...post };
         for (const instr of instrList) {
-            // Check if this is a delete (empty data / no meaningful fields beyond target)
             const dataKeys = Object.keys(instr).filter(
                 (k) => k !== "target" && k !== "__txSignature",
             );
@@ -42,7 +30,6 @@ export function mergeInstructions(
                 deleted.add(sig);
                 return merged;
             }
-            // Edit: overwrite fields from instruction onto post
             if (instr.com !== undefined) {
                 merged = { ...merged, com: instr.com as string };
             }

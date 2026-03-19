@@ -1,36 +1,31 @@
-// Board-specific logic that SDK doesn't provide.
-// getFeedPda — feed PDA derivation (one per board, address-only PDA for tx indexing)
-// fetchFeedThreads — feed-based thread listing with bump ordering
-
 import { Connection, PublicKey } from "@solana/web3.js";
 import iqlabs from "iqlabs-sdk";
 import { FEED_SEED_PREFIX, THREADS_PER_PAGE } from "./constants";
 import { fetchTableSlice, fetchAllTableRows } from "./gateway";
-import type { Post } from "./types";
+import type { Post, Reply } from "./types";
 
 const PROGRAM_ID = iqlabs.contract.PROGRAM_ID;
 
-// ─── Feed PDA derivation ────────────────────────────────────────────────────
-
-export function getFeedPda(dbRootKey: PublicKey, boardId: string): PublicKey {
-    const boardIdHash = iqlabs.utils.toSeedBytes(boardId);
-    return PublicKey.findProgramAddressSync(
-        [
-            Buffer.from(FEED_SEED_PREFIX),
-            PROGRAM_ID.toBuffer(),
-            dbRootKey.toBuffer(),
-            Buffer.from(boardIdHash),
-        ],
-        PROGRAM_ID,
-    )[0];
-}
-
-// ─── Feed-based thread listing ──────────────────────────────────────────────
+const REPLY_PREVIEW_COUNT = 5;
 
 export interface ThreadEntry {
     threadPda: string;
     opData: Post | null;
     lastActivityTime: number;
+    replyCount: number;
+    lastReplies: Reply[];
+}
+
+export function getFeedPda(dbRootKey: PublicKey, boardId: string): PublicKey {
+    return PublicKey.findProgramAddressSync(
+        [
+            Buffer.from(FEED_SEED_PREFIX),
+            PROGRAM_ID.toBuffer(),
+            dbRootKey.toBuffer(),
+            Buffer.from(iqlabs.utils.toSeedBytes(boardId)),
+        ],
+        PROGRAM_ID,
+    )[0];
 }
 
 const FEED_BATCH_SIZE = 50;
@@ -55,28 +50,24 @@ export async function fetchFeedThreads(
         const rows = await fetchTableSlice(feedPda.toBase58(), sigStrings);
 
         for (const row of rows) {
-            const pda = row.threadPda as string | undefined;
-            if (!pda) continue; // skip old data without threadPda
+            const post = row as Post;
+            if (!post.threadPda) continue;
 
-            const time = row.time as number ?? 0;
-            const existing = threads.get(pda);
+            const time = post.time ?? 0;
+            const existing = threads.get(post.threadPda);
+            const isOp = !!post.sub && post.sub.length > 0;
 
-            if (row.sub && (row.sub as string).length > 0) {
-                // OP row
-                const post = row as Post;
-                if (existing) {
-                    existing.opData = post;
-                    existing.lastActivityTime = Math.max(existing.lastActivityTime, time);
-                } else {
-                    threads.set(pda, { threadPda: pda, opData: post, lastActivityTime: time });
-                }
+            if (existing) {
+                if (isOp) existing.opData = post;
+                existing.lastActivityTime = Math.max(existing.lastActivityTime, time);
             } else {
-                // Reply row
-                if (existing) {
-                    existing.lastActivityTime = Math.max(existing.lastActivityTime, time);
-                } else {
-                    threads.set(pda, { threadPda: pda, opData: null, lastActivityTime: time });
-                }
+                threads.set(post.threadPda, {
+                    threadPda: post.threadPda,
+                    opData: isOp ? post : null,
+                    lastActivityTime: time,
+                    replyCount: 0,
+                    lastReplies: [],
+                });
             }
 
             if (threads.size >= THREADS_PER_PAGE) break;
@@ -85,19 +76,22 @@ export async function fetchFeedThreads(
         cursor = sigStrings[sigStrings.length - 1];
     }
 
-    // For threads where we haven't seen the OP yet, fetch it from the thread table
-    const missingOp = [...threads.values()].filter((t) => t.opData === null);
-    if (missingOp.length > 0) {
-        await Promise.all(
-            missingOp.map(async (entry) => {
-                const rows = await fetchAllTableRows(entry.threadPda, 10);
-                const op = rows.find((r) => r.sub && (r.sub as string).length > 0);
-                if (op) entry.opData = op as Post;
-            }),
-        );
-    }
+    // Fetch OP + reply previews for each thread
+    await Promise.all(
+        [...threads.values()].map(async (entry) => {
+            const rows = await fetchAllTableRows(entry.threadPda, 50);
+            const op = rows.find((r) => r.sub && r.sub.length > 0) as Post | undefined;
+            if (op && !entry.opData) entry.opData = op;
 
-    // Sort by latest activity descending
+            const replies = rows
+                .filter((r) => !r.sub || r.sub.length === 0)
+                .sort((a, b) => (a.time as number) - (b.time as number));
+
+            entry.replyCount = replies.length;
+            entry.lastReplies = replies.slice(-REPLY_PREVIEW_COUNT) as Reply[];
+        }),
+    );
+
     const sorted = [...threads.values()]
         .filter((t) => t.opData !== null)
         .sort((a, b) => b.lastActivityTime - a.lastActivityTime);

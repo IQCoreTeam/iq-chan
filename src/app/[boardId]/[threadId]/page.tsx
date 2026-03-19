@@ -1,77 +1,57 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { fetchAllTableRows } from "../../../lib/gateway";
-import type { Post } from "../../../lib/types";
+import { useState, useCallback } from "react";
+import Link from "next/link";
+import { useParams } from "next/navigation";
 import { usePaginatedReplies } from "../../../hooks/use-paginated-replies";
 import { usePost } from "../../../hooks/use-post";
+import { BOARDS } from "../../../lib/constants";
 import ThreadDetail from "../../../components/thread-detail";
 import PostForm from "../../../components/post-form";
+import QuickReply from "../../../components/quick-reply";
+import { FooterNav } from "../../../components/board-nav";
 
-export default function ThreadPage({
-    params,
-}: {
-    params: { boardId: string; threadId: string };
-}) {
-    const { boardId, threadId: threadPda } = params;
-
-    // Fetch OP from thread table (sub is non-empty)
-    const [op, setOp] = useState<Post | null>(null);
-    const [opLoading, setOpLoading] = useState(true);
-
-    useEffect(() => {
-        let cancelled = false;
-        async function loadOp() {
-            setOpLoading(true);
-            try {
-                const rows = await fetchAllTableRows(threadPda, 50);
-                if (cancelled) return;
-                const opRow = rows.find((r) => r.sub && (r.sub as string).length > 0);
-                setOp((opRow as Post) ?? null);
-            } catch (e) {
-                console.error("[iqchan] Failed to load OP:", e);
-            } finally {
-                if (!cancelled) setOpLoading(false);
-            }
-        }
-        loadOp();
-        return () => { cancelled = true; };
-    }, [threadPda]);
-
-    const threadSeed = op?.threadSeed ?? "";
+export default function ThreadPage() {
+    const params = useParams<{ boardId: string; threadId: string }>();
+    const boardId = params.boardId;
+    const threadPda = params.threadId;
+    const [qrOpen, setQrOpen] = useState(false);
+    const [qrQuote, setQrQuote] = useState<string | undefined>();
 
     const {
+        op,
         replies,
         page,
-        totalPages,
         totalReplies,
         loading,
         error,
-        goToPage,
-        nextPage,
-        prevPage,
         refresh,
-    } = usePaginatedReplies(threadPda, threadSeed);
+    } = usePaginatedReplies(threadPda);
 
     const { postReply, loading: postLoading } = usePost();
 
-    if (opLoading) return <div>Loading...</div>;
-    if (error) return <div>Error: {error.message}</div>;
+    const boardMeta = BOARDS.find((b) => b.id === boardId);
+    const boardTitle = boardMeta ? `/${boardId}/ - ${boardMeta.title}` : `/${boardId}/`;
+    const threadSeed = op?.threadSeed ?? "";
+
+    const onQuote = useCallback((sig: string) => {
+        setQrQuote(sig);
+        setQrOpen(true);
+    }, []);
 
     return (
         <>
-            <ThreadDetail
-                thread={op ?? undefined}
-                replies={replies}
-                page={page}
-                totalPages={totalPages}
-                totalReplies={totalReplies}
-                onPageChange={goToPage}
-                onNextPage={nextPage}
-                onPrevPage={prevPage}
-                onRefresh={refresh}
-                loading={loading}
-            />
+            <div className="boardBanner">
+                {boardMeta && (
+                    <div className="title" style={{ textAlign: "center" }}>
+                        <img alt={boardId} src={boardMeta.image} style={{ maxHeight: 100, display: "block", margin: "0 auto" }} />
+                    </div>
+                )}
+                <div className="boardTitle">{boardTitle}</div>
+            </div>
+
+            <hr style={{ border: "none", borderTop: "1px solid #b7c5d9" }} />
+
             {threadSeed && (
                 <PostForm
                     mode="reply"
@@ -79,6 +59,76 @@ export default function ThreadPage({
                         postReply(threadSeed, threadPda, boardId, data)
                     }
                     loading={postLoading}
+                />
+            )}
+
+            <hr className="desktop" id="op" style={{ border: "none", borderTop: "1px solid #b7c5d9" }} />
+
+            <div className="navLinks desktop" style={{ display: "flex", alignItems: "center" }}>
+                <div>
+                    [<Link href={`/${boardId}`} accessKey="a">Return</Link>]
+                    {" "}
+                    [<a href="#bottom">Bottom</a>]
+                    {" "}
+                    [<a href="#" onClick={(e) => { e.preventDefault(); refresh(); }}>Update</a>]
+                </div>
+                <div className="thread-stats" style={{ marginLeft: "auto" }}>
+                    <span className="ts-replies" title="Replies">{totalReplies}</span>
+                    {" / "}
+                    <span className="ts-images" title="Images">{replies.filter((r) => r.img).length}</span>
+                    {" / "}
+                    <span className="ts-page" title="Page">{page + 1}</span>
+                </div>
+            </div>
+
+            <hr style={{ border: "none", borderTop: "1px solid #b7c5d9" }} />
+
+            {loading && !op ? (
+                <div className="loading-text">Loading...</div>
+            ) : error ? (
+                <div className="loading-text" style={{ color: "#d00" }}>Error: {error.message}</div>
+            ) : (
+                <ThreadDetail
+                    thread={op ?? undefined}
+                    replies={replies}
+                    loading={loading}
+                    onQuote={onQuote}
+                />
+            )}
+
+            <hr style={{ border: "none", borderTop: "1px solid #b7c5d9" }} />
+
+            <div className="navLinks navLinksBot desktop" style={{ position: "relative", display: "flex", alignItems: "center" }}>
+                <div>
+                    [<Link href={`/${boardId}`} accessKey="a">Return</Link>]
+                    {" "}
+                    [<a href="#top">Top</a>]
+                    {" "}
+                    [<a href="#" onClick={(e) => { e.preventDefault(); refresh(); }}>Update</a>]
+                </div>
+                <div style={{ position: "absolute", left: "50%", transform: "translateX(-50%)", fontSize: "110%" }}>
+                    [<a href="#" onClick={(e) => { e.preventDefault(); setQrOpen(true); }} style={{ color: "#34345c", textDecoration: "none" }}>Post a Reply</a>]
+                </div>
+                <div className="thread-stats" style={{ marginLeft: "auto" }}>
+                    <span className="ts-replies" title="Replies">{totalReplies}</span>
+                    {" / "}
+                    <span className="ts-images" title="Images">{replies.filter((r) => r.img).length}</span>
+                    {" / "}
+                    <span className="ts-page" title="Page">{page + 1}</span>
+                </div>
+            </div>
+
+            <FooterNav />
+
+            <div id="bottom"></div>
+
+            {qrOpen && threadSeed && (
+                <QuickReply
+                    threadSig={op?.__txSignature ?? threadPda}
+                    onSubmit={(data) => postReply(threadSeed, threadPda, boardId, data)}
+                    loading={postLoading}
+                    onClose={() => setQrOpen(false)}
+                    initialQuote={qrQuote}
                 />
             )}
         </>

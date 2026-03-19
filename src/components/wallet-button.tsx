@@ -10,26 +10,29 @@ export default function WalletButton() {
     if (publicKey) {
         const addr = publicKey.toBase58();
         return (
-            <div className="flex items-center gap-2 text-sm">
-                <span className="font-mono">
+            <span style={{ fontSize: 12 }}>
+                <span style={{ fontFamily: "monospace" }}>
                     {addr.slice(0, 4)}...{addr.slice(-4)}
                 </span>
-                <button
-                    onClick={() => disconnect()}
-                    className="text-red-600 hover:underline"
+                {" "}
+                <a
+                    href="#"
+                    onClick={(e) => { e.preventDefault(); disconnect(); }}
+                    style={{ color: "#d00", textDecoration: "none" }}
                 >
                     Disconnect
-                </button>
-            </div>
+                </a>
+            </span>
         );
     }
 
     return (
-        <button
-            onClick={() => setVisible(true)}
-            className="bg-blue-600 text-white px-3 py-1 text-sm rounded hover:bg-blue-700"
+        <a
+            href="#"
+            onClick={(e) => { e.preventDefault(); setVisible(true); }}
+            style={{ color: "#34345c", textDecoration: "none", fontSize: 12 }}
         >
-            Connect Wallet
-        </button>
+            [Connect Wallet]
+        </a>
     );
 }

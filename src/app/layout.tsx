@@ -1,37 +1,47 @@
-"use client";
-
-import { useMemo } from "react";
-import { ConnectionProvider, WalletProvider } from "@solana/wallet-adapter-react";
-import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
-import { PhantomWalletAdapter, SolflareWalletAdapter } from "@solana/wallet-adapter-wallets";
+import type { Metadata } from "next";
 import Header from "../components/header";
-import { RPC_ENDPOINT } from "../lib/config";
+import Providers from "./providers";
 import "./globals.css";
-import "@solana/wallet-adapter-react-ui/styles.css";
+import "./chan.css";
+
+export const metadata: Metadata = {
+    title: {
+        default: "iqchan",
+        template: "%s | iqchan",
+    },
+    description: "On-chain imageboard on Solana",
+    icons: {
+        icon: "/favicon.ico",
+        apple: "/apple-icon.png",
+    },
+    openGraph: {
+        title: "iqchan",
+        description: "On-chain imageboard on Solana",
+        type: "website",
+        images: ["/og-image.png"],
+    },
+    twitter: {
+        card: "summary_large_image",
+        title: "iqchan",
+        description: "On-chain imageboard on Solana",
+        images: ["/og-image.png"],
+    },
+};
 
 export default function RootLayout({
     children,
 }: {
     children: React.ReactNode;
 }) {
-    const wallets = useMemo(
-        () => [new PhantomWalletAdapter(), new SolflareWalletAdapter()],
-        [],
-    );
-
     return (
         <html lang="en">
-            <body className="bg-[#ffffee] text-gray-900 min-h-screen">
-                <ConnectionProvider endpoint={RPC_ENDPOINT}>
-                    <WalletProvider wallets={wallets} autoConnect>
-                        <WalletModalProvider>
-                            <Header />
-                            <main className="max-w-3xl mx-auto py-4 px-2">
-                                {children}
-                            </main>
-                        </WalletModalProvider>
-                    </WalletProvider>
-                </ConnectionProvider>
+            <body className="yotsuba-b">
+                <Providers>
+                    <Header />
+                    <main style={{ padding: "0 5px" }}>
+                        {children}
+                    </main>
+                </Providers>
             </body>
         </html>
     );

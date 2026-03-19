@@ -1,7 +1,3 @@
-// Gateway API client for gateway.iqlabs.dev
-// Uses /rows endpoint (backed by getSignaturesForAddress, real-time)
-// instead of /index (backed by collectSignatures, has caching issues).
-
 import { GATEWAY_URL } from "./config";
 import type { Post } from "./types";
 
@@ -9,9 +5,7 @@ const isDev = process.env.NODE_ENV === "development";
 
 export type Row = Post & Record<string, unknown>;
 
-// ─── Primary: fetch rows directly via /rows endpoint ─────────────────────────
-
-export async function fetchTableRows(
+async function fetchTableRows(
     tablePda: string,
     limit = 50,
     before?: string,
@@ -19,29 +13,18 @@ export async function fetchTableRows(
     let url = `${GATEWAY_URL}/table/${tablePda}/rows?limit=${limit}`;
     if (before) url += `&before=${before}`;
 
-    if (isDev) console.log("[iqchan:gateway] fetchTableRows →", url);
+    if (isDev) console.log("[gateway] rows →", tablePda.slice(0, 8), limit);
     const res = await fetch(url);
     if (!res.ok) {
-        if (res.status === 404) {
-            if (isDev) console.log("[iqchan:gateway] fetchTableRows → 404, returning empty");
-            return { rows: [] };
-        }
-        console.error("[iqchan:gateway] fetchTableRows → HTTP", res.status);
+        if (res.status === 404) return { rows: [] };
         throw new Error(`fetchTableRows failed: ${res.status}`);
     }
     const data = await res.json();
     const rows: Row[] = data.rows ?? [];
-    const nextCursor: string | undefined = data.nextCursor ?? undefined;
-    if (isDev) {
-        console.log("[iqchan:gateway] fetchTableRows → got", rows.length, "rows", nextCursor ? `(nextCursor: ${nextCursor.slice(0, 20)}...)` : "(no more)");
-        if (rows.length > 0) {
-            console.log("[iqchan:gateway] first row:", JSON.stringify(rows[0]).slice(0, 120));
-        }
-    }
-    return { rows, nextCursor };
+    if (isDev) console.log("[gateway] rows ←", rows.length);
+    return { rows, nextCursor: data.nextCursor ?? undefined };
 }
 
-// Fetch all rows by paginating through /rows endpoint
 export async function fetchAllTableRows(
     tablePda: string,
     maxRows = 200,
@@ -60,63 +43,19 @@ export async function fetchAllTableRows(
     return allRows;
 }
 
-// ─── Legacy: /index + /slice (kept for paginated-replies) ────────────────────
-
-export async function fetchTableIndex(tablePda: string): Promise<string[]> {
-    const url = `${GATEWAY_URL}/table/${tablePda}/index`;
-    if (isDev) console.log("[iqchan:gateway] fetchTableIndex →", url);
-    const res = await fetch(url);
-    if (!res.ok) {
-        if (res.status === 404) {
-            if (isDev) console.log("[iqchan:gateway] fetchTableIndex → 404 (table not found), returning []");
-            return [];
-        }
-        console.error("[iqchan:gateway] fetchTableIndex → HTTP", res.status);
-        throw new Error(`fetchTableIndex failed: ${res.status}`);
-    }
-    const data = await res.json();
-    const sigs = data.signatures ?? [];
-    if (isDev) console.log("[iqchan:gateway] fetchTableIndex → found", sigs.length, "signatures");
-    return sigs;
-}
-
 export async function fetchTableSlice(
     tablePda: string,
     sigs: string[],
 ): Promise<Row[]> {
     if (sigs.length === 0) return [];
-    if (sigs.length > 50) {
-        throw new Error("fetchTableSlice: max 50 signatures per request");
-    }
+    if (sigs.length > 50) throw new Error("fetchTableSlice: max 50 sigs");
+
     const url = `${GATEWAY_URL}/table/${tablePda}/slice?sigs=${sigs.join(",")}`;
-    if (isDev) console.log("[iqchan:gateway] fetchTableSlice →", tablePda, "| sigs:", sigs.length);
+    if (isDev) console.log("[gateway] slice →", tablePda.slice(0, 8), sigs.length, "sigs");
     const res = await fetch(url);
-    if (!res.ok) {
-        console.error("[iqchan:gateway] fetchTableSlice → HTTP", res.status);
-        const body = await res.text().catch(() => "(no body)");
-        console.error("[iqchan:gateway] fetchTableSlice response body:", body);
-        throw new Error(`fetchTableSlice failed: ${res.status}`);
-    }
+    if (!res.ok) throw new Error(`fetchTableSlice failed: ${res.status}`);
     const data = await res.json();
     const rows = data.rows ?? [];
-    if (isDev) console.log("[iqchan:gateway] fetchTableSlice → got", rows.length, "rows");
+    if (isDev) console.log("[gateway] slice ←", rows.length);
     return rows;
-}
-
-export async function fetchTableSliceBatched(
-    tablePda: string,
-    sigs: string[],
-): Promise<Row[]> {
-    if (sigs.length === 0) return [];
-    if (sigs.length <= 50) return fetchTableSlice(tablePda, sigs);
-
-    const batches: string[][] = [];
-    for (let i = 0; i < sigs.length; i += 50) {
-        batches.push(sigs.slice(i, i + 50));
-    }
-
-    const results = await Promise.all(
-        batches.map((batch) => fetchTableSlice(tablePda, batch)),
-    );
-    return results.flat();
 }

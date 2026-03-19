@@ -1,12 +1,3 @@
-// Shared domain types for iqchan
-
-export interface Board {
-    board_id: string;
-    title: string;
-    description: string;
-    __txSignature?: string;
-}
-
 export interface Post {
     sub?: string;
     com: string;
