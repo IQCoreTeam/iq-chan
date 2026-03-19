@@ -31,7 +31,7 @@
 
 /* Boxes */
 .box-outer {
-    border: 1px solid #b7c5d9;
+    border: 1.5px solid #b7c5d9;
     zoom: 100%;
     margin-bottom: .5em;
     padding-bottom: .5em;
@@ -181,11 +181,24 @@ br.clear-bug {
 }
 
 #ft ul {
-    margin: auto;
-    border-top: 1px solid #b7c5d9;
-    display: inline-flex;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
     list-style: none;
     padding: 0;
+}
+
+#ft li.fill {
+    flex-basis: 100%;
+    height: 0;
+    border-top: 1px solid #b7c5d9;
+    padding: 0;
+    margin: 0;
+    background: none;
+    border-left: none;
+    border-right: none;
+    border-bottom: none;
 }
 
 #ft li {

@@ -142,6 +142,7 @@ export default function HomePage() {
 
             <div id="ft">
                 <ul>
+                    <li className="fill"></li>
                     <li><Link href="/">Home</Link></li>
                     <li><a href="https://iqlabs.dev" target="_blank" rel="noopener noreferrer">IQ Labs</a></li>
                     <li><a href="https://x.com/IQLabsOfficial" target="_blank" rel="noopener noreferrer">Twitter</a></li>
