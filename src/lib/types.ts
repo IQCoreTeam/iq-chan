@@ -1,9 +1,3 @@
-export interface Board {
-    board_id: string;
-    title: string;
-    description: string;
-}
-
 export interface Post {
     sub?: string;
     com: string;
