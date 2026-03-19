@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { formatPostMessage } from "../lib/format";
 
 export default function Post({
     txSig,
@@ -11,6 +12,7 @@ export default function Post({
     img,
     isOp,
     replyLink,
+    backlinks,
     isOwner,
     onEdit,
     onDelete,
@@ -23,6 +25,7 @@ export default function Post({
     img?: string;
     isOp?: boolean;
     replyLink?: string;
+    backlinks?: string[];
     isOwner?: boolean;
     onEdit?: () => void;
     onDelete?: () => void;
@@ -30,6 +33,7 @@ export default function Post({
     const timeStr = new Date(time * 1000).toLocaleString();
     const shortSig = txSig.slice(0, 8);
     const [expanded, setExpanded] = useState(false);
+    const [menuOpen, setMenuOpen] = useState(false);
 
     const postClass = isOp ? "post op" : "post reply";
 
@@ -78,6 +82,24 @@ export default function Post({
                             <> &nbsp; <span>[<a href={replyLink} className="replylink">Reply</a>]</span></>
                         )}
                     </span>
+                    <a
+                        href="#"
+                        className="postMenuBtn"
+                        title="Post menu"
+                        onClick={(e) => { e.preventDefault(); setMenuOpen((v) => !v); }}
+                    >
+                        ▶
+                    </a>
+                    {backlinks && backlinks.length > 0 && (
+                        <div className="backlink">
+                            {backlinks.map((bl) => (
+                                <span key={bl}>
+                                    <a href={`#pc${bl.slice(0, 8)}`} className="quotelink">&gt;&gt;{bl.slice(0, 8)}</a>
+                                    {" "}
+                                </span>
+                            ))}
+                        </div>
+                    )}
                     {isOwner && (
                         <span style={{ marginLeft: 5 }}>
                             {onEdit && (
@@ -93,8 +115,15 @@ export default function Post({
                         </span>
                     )}
                 </div>
+                {menuOpen && (
+                    <div className="postMenu" style={{ position: "absolute", background: "#d6daf0", border: "1px solid #b7c5d9", padding: "2px 0", fontSize: 12, zIndex: 10 }}>
+                        <a href={`https://solscan.io/tx/${txSig}`} target="_blank" rel="noopener noreferrer" style={{ display: "block", padding: "2px 10px", color: "#34345c", textDecoration: "none" }}>
+                            View on Solscan
+                        </a>
+                    </div>
+                )}
                 <blockquote className="postMessage">
-                    {com}
+                    {formatPostMessage(com)}
                 </blockquote>
             </div>
         </div>

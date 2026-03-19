@@ -43,6 +43,8 @@ export default function BoardPage({
                 [<Link href="/">Home</Link>]
                 {" "}
                 [<a href="#" onClick={(e) => { e.preventDefault(); refresh(); }}>Refresh</a>]
+                {" "}
+                [<a href="#bottom">Bottom</a>]
             </div>
 
             <div id="ctrl-top" style={{ fontSize: 12, margin: "5px 0" }}>

@@ -226,6 +226,32 @@
     color: #d00;
 }
 
+/* Post menu */
+.postMenuBtn {
+    color: #34345c;
+    text-decoration: none;
+    margin-left: 5px;
+    font-size: 10px;
+    cursor: pointer;
+}
+
+.postMenuBtn:hover {
+    color: #d00;
+}
+
+/* Backlinks */
+.backlink {
+    font-size: 12px;
+    margin-top: 2px;
+}
+
+.backlink a {
+    color: #d00;
+    text-decoration: underline;
+    margin-right: 3px;
+    font-size: 12px;
+}
+
 /* Thread stats */
 .thread-stats {
     display: inline;

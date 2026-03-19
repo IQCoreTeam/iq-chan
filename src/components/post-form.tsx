@@ -69,6 +69,20 @@ export default function PostForm({
                             />
                         </td>
                     </tr>
+                    <tr data-type="Options">
+                        <td>Options</td>
+                        <td>
+                            <input name="email" type="text" tabIndex={2} placeholder="sage" />
+                            {mode === "reply" && (
+                                <input
+                                    type="submit"
+                                    value={loading ? "Posting..." : "Post"}
+                                    disabled={loading || !com.trim()}
+                                    tabIndex={10}
+                                />
+                            )}
+                        </td>
+                    </tr>
                     {mode === "thread" && (
                         <tr data-type="Subject">
                             <td>Subject</td>
@@ -76,25 +90,11 @@ export default function PostForm({
                                 <input
                                     name="sub"
                                     type="text"
-                                    tabIndex={2}
+                                    tabIndex={3}
                                     placeholder="Subject"
                                     value={sub}
                                     onChange={(e) => setSub(e.target.value)}
                                 />
-                                <input
-                                    type="submit"
-                                    value={loading ? "Posting..." : "Post"}
-                                    disabled={loading || !com.trim()}
-                                    tabIndex={10}
-                                />
-                            </td>
-                        </tr>
-                    )}
-                    {mode === "reply" && (
-                        <tr data-type="Options">
-                            <td>Options</td>
-                            <td>
-                                <input name="email" type="text" tabIndex={2} placeholder="sage" />
                                 <input
                                     type="submit"
                                     value={loading ? "Posting..." : "Post"}
