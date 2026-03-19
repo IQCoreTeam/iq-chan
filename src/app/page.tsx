@@ -1,13 +1,165 @@
 "use client";
 
-import { useBoards } from "../hooks/use-boards";
-import BoardList from "../components/board-list";
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { BOARDS, DB_ROOT_KEY } from "../lib/constants";
+import { getFeedPda } from "../lib/board";
+import { fetchAllTableRows } from "../lib/gateway";
+import "./home.css";
+
+function useSiteStats() {
+    const [totalPosts, setTotalPosts] = useState<number | null>(null);
+    const [totalThreads, setTotalThreads] = useState<number | null>(null);
+
+    useEffect(() => {
+        let cancelled = false;
+
+        async function load() {
+            try {
+                const allRows = await Promise.all(
+                    BOARDS.map((b) => fetchAllTableRows(getFeedPda(DB_ROOT_KEY, b.id).toBase58())),
+                );
+                if (cancelled) return;
+
+                const rows = allRows.flat();
+                const threads = new Set<string>();
+                for (const r of rows) {
+                    if (r.threadPda) threads.add(r.threadPda as string);
+                }
+                setTotalPosts(rows.length);
+                setTotalThreads(threads.size);
+            } catch {
+                // stats are non-critical, fail silently
+            }
+        }
+
+        load();
+        return () => { cancelled = true; };
+    }, []);
+
+    return { totalPosts, totalThreads };
+}
 
 export default function HomePage() {
-    const { boards, loading, error } = useBoards();
+    const { totalPosts, totalThreads } = useSiteStats();
 
-    if (loading) return <div className="p-4 text-center text-sm text-gray-500">Loading boards...</div>;
-    if (error) return <div className="p-4 text-center text-sm text-red-600">Error: {error.message}</div>;
+    return (
+        <div className="fp-wrap">
+            <div className="fp-logo">
+                <Link href="/" title="Home">
+                    <img alt="iqchan" src="/iqchan-logo.png" width="300" height="120" />
+                </Link>
+            </div>
 
-    return <BoardList boards={boards} />;
+            <div className="box-outer" id="announce">
+                <div className="box-inner">
+                    <div className="boxbar">
+                        <h2>What is iqchan?</h2>
+                    </div>
+                    <div className="boxcontent">
+                        <p>
+                            iqchan is a simple on-chain bulletin board where anyone can post
+                            comments and share images. There are boards dedicated to a variety
+                            of topics, from business and finance to technology, anime, and
+                            shitposting. Users do not need to register an account before
+                            participating in the community. Just connect a Solana wallet and
+                            jump right in!
+                        </p>
+                        <br />
+                        <p>
+                            Every post is a Solana transaction. Every thread is an on-chain
+                            table. Nothing can be taken down. Feel free to click on a board
+                            below that interests you and start posting!
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div className="box-outer top-box" id="boards">
+                <div className="box-inner">
+                    <div className="boxbar">
+                        <h2>Boards</h2>
+                    </div>
+                    <div className="boxcontent">
+                        <div className="column">
+                            <h3>General</h3>
+                            <ul>
+                                {BOARDS.map((b) => (
+                                    <li key={b.id}>
+                                        <Link href={`/${b.id}`} className="boardlink">
+                                            {b.title}
+                                        </Link>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                        <br className="clear-bug" />
+                    </div>
+                </div>
+            </div>
+
+            <div className="box-outer top-box" id="popular-threads">
+                <div className="box-inner">
+                    <div className="boxbar">
+                        <h2>Popular Threads</h2>
+                    </div>
+                    <div className="boxcontent">
+                        <div id="c-threads">
+                            {BOARDS.map((b) => (
+                                <div key={b.id} className="c-thread">
+                                    <div className="c-board">{b.title}</div>
+                                    <Link href={`/${b.id}`} className="boardlink">
+                                        {b.image && <img alt="" className="c-thumb" src={b.image} width="150" height="150" />}
+                                    </Link>
+                                    <div className="c-teaser">
+                                        <b>/{b.id}/</b>: {b.description}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div className="box-outer top-box" id="site-stats">
+                <div className="box-inner">
+                    <div className="boxbar">
+                        <h2>Stats</h2>
+                    </div>
+                    <div className="boxcontent">
+                        <div className="stat-cell">
+                            <b>Total Posts:</b> {totalPosts !== null ? totalPosts.toLocaleString() : "..."}
+                        </div>
+                        <div className="stat-cell">
+                            <b>Active Threads:</b> {totalThreads !== null ? totalThreads.toLocaleString() : "..."}
+                        </div>
+                        <div className="stat-cell">
+                            <b>Boards:</b> {BOARDS.length}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="ft">
+                <ul>
+                    <li className="fill"></li>
+                    <li><Link href="/">Home</Link></li>
+                    <li><a href="https://iqlabs.dev" target="_blank" rel="noopener noreferrer">IQ Labs</a></li>
+                    <li><a href="https://x.com/IQLabsOfficial" target="_blank" rel="noopener noreferrer">Twitter</a></li>
+                    <li><a href="https://t.me/IQLabsPortal" target="_blank" rel="noopener noreferrer">Telegram</a></li>
+                    <li><a href="https://github.com/IQCoreTeam" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+                </ul>
+                <br className="clear-bug" />
+                <div id="copyright">
+                    <a href="https://iqlabs.dev" target="_blank" rel="noopener noreferrer">About</a>
+                    {" \u2022 "}
+                    <a href="https://x.com/IQLabsOfficial" target="_blank" rel="noopener noreferrer">Feedback</a>
+                    {" \u2022 "}
+                    <a href="https://github.com/IQCoreTeam" target="_blank" rel="noopener noreferrer">Source</a>
+                    <br /><br /><br />
+                    Copyright &copy; 2025-2026 IQ Labs. All posts are on-chain.
+                </div>
+            </div>
+        </div>
+    );
 }

@@ -1,0 +1,292 @@
+/* 4chan frontpage layout with iqchan colors */
+
+.fp-wrap {
+    margin: auto;
+    text-align: left;
+    width: 57.69em;
+    min-width: 750px;
+    font: 13px/1.231 arial, helvetica, clean, sans-serif;
+}
+
+/* Logo - full width gradient behind centered content */
+.fp-logo {
+    text-align: center;
+    padding: 30px 10px 20px;
+    background: linear-gradient(to bottom, #d6daf0 0%, #eef2ff 100%);
+    margin-left: calc(-50vw + 50%);
+    margin-right: calc(-50vw + 50%);
+    margin-bottom: 10px;
+}
+.fp-logo a {
+    text-decoration: none;
+    display: inline-block;
+}
+.fp-logo img {
+    display: block;
+    margin: 0 auto;
+}
+.fp-logo a:hover {
+    opacity: 0.85;
+}
+
+/* Boxes */
+.box-outer {
+    border: 1.5px solid #b7c5d9;
+    zoom: 100%;
+    margin-bottom: .5em;
+    padding-bottom: .5em;
+    background: #fff;
+}
+
+#announce {
+    background: #fff;
+    color: #000;
+}
+
+#announce .boxbar {
+    background: #34345c;
+    color: #fff;
+}
+
+#announce .boxbar h2 {
+    color: #fff;
+}
+
+.boxbar {
+    padding-left: .5em;
+    line-height: 2em;
+    background: #98b0d7;
+    color: #000;
+    position: relative;
+    zoom: 100%;
+}
+
+.boxbar h2 {
+    font-size: 13px;
+    font-weight: bold;
+    margin: 0;
+}
+
+.boxcontent {
+    padding: .5em;
+    padding-top: .25em;
+    padding-bottom: 0;
+    line-height: 130%;
+}
+
+.boxcontent a {
+    color: #34345c;
+    text-decoration: none;
+}
+.boxcontent a:hover {
+    color: #d00;
+}
+
+/* Boards */
+#boards .column {
+    float: left;
+    width: 12em;
+}
+
+#boards .column h3 {
+    font-size: 13px;
+    font-weight: bold;
+    text-decoration: underline;
+    display: inline;
+    margin: 0;
+}
+
+#boards .column ul {
+    list-style: none;
+    padding: 0;
+    margin: 5px 0 15px;
+}
+
+#boards .column li {
+    padding: 1px 0;
+}
+
+#boards a {
+    color: #34345c;
+    text-decoration: none;
+}
+
+#boards a:hover {
+    color: #d00;
+    text-decoration: underline;
+}
+
+br.clear-bug {
+    height: 0;
+    line-height: 0;
+    clear: both;
+}
+
+/* Popular boards / threads */
+#c-threads {
+    text-align: center;
+}
+
+.c-thread {
+    vertical-align: top;
+    display: inline-block;
+    word-wrap: break-word;
+    overflow: hidden;
+    margin-top: 5px;
+    padding: 5px 0 3px 0;
+    position: relative;
+    width: 175px;
+    max-height: 320px;
+    margin-bottom: 10px;
+}
+
+.c-board {
+    font-weight: bold;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+    white-space: nowrap;
+    margin-bottom: 5px;
+}
+
+.c-thread img {
+    border: 1px solid #34345c;
+    display: inline-block;
+}
+
+.c-teaser {
+    margin-bottom: 5px;
+    padding: 0 2px;
+    white-space: pre-line;
+    font-size: 12px;
+    line-height: 1.3;
+}
+
+/* Stats */
+#site-stats .boxcontent {
+    margin-top: 5px;
+    text-align: center;
+}
+
+.stat-cell {
+    display: inline-block;
+    width: 33%;
+    font-size: 13px;
+}
+
+/* Footer */
+#ft {
+    clear: both;
+    text-align: center;
+}
+
+#ft ul {
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    list-style: none;
+    padding: 0;
+}
+
+#ft li.fill {
+    flex-basis: 100%;
+    height: 0;
+    border-top: 1px solid #b7c5d9;
+    padding: 0;
+    margin: 0;
+    background: none;
+    border-left: none;
+    border-right: none;
+    border-bottom: none;
+}
+
+#ft li {
+    border: 1px solid #b7c5d9;
+    padding: 2px 1em;
+    border-left: none;
+    margin-top: -1px;
+    background: #d6daf0;
+}
+
+#ft li:first-child {
+    border-left: 1px solid #b7c5d9;
+}
+
+#ft li a {
+    color: #34345c;
+    text-decoration: none;
+    font-size: 13px;
+}
+
+#ft li a:hover {
+    color: #d00;
+}
+
+#copyright {
+    text-align: center;
+    margin-top: 1em;
+    margin-bottom: 1em;
+    font-size: 11px;
+    color: #999;
+}
+
+#copyright a {
+    color: #34345c;
+    text-decoration: none;
+}
+
+#copyright a:hover {
+    color: #d00;
+}
+
+/* Mobile */
+@media all and (max-device-width: 640px) {
+    .fp-wrap {
+        min-width: 0;
+        width: auto;
+        padding: 10px;
+    }
+
+    #boards .column {
+        float: none;
+        width: auto;
+        margin-bottom: 25px;
+    }
+
+    .boardlink {
+        display: inline-block;
+        font-size: 1.2em;
+        padding: 5px 10px 5px 0;
+    }
+
+    #ft ul {
+        width: auto;
+        border-top: none;
+        line-height: 2;
+        display: block;
+    }
+
+    #ft ul {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    #ft li {
+        border: none;
+        background: inherit;
+    }
+
+    #ft li:first-child {
+        border-left: none;
+    }
+
+    #ft li a {
+        color: #34345c;
+        text-decoration: underline;
+    }
+
+    .fp-logo a {
+        font-size: 36px;
+    }
+}

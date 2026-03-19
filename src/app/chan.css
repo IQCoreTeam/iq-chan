@@ -1,0 +1,508 @@
+/* Yotsuba B (blue) theme for board/thread pages */
+
+.yotsuba-b {
+    font-family: arial, helvetica, sans-serif;
+    font-size: 13px;
+    background: #eef2ff;
+    color: #000;
+}
+
+/* Board nav desktop */
+#boardNavDesktop {
+    font-size: 12px;
+    color: #89a;
+    background: #d6daf0;
+    border-bottom: 1px solid #b7c5d9;
+    padding: 2px 5px;
+    overflow: hidden;
+}
+
+#boardNavDesktop a {
+    color: #34345c;
+    text-decoration: none;
+}
+
+#boardNavDesktop a:hover {
+    color: #d00;
+}
+
+#navtopright {
+    float: right;
+}
+
+/* Board banner */
+.boardBanner {
+    text-align: center;
+    padding: 20px 10px 10px;
+    background: linear-gradient(to bottom, #d6daf0 0%, #eef2ff 100%);
+    margin-left: calc(-50vw + 50%);
+    margin-right: calc(-50vw + 50%);
+    margin-bottom: 5px;
+}
+
+.boardTitle {
+    font-family: Tahoma, sans-serif;
+    font-size: 28px;
+    font-weight: bold;
+    color: #af0a0f;
+    letter-spacing: -2px;
+}
+
+/* Post form */
+.postForm {
+    margin: 0 auto;
+    border-spacing: 1px;
+    border: 1px solid #b7c5d9;
+    background: #d6daf0;
+}
+
+.postForm td:first-child {
+    background: #98b0d7;
+    color: #000;
+    font-weight: bold;
+    padding: 2px 5px;
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.postForm td:last-child {
+    background: #d6daf0;
+    padding: 2px;
+}
+
+.postForm input[type="text"],
+.postForm input[type="url"],
+.postForm textarea {
+    border: 1px solid #aaa;
+    font-size: 12px;
+    padding: 2px;
+    width: 300px;
+}
+
+.postForm textarea {
+    width: 350px;
+}
+
+.postForm input[type="submit"] {
+    margin-left: 5px;
+    appearance: auto;
+    background-color: #f0e0d6;
+    border: 1px solid #c0a89a;
+    padding: 1px 6px;
+    font-size: 12px;
+    cursor: pointer;
+    font-family: arial, helvetica, sans-serif;
+}
+
+/* Nav links */
+.navLinks {
+    margin: 5px 0;
+    font-size: 12px;
+}
+
+.navLinks a {
+    color: #34345c;
+    text-decoration: none;
+}
+
+.navLinks a:hover {
+    color: #d00;
+}
+
+/* Thread container */
+.thread {
+    margin: 0;
+    clear: both;
+}
+
+/* OP post */
+.opContainer {
+    display: inline;
+}
+
+.post.op {
+    margin: 5px 0;
+}
+
+/* Reply post */
+.replyContainer {
+    margin-left: 25px;
+    margin-top: 2px;
+}
+
+.post.reply {
+    background: #d6daf0;
+    border: 1px solid #b7c5d9;
+    border-left: none;
+    border-top: none;
+    display: table;
+    padding: 2px;
+    margin: 4px 0;
+}
+
+.sideArrows {
+    float: left;
+    margin-right: 2px;
+    margin-top: 0;
+    color: #b7c5d9;
+    font-size: 13px;
+}
+
+/* Post info line */
+.postInfo {
+    padding: 2px 5px;
+    font-size: 13px;
+}
+
+.postInfo.desktop {
+    display: block;
+}
+
+.post.op .postInfo.desktop {
+    display: inline;
+}
+
+.postInfo input[type="checkbox"] {
+    margin: 0 2px 0 0;
+    vertical-align: middle;
+}
+
+.subject {
+    color: #0f0c5d;
+    font-weight: bold;
+}
+
+.nameBlock .name {
+    color: #117743;
+    font-weight: bold;
+}
+
+.dateTime {
+    color: #000;
+}
+
+.postNum a {
+    color: #34345c;
+    text-decoration: none;
+}
+
+.postNum a:hover {
+    color: #d00;
+}
+
+.postNum.desktop {
+    display: inline;
+}
+
+/* Post message */
+blockquote.postMessage {
+    font-size: 13px;
+    line-height: 1.3em;
+    padding: 5px 10px;
+    margin: 0;
+    word-wrap: break-word;
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
+}
+
+.quote {
+    color: #789922;
+}
+
+.quotelink {
+    color: #d00;
+    text-decoration: underline;
+}
+
+.deadlink {
+    color: #789922;
+    text-decoration: line-through;
+}
+
+/* File / thumbnail */
+.file {
+    margin: 3px 20px 5px;
+}
+
+.fileText {
+    font-size: 12px;
+    margin-bottom: 2px;
+}
+
+.fileText a {
+    color: #34345c;
+    text-decoration: underline;
+}
+
+.fileText a:hover {
+    color: #d00;
+}
+
+.fileThumb {
+    display: inline-block;
+    margin: 3px 20px 5px;
+}
+
+.post.op .fileThumb {
+    float: left;
+}
+
+.post.reply .file {
+    margin: 0;
+    display: inline;
+}
+
+.post.reply .fileText {
+    margin: 3px 0 2px 5px;
+}
+
+.post.reply .fileThumb {
+    float: left;
+    margin: 3px 20px 5px 5px;
+}
+
+.fileThumbExpanded {
+    float: none !important;
+    display: block;
+    margin: 3px 0 5px;
+}
+
+.fileThumb img {
+    border: none;
+    cursor: pointer;
+    display: inline;
+}
+
+.post.op .fileThumb img {
+    max-width: 250px;
+    max-height: 250px;
+}
+
+.post.reply .fileThumb img {
+    max-width: 125px;
+    max-height: 125px;
+}
+
+/* Summary (X replies omitted) */
+.summary {
+    margin-left: 25px;
+    display: block;
+    font-size: 12px;
+    color: #707070;
+    padding: 4px 0;
+}
+
+.summary a {
+    color: #34345c;
+}
+
+.replylink {
+    color: #34345c;
+    text-decoration: none;
+}
+
+.replylink:hover {
+    color: #d00;
+}
+
+/* Post menu */
+.postMenuBtn {
+    color: #34345c;
+    text-decoration: none;
+    margin-left: 5px;
+    font-size: 10px;
+    cursor: pointer;
+}
+
+.postMenuBtn:hover {
+    color: #d00;
+}
+
+.postMenuBtn.menuOpen {
+    color: #d00;
+    transform: rotate(90deg);
+    display: inline-block;
+}
+
+/* Dropdown menu */
+.dd-menu ul li:hover {
+    background: #98b0d7;
+    color: #000;
+}
+
+/* Backlinks */
+.backlink {
+    font-size: 12px;
+    display: inline-block;
+    margin-left: 5px;
+}
+
+.backlink a {
+    color: #d00;
+    text-decoration: underline;
+    margin-right: 3px;
+    font-size: 12px;
+}
+
+/* Thread stats */
+.thread-stats {
+    display: inline;
+    font-size: 14px;
+    color: #000;
+    cursor: default;
+    user-select: none;
+}
+
+
+/* Bottom nav */
+.navLinksBot {
+    font-size: 12px;
+    margin: 10px 0;
+}
+
+.navLinksBot a {
+    color: #34345c;
+    text-decoration: none;
+}
+
+.navLinksBot a:hover {
+    color: #d00;
+}
+
+/* Toggle post form */
+#togglePostFormLink {
+    text-align: center;
+    margin: 16px 0;
+    font-size: 24px;
+    font-weight: bold;
+}
+
+#togglePostFormLink a {
+    color: #34345c;
+    text-decoration: none;
+}
+
+#togglePostFormLink a:hover {
+    color: #d00;
+}
+
+/* Horizontal rules */
+.board hr {
+    border: none;
+    border-top: 1px solid #b7c5d9;
+    margin: 0;
+}
+
+/* Footer board nav */
+#boardNavDesktopFoot {
+    font-size: 12px;
+    color: #89a;
+    background: #d6daf0;
+    border-top: 1px solid #b7c5d9;
+    padding: 2px 5px;
+    overflow: hidden;
+}
+
+#boardNavDesktopFoot a {
+    color: #34345c;
+    text-decoration: none;
+}
+
+#boardNavDesktopFoot a:hover {
+    color: #d00;
+}
+
+/* Footer */
+#absbot {
+    text-align: center;
+    font-size: 11px;
+    color: #999;
+    margin: 5px 0;
+}
+
+#absbot a {
+    color: #34345c;
+    text-decoration: none;
+}
+
+#footer-links {
+    margin-top: 5px;
+}
+
+/* Highlight on hover/click */
+.post.highlight {
+    background: #d6bad0 !important;
+    transition: background 0.3s ease;
+}
+
+/* Loading */
+.loading-text {
+    text-align: center;
+    padding: 20px;
+    color: #707070;
+    font-size: 13px;
+}
+
+/* Pagelist (board page) */
+.pagelist {
+    font-size: 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    padding: 3px 0;
+    clear: both;
+}
+
+.pagelist .prev,
+.pagelist .next,
+.pagelist .pages {
+    display: inline;
+}
+
+.pagelist a {
+    color: #34345c;
+    text-decoration: none;
+}
+
+.pagelist a:hover {
+    color: #d00;
+}
+
+.pagelist .muted {
+    color: #89a;
+}
+
+/* Pagination (thread page) */
+.pagination {
+    text-align: center;
+    padding: 10px;
+    font-size: 12px;
+}
+
+.pagination a,
+.pagination button {
+    color: #34345c;
+    text-decoration: none;
+    padding: 0 3px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.pagination a:hover,
+.pagination button:hover {
+    color: #d00;
+}
+
+.pagination .current {
+    font-weight: bold;
+    text-decoration: underline;
+}
+
+/* Image preview in form */
+.imgPreview {
+    max-height: 80px;
+    max-width: 120px;
+    border: 1px solid #aaa;
+}
