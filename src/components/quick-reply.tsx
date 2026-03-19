@@ -172,7 +172,7 @@ export default function QuickReply({
                         type="submit"
                         value={loading ? "Posting..." : "Post"}
                         disabled={loading || !com.trim()}
-                        style={{ marginLeft: 5 }}
+                        style={{ marginLeft: 5, background: "#f0e0d6", border: "1px solid #c0a89a", padding: "1px 6px", fontSize: 12, cursor: "pointer" }}
                     />
                 </div>
                 <div style={{ fontSize: 11, color: "#707070" }}>

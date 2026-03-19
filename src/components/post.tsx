@@ -48,7 +48,7 @@ export default function Post({
                     File: <a href={img} target="_blank" rel="noopener noreferrer">{fileName}</a>
                 </div>
                 <a
-                    className="fileThumb"
+                    className={`fileThumb${expanded ? " fileThumbExpanded" : ""}`}
                     href={img}
                     onClick={(e) => { e.preventDefault(); setExpanded((v) => !v); }}
                 >

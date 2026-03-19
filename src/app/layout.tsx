@@ -11,20 +11,20 @@ export const metadata: Metadata = {
     },
     description: "On-chain imageboard on Solana",
     icons: {
-        icon: "/favicon.svg",
-        apple: "/apple-icon.svg",
+        icon: "/favicon.ico",
+        apple: "/apple-icon.png",
     },
     openGraph: {
         title: "iqchan",
         description: "On-chain imageboard on Solana",
         type: "website",
-        images: ["/og-image.svg"],
+        images: ["/og-image.png"],
     },
     twitter: {
-        card: "summary",
+        card: "summary_large_image",
         title: "iqchan",
         description: "On-chain imageboard on Solana",
-        images: ["/og-image.svg"],
+        images: ["/og-image.png"],
     },
 };
 

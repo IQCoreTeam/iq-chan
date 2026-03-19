@@ -46,7 +46,9 @@ export default function HomePage() {
     return (
         <div className="fp-wrap">
             <div className="fp-logo">
-                <Link href="/" title="Home">iqchan</Link>
+                <Link href="/" title="Home">
+                    <img alt="iqchan" src="/iqchan-logo.png" width="300" height="120" />
+                </Link>
             </div>
 
             <div className="box-outer" id="announce">
@@ -99,24 +101,18 @@ export default function HomePage() {
             <div className="box-outer top-box" id="popular-threads">
                 <div className="box-inner">
                     <div className="boxbar">
-                        <h2>Popular Boards</h2>
+                        <h2>Popular Threads</h2>
                     </div>
                     <div className="boxcontent">
                         <div id="c-threads">
                             {BOARDS.map((b) => (
                                 <div key={b.id} className="c-thread">
-                                    <div className="c-board">/{b.id}/</div>
+                                    <div className="c-board">{b.title}</div>
                                     <Link href={`/${b.id}`} className="boardlink">
-                                        <img
-                                            alt=""
-                                            className="c-thumb"
-                                            src={b.image}
-                                            width="150"
-                                            height="150"
-                                        />
+                                        {b.image && <img alt="" className="c-thumb" src={b.image} width="150" height="150" />}
                                     </Link>
                                     <div className="c-teaser">
-                                        <b>{b.title}</b>: {b.description}
+                                        <b>/{b.id}/</b>: {b.description}
                                     </div>
                                 </div>
                             ))}

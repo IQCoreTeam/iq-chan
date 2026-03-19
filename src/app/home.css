@@ -8,21 +8,25 @@
     font: 13px/1.231 arial, helvetica, clean, sans-serif;
 }
 
-/* Logo */
+/* Logo - full width gradient behind centered content */
 .fp-logo {
     text-align: center;
-    margin-bottom: 0;
-    padding: 15px 0;
+    padding: 30px 10px 20px;
+    background: linear-gradient(to bottom, #d6daf0 0%, #eef2ff 100%);
+    margin-left: calc(-50vw + 50%);
+    margin-right: calc(-50vw + 50%);
+    margin-bottom: 10px;
 }
 .fp-logo a {
-    font-size: 48px;
-    font-weight: bold;
-    color: #34345c;
     text-decoration: none;
-    font-family: Tahoma, sans-serif;
+    display: inline-block;
+}
+.fp-logo img {
+    display: block;
+    margin: 0 auto;
 }
 .fp-logo a:hover {
-    color: #d00;
+    opacity: 0.85;
 }
 
 /* Boxes */
