@@ -4,6 +4,7 @@ import { useState, useCallback } from "react";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { PublicKey, SystemProgram, Transaction } from "@solana/web3.js";
 import iqlabs from "iqlabs-sdk";
+// TODO: remove `as any` wallet casts once SDK publishes SignerInput support
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const idl = require("iqlabs-sdk/idl/code_in.json");
 import {
