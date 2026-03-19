@@ -33,7 +33,7 @@ export default function ThreadList({
 
                 return (
                     <div key={thread.threadPda}>
-                        <div className="thread" id={`t${(op.__txSignature ?? "").slice(0, 8)}`}>
+                        <div className="thread" id={`t${op.__txSignature ?? ""}`}>
                             <span
                                 className="threadHideButton"
                                 title={isHidden ? "Show thread" : "Hide thread"}

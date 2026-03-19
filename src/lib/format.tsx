@@ -3,15 +3,23 @@
 import React, { useState, useEffect } from "react";
 import { scrollToPost, highlightPost } from "./highlight";
 
+/** Find a post element whose id starts with "p" + sig prefix. */
+function findPostId(sig: string): string | null {
+    // Try exact match first
+    if (document.getElementById(`p${sig}`)) return sig;
+    // Try prefix match (quoted short sig matching full sig element)
+    const el = document.querySelector(`[id^="p${sig}"]`);
+    return el ? el.id.slice(1) : null;
+}
+
 function QuoteLink({ sig, display }: { sig: string; display: string }) {
-    const short = sig.slice(0, 8);
-    const [onPage, setOnPage] = useState(false);
+    const [fullId, setFullId] = useState<string | null>(null);
 
     useEffect(() => {
-        setOnPage(!!document.getElementById(`p${short}`));
-    }, [short]);
+        setFullId(findPostId(sig));
+    }, [sig]);
 
-    if (!onPage) {
+    if (!fullId) {
         return (
             <a
                 href={`https://solscan.io/tx/${sig}`}
@@ -26,11 +34,11 @@ function QuoteLink({ sig, display }: { sig: string; display: string }) {
 
     return (
         <a
-            href={`#p${short}`}
+            href={`#p${fullId}`}
             className="quotelink"
-            onClick={(e) => { e.preventDefault(); scrollToPost(short); }}
-            onMouseEnter={() => highlightPost(short, true)}
-            onMouseLeave={() => highlightPost(short, false)}
+            onClick={(e) => { e.preventDefault(); scrollToPost(fullId); }}
+            onMouseEnter={() => highlightPost(fullId, true)}
+            onMouseLeave={() => highlightPost(fullId, false)}
         >
             {display}
         </a>
