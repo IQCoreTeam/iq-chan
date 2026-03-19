@@ -56,7 +56,11 @@ export default function Post({
                     {" "}
                     <span className="postNum">
                         No.
-                        <a href={`https://solscan.io/tx/${txSig}`} target="_blank" rel="noopener noreferrer" title="View on Solscan">{shortSig}</a>
+                        {replyLink ? (
+                            <a href={replyLink} title="View thread">{shortSig}</a>
+                        ) : (
+                            <a href={`https://solscan.io/tx/${txSig}`} target="_blank" rel="noopener noreferrer" title="View on Solscan">{shortSig}</a>
+                        )}
                         {replyLink && (
                             <> &nbsp; <span>[<a href={replyLink} className="replylink">Reply</a>]</span></>
                         )}
