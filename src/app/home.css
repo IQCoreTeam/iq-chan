@@ -1,4 +1,4 @@
-/* 4chan frontpage style — adapted from frontpage.18.css */
+/* 4chan frontpage layout with iqchan colors */
 
 .fp-wrap {
     margin: auto;
@@ -17,12 +17,12 @@
 .fp-logo a {
     font-size: 48px;
     font-weight: bold;
-    color: #800;
+    color: #34345c;
     text-decoration: none;
     font-family: Tahoma, sans-serif;
 }
 .fp-logo a:hover {
-    color: #e00;
+    color: #d00;
 }
 
 /* Boxes */
@@ -40,7 +40,7 @@
 }
 
 #announce .boxbar {
-    background: #800;
+    background: #34345c;
     color: #fff;
 }
 
@@ -51,8 +51,8 @@
 .boxbar {
     padding-left: .5em;
     line-height: 2em;
-    background: #fca;
-    color: #800;
+    background: #98b0d7;
+    color: #000;
     position: relative;
     zoom: 100%;
 }
@@ -71,11 +71,11 @@
 }
 
 .boxcontent a {
-    color: #800;
+    color: #34345c;
     text-decoration: none;
 }
 .boxcontent a:hover {
-    color: #e00;
+    color: #d00;
 }
 
 /* Boards */
@@ -103,12 +103,12 @@
 }
 
 #boards a {
-    color: #800;
+    color: #34345c;
     text-decoration: none;
 }
 
 #boards a:hover {
-    color: #e00;
+    color: #d00;
     text-decoration: underline;
 }
 
@@ -156,7 +156,7 @@ br.clear-bug {
     border-left: none;
     margin-top: -1px;
     padding-top: 2px;
-    background: #fed;
+    background: #d6daf0;
 }
 
 #ft li.first {
@@ -168,18 +168,18 @@ br.clear-bug {
     padding-bottom: 4px;
     border-top: 1px solid #b7c5d9;
     width: 68px;
-    background: #ffe;
-    color: #800;
+    background: #eef2ff;
+    color: #34345c;
 }
 
 #ft li a {
-    color: #800;
+    color: #34345c;
     text-decoration: none;
     font-size: 13px;
 }
 
 #ft li a:hover {
-    color: #c63;
+    color: #d00;
 }
 
 #copyright {
@@ -191,12 +191,12 @@ br.clear-bug {
 }
 
 #copyright a {
-    color: #800;
+    color: #34345c;
     text-decoration: none;
 }
 
 #copyright a:hover {
-    color: #e00;
+    color: #d00;
 }
 
 /* Mobile */
@@ -243,7 +243,7 @@ br.clear-bug {
     }
 
     #ft li a {
-        color: blue;
+        color: #34345c;
         text-decoration: underline;
     }
 
