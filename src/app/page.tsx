@@ -1,10 +1,49 @@
 "use client";
 
+import { useState, useEffect } from "react";
+import { useConnection } from "@solana/wallet-adapter-react";
 import Link from "next/link";
-import { BOARDS } from "../lib/constants";
+import iqlabs from "iqlabs-sdk";
+import { BOARDS, DB_ROOT_KEY } from "../lib/constants";
+import { getFeedPda } from "../lib/board";
 import "./home.css";
 
+function useSiteStats() {
+    const { connection } = useConnection();
+    const [totalPosts, setTotalPosts] = useState<number | null>(null);
+    const [totalThreads, setTotalThreads] = useState<number | null>(null);
+
+    useEffect(() => {
+        let cancelled = false;
+
+        async function load() {
+            try {
+                const postCounts = await Promise.all(
+                    BOARDS.map(async (b) => {
+                        const feedPda = getFeedPda(DB_ROOT_KEY, b.id);
+                        const sigs = await connection.getSignaturesForAddress(feedPda, { limit: 1000 });
+                        return sigs.length;
+                    }),
+                );
+                if (!cancelled) setTotalPosts(postCounts.reduce((a, b) => a + b, 0));
+
+                const result = await iqlabs.reader.getTablelistFromRoot(connection, "iqchan");
+                if (!cancelled) setTotalThreads(result.globalTableSeeds.length);
+            } catch (e) {
+                console.error("stats fetch failed:", e);
+            }
+        }
+
+        load();
+        return () => { cancelled = true; };
+    }, [connection]);
+
+    return { totalPosts, totalThreads };
+}
+
 export default function HomePage() {
+    const { totalPosts, totalThreads } = useSiteStats();
+
     return (
         <div className="fp-wrap">
             <div className="fp-logo">
@@ -93,9 +132,15 @@ export default function HomePage() {
                         <h2>Stats</h2>
                     </div>
                     <div className="boxcontent">
-                        <div className="stat-cell"><b>Network:</b> Solana Mainnet</div>
-                        <div className="stat-cell"><b>Contract:</b> IQ Labs DB</div>
-                        <div className="stat-cell"><b>Storage:</b> Fully On-Chain</div>
+                        <div className="stat-cell">
+                            <b>Total Posts:</b> {totalPosts !== null ? totalPosts.toLocaleString() : "..."}
+                        </div>
+                        <div className="stat-cell">
+                            <b>Active Threads:</b> {totalThreads !== null ? totalThreads.toLocaleString() : "..."}
+                        </div>
+                        <div className="stat-cell">
+                            <b>Boards:</b> {BOARDS.length}
+                        </div>
                     </div>
                 </div>
             </div>
