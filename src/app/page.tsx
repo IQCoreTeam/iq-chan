@@ -41,17 +41,19 @@ export default function HomePage() {
                         <h2>Boards</h2>
                     </div>
                     <div className="boxcontent">
-                        <div className="board-grid">
-                            {BOARDS.map((b) => (
-                                <Link key={b.id} href={`/${b.id}`} className="board-card">
-                                    <img src={b.image} alt={`/${b.id}/`} className="board-thumb" />
-                                    <div className="board-info">
-                                        <span className="board-title">/{b.id}/ - {b.title}</span>
-                                        <span className="board-desc">{b.description}</span>
-                                    </div>
-                                </Link>
-                            ))}
+                        <div className="column">
+                            <h3>General</h3>
+                            <ul>
+                                {BOARDS.map((b) => (
+                                    <li key={b.id}>
+                                        <Link href={`/${b.id}`} className="boardlink">
+                                            {b.title}
+                                        </Link>
+                                    </li>
+                                ))}
+                            </ul>
                         </div>
+                        <br className="clear-bug" />
                     </div>
                 </div>
             </div>

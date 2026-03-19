@@ -78,51 +78,38 @@
     color: #d00;
 }
 
-/* Board grid */
-.board-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    gap: 10px;
-    padding: 5px 0;
+/* Boards */
+#boards .column {
+    float: left;
+    width: 12em;
 }
 
-.board-card {
-    display: block;
-    text-align: center;
-    text-decoration: none;
-    color: #34345c;
-}
-
-.board-card:hover {
-    color: #d00;
-}
-
-.board-card:hover .board-thumb {
-    border-color: #d00;
-}
-
-.board-thumb {
-    width: 150px;
-    height: 150px;
-    object-fit: cover;
-    border: 1px solid #b7c5d9;
-    display: block;
-    margin: 0 auto 5px;
-}
-
-.board-info {
-    display: flex;
-    flex-direction: column;
-}
-
-.board-title {
+#boards .column h3 {
+    font-size: 13px;
     font-weight: bold;
-    font-size: 12px;
+    text-decoration: underline;
+    display: inline;
+    margin: 0;
 }
 
-.board-desc {
-    font-size: 11px;
-    color: #999;
+#boards .column ul {
+    list-style: none;
+    padding: 0;
+    margin: 5px 0 15px;
+}
+
+#boards .column li {
+    padding: 1px 0;
+}
+
+#boards a {
+    color: #34345c;
+    text-decoration: none;
+}
+
+#boards a:hover {
+    color: #d00;
+    text-decoration: underline;
 }
 
 br.clear-bug {
