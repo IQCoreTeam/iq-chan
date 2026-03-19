@@ -67,7 +67,7 @@ export default function HomePage() {
                     </div>
                     <div className="boxcontent">
                         <div className="stat-cell"><b>Network:</b> Solana Mainnet</div>
-                        <div className="stat-cell"><b>Token:</b> 3uXACfojUrya7VH51jVC1DCHq3uzK4A7g469Q954LABS</div>
+                        <div className="stat-cell"><b>Contract:</b> IQ Labs DB</div>
                         <div className="stat-cell"><b>Storage:</b> Fully On-Chain</div>
                     </div>
                 </div>

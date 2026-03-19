@@ -9,15 +9,21 @@ export const metadata: Metadata = {
         template: "%s | iqchan",
     },
     description: "On-chain imageboard on Solana",
+    icons: {
+        icon: "/favicon.svg",
+        apple: "/apple-icon.svg",
+    },
     openGraph: {
         title: "iqchan",
         description: "On-chain imageboard on Solana",
         type: "website",
+        images: ["/og-image.svg"],
     },
     twitter: {
         card: "summary",
         title: "iqchan",
         description: "On-chain imageboard on Solana",
+        images: ["/og-image.svg"],
     },
 };
 
