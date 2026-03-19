@@ -1,8 +1,5 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { fetchAllTableRows } from "../../../lib/gateway";
-import type { Post } from "../../../lib/types";
 import { usePaginatedReplies } from "../../../hooks/use-paginated-replies";
 import { usePost } from "../../../hooks/use-post";
 import ThreadDetail from "../../../components/thread-detail";
@@ -15,32 +12,8 @@ export default function ThreadPage({
 }) {
     const { boardId, threadId: threadPda } = params;
 
-    // Fetch OP from thread table (sub is non-empty)
-    const [op, setOp] = useState<Post | null>(null);
-    const [opLoading, setOpLoading] = useState(true);
-
-    useEffect(() => {
-        let cancelled = false;
-        async function loadOp() {
-            setOpLoading(true);
-            try {
-                const rows = await fetchAllTableRows(threadPda, 50);
-                if (cancelled) return;
-                const opRow = rows.find((r) => r.sub && (r.sub as string).length > 0);
-                setOp((opRow as Post) ?? null);
-            } catch (e) {
-                console.error("[iqchan] Failed to load OP:", e);
-            } finally {
-                if (!cancelled) setOpLoading(false);
-            }
-        }
-        loadOp();
-        return () => { cancelled = true; };
-    }, [threadPda]);
-
-    const threadSeed = op?.threadSeed ?? "";
-
     const {
+        op,
         replies,
         page,
         totalPages,
@@ -51,12 +24,14 @@ export default function ThreadPage({
         nextPage,
         prevPage,
         refresh,
-    } = usePaginatedReplies(threadPda, threadSeed);
+    } = usePaginatedReplies(threadPda);
 
     const { postReply, loading: postLoading } = usePost();
 
-    if (opLoading) return <div>Loading...</div>;
+    if (loading && !op) return <div>Loading...</div>;
     if (error) return <div>Error: {error.message}</div>;
+
+    const threadSeed = op?.threadSeed ?? "";
 
     return (
         <>

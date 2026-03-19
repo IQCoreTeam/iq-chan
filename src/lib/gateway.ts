@@ -60,25 +60,7 @@ export async function fetchAllTableRows(
     return allRows;
 }
 
-// ─── Legacy: /index + /slice (kept for paginated-replies) ────────────────────
-
-export async function fetchTableIndex(tablePda: string): Promise<string[]> {
-    const url = `${GATEWAY_URL}/table/${tablePda}/index`;
-    if (isDev) console.log("[iqchan:gateway] fetchTableIndex →", url);
-    const res = await fetch(url);
-    if (!res.ok) {
-        if (res.status === 404) {
-            if (isDev) console.log("[iqchan:gateway] fetchTableIndex → 404 (table not found), returning []");
-            return [];
-        }
-        console.error("[iqchan:gateway] fetchTableIndex → HTTP", res.status);
-        throw new Error(`fetchTableIndex failed: ${res.status}`);
-    }
-    const data = await res.json();
-    const sigs = data.signatures ?? [];
-    if (isDev) console.log("[iqchan:gateway] fetchTableIndex → found", sigs.length, "signatures");
-    return sigs;
-}
+// ─── Slice: fetch specific rows by signature ────────────────────────────────
 
 export async function fetchTableSlice(
     tablePda: string,
@@ -101,22 +83,4 @@ export async function fetchTableSlice(
     const rows = data.rows ?? [];
     if (isDev) console.log("[iqchan:gateway] fetchTableSlice → got", rows.length, "rows");
     return rows;
-}
-
-export async function fetchTableSliceBatched(
-    tablePda: string,
-    sigs: string[],
-): Promise<Row[]> {
-    if (sigs.length === 0) return [];
-    if (sigs.length <= 50) return fetchTableSlice(tablePda, sigs);
-
-    const batches: string[][] = [];
-    for (let i = 0; i < sigs.length; i += 50) {
-        batches.push(sigs.slice(i, i + 50));
-    }
-
-    const results = await Promise.all(
-        batches.map((batch) => fetchTableSlice(tablePda, batch)),
-    );
-    return results.flat();
 }
