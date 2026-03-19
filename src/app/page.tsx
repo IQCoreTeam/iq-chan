@@ -4,8 +4,8 @@ import { useState, useEffect } from "react";
 import { useConnection } from "@solana/wallet-adapter-react";
 import Link from "next/link";
 import iqlabs from "iqlabs-sdk";
-import { PublicKey } from "@solana/web3.js";
-import { BOARDS } from "../lib/constants";
+import { BOARDS, DB_ROOT_KEY } from "../lib/constants";
+import { getFeedPda } from "../lib/board";
 import "./home.css";
 
 function useSiteStats() {
@@ -18,15 +18,18 @@ function useSiteStats() {
 
         async function load() {
             try {
-                const result = await iqlabs.reader.getTablelistFromRoot(connection, "iqchan");
-                if (cancelled) return;
-                setTotalThreads(result.globalTableSeeds.length);
+                const [feedCounts, dbRoot] = await Promise.all([
+                    Promise.all(BOARDS.map(async (b) => {
+                        const feedPda = getFeedPda(DB_ROOT_KEY, b.id);
+                        const sigs = await connection.getSignaturesForAddress(feedPda, { limit: 1000 });
+                        return sigs.length;
+                    })),
+                    iqlabs.reader.getTablelistFromRoot(connection, "iqchan"),
+                ]);
 
-                // dbRoot sigs = all posts (old + new) + table creations
-                // subtract thread count to remove create_ext_table txs
-                const dbRootKey = new PublicKey(result.rootPda);
-                const sigs = await connection.getSignaturesForAddress(dbRootKey, { limit: 1000 });
-                if (!cancelled) setTotalPosts(sigs.length);
+                if (cancelled) return;
+                setTotalPosts(feedCounts.reduce((a, b) => a + b, 0));
+                setTotalThreads(dbRoot.globalTableSeeds.length);
             } catch (e) {
                 console.error("stats fetch failed:", e);
             }
@@ -131,7 +134,7 @@ export default function HomePage() {
                     </div>
                     <div className="boxcontent">
                         <div className="stat-cell">
-                            <b>Total Transactions:</b> {totalPosts !== null ? totalPosts.toLocaleString() : "..."}
+                            <b>Total Posts:</b> {totalPosts !== null ? totalPosts.toLocaleString() : "..."}
                         </div>
                         <div className="stat-cell">
                             <b>Active Threads:</b> {totalThreads !== null ? totalThreads.toLocaleString() : "..."}
