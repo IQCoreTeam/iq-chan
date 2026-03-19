@@ -53,8 +53,8 @@ export default function Post({
                     <span className="dateTime">{timeStr}</span>
                     {" "}
                     <span className="postNum">
-                        <a href={`#p${shortSig}`} title="Link to this post">No.</a>
-                        <a href={`#p${shortSig}`}>{shortSig}</a>
+                        No.
+                        <a href={`https://solscan.io/tx/${txSig}`} target="_blank" rel="noopener noreferrer" title="View on Solscan">{shortSig}</a>
                     </span>
                     {isOwner && (
                         <span style={{ marginLeft: 5 }}>
