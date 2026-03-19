@@ -89,7 +89,7 @@ export default function HomePage() {
                     {" \u2022 "}
                     <a href="https://github.com/IQCoreTeam" target="_blank" rel="noopener noreferrer">Source</a>
                     <br /><br /><br />
-                    Copyright &copy; 2025-2026 iqchan community support DAO. All posts are on-chain.
+                    Copyright &copy; 2025-2026 IQ Labs. All posts are on-chain.
                 </div>
             </div>
         </div>
