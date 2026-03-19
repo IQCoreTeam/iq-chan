@@ -1,15 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useConnection } from "@solana/wallet-adapter-react";
 import Link from "next/link";
-import iqlabs from "iqlabs-sdk";
 import { BOARDS, DB_ROOT_KEY } from "../lib/constants";
 import { getFeedPda } from "../lib/board";
+import { fetchAllTableRows } from "../lib/gateway";
 import "./home.css";
 
 function useSiteStats() {
-    const { connection } = useConnection();
     const [totalPosts, setTotalPosts] = useState<number | null>(null);
     const [totalThreads, setTotalThreads] = useState<number | null>(null);
 
@@ -18,18 +16,18 @@ function useSiteStats() {
 
         async function load() {
             try {
-                const [feedCounts, dbRoot] = await Promise.all([
-                    Promise.all(BOARDS.map(async (b) => {
-                        const feedPda = getFeedPda(DB_ROOT_KEY, b.id);
-                        const sigs = await connection.getSignaturesForAddress(feedPda, { limit: 1000 });
-                        return sigs.length;
-                    })),
-                    iqlabs.reader.getTablelistFromRoot(connection, "iqchan"),
-                ]);
-
+                const allRows = await Promise.all(
+                    BOARDS.map((b) => fetchAllTableRows(getFeedPda(DB_ROOT_KEY, b.id).toBase58())),
+                );
                 if (cancelled) return;
-                setTotalPosts(feedCounts.reduce((a, b) => a + b, 0));
-                setTotalThreads(dbRoot.globalTableSeeds.length);
+
+                const rows = allRows.flat();
+                const threads = new Set<string>();
+                for (const r of rows) {
+                    if (r.threadPda) threads.add(r.threadPda as string);
+                }
+                setTotalPosts(rows.length);
+                setTotalThreads(threads.size);
             } catch (e) {
                 console.error("stats fetch failed:", e);
             }
@@ -37,7 +35,7 @@ function useSiteStats() {
 
         load();
         return () => { cancelled = true; };
-    }, [connection]);
+    }, []);
 
     return { totalPosts, totalThreads };
 }
