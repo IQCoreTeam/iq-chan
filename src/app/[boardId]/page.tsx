@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { useThreads } from "../../hooks/use-threads";
 import { usePost } from "../../hooks/use-post";
@@ -14,7 +13,6 @@ export default function BoardPage({
     params: { boardId: string };
 }) {
     const { boardId } = params;
-    const [showForm, setShowForm] = useState(false);
     const { threads, loading, error, hasMore, loadMore, refresh } = useThreads(boardId);
     const { createThread, loading: postLoading } = usePost();
 
@@ -35,24 +33,16 @@ export default function BoardPage({
                 [<a href="#" onClick={(e) => { e.preventDefault(); refresh(); }}>Refresh</a>]
             </div>
 
-            <div id="togglePostFormLink">
-                [<a href="#" onClick={(e) => { e.preventDefault(); setShowForm((v) => !v); }}>
-                    {showForm ? "Close Post Form" : "Start a New Thread"}
-                </a>]
-            </div>
-
-            {showForm && (
-                <PostForm
-                    mode="thread"
-                    onSubmit={(data) =>
-                        createThread(
-                            boardId,
-                            data as { sub: string; com: string; name: string; img?: string },
-                        )
-                    }
-                    loading={postLoading}
-                />
-            )}
+            <PostForm
+                mode="thread"
+                onSubmit={(data) =>
+                    createThread(
+                        boardId,
+                        data as { sub: string; com: string; name: string; img?: string },
+                    )
+                }
+                loading={postLoading}
+            />
 
             <hr style={{ border: "none", borderTop: "1px solid #b7c5d9" }} />
 

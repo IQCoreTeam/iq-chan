@@ -14,6 +14,7 @@ export default function PostForm({
     loading: boolean;
 }) {
     const { publicKey } = useWallet();
+    const [showForm, setShowForm] = useState(false);
     const [sub, setSub] = useState("");
     const [com, setCom] = useState("");
     const [name, setName] = useState("Anonymous");
@@ -39,70 +40,92 @@ export default function PostForm({
         setSub("");
         setCom("");
         setImg("");
+        setShowForm(false);
     }
+
+    const label = mode === "thread" ? "Start a New Thread" : "Post a Reply";
 
     return (
         <form onSubmit={handleSubmit} style={{ textAlign: "center" }}>
-            <table className="postForm" style={{ margin: "0 auto" }}>
+            <div id="togglePostFormLink" style={{ display: showForm ? "none" : "block" }}>
+                [<a href="#" onClick={(e) => { e.preventDefault(); setShowForm(true); }}>{label}</a>]
+            </div>
+            <table
+                className="postForm"
+                id="postForm"
+                style={{ margin: "0 auto", display: showForm ? "table" : "none" }}
+            >
                 <tbody>
-                    <tr>
+                    <tr data-type="Name">
                         <td>Name</td>
                         <td>
                             <input
                                 name="name"
                                 type="text"
+                                tabIndex={1}
+                                placeholder="Anonymous"
                                 value={name}
                                 onChange={(e) => setName(e.target.value)}
-                                placeholder="Anonymous"
                             />
                         </td>
                     </tr>
                     {mode === "thread" && (
-                        <tr>
+                        <tr data-type="Subject">
                             <td>Subject</td>
                             <td>
                                 <input
                                     name="sub"
                                     type="text"
+                                    tabIndex={2}
+                                    placeholder="Subject"
                                     value={sub}
                                     onChange={(e) => setSub(e.target.value)}
-                                    placeholder="Subject"
                                 />
                                 <input
                                     type="submit"
                                     value={loading ? "Posting..." : "Post"}
                                     disabled={loading || !com.trim()}
+                                    tabIndex={10}
                                 />
                             </td>
                         </tr>
                     )}
-                    <tr>
+                    {mode === "reply" && (
+                        <tr data-type="Options">
+                            <td>Options</td>
+                            <td>
+                                <input name="email" type="text" tabIndex={2} placeholder="sage" />
+                                <input
+                                    type="submit"
+                                    value={loading ? "Posting..." : "Post"}
+                                    disabled={loading || !com.trim()}
+                                    tabIndex={10}
+                                />
+                            </td>
+                        </tr>
+                    )}
+                    <tr data-type="Comment">
                         <td>Comment</td>
                         <td>
                             <textarea
                                 name="com"
                                 cols={48}
                                 rows={4}
+                                wrap="soft"
+                                tabIndex={4}
                                 value={com}
                                 onChange={(e) => setCom(e.target.value)}
                                 required
                             />
-                            {mode === "reply" && (
-                                <input
-                                    type="submit"
-                                    value={loading ? "Posting..." : "Post"}
-                                    disabled={loading || !com.trim()}
-                                    style={{ marginLeft: 5 }}
-                                />
-                            )}
                         </td>
                     </tr>
-                    <tr>
+                    <tr data-type="File">
                         <td>Image URL</td>
                         <td>
                             <input
                                 name="img"
                                 type="url"
+                                tabIndex={8}
                                 value={img}
                                 onChange={(e) => setImg(e.target.value)}
                                 placeholder="https://..."
@@ -111,7 +134,7 @@ export default function PostForm({
                     </tr>
                     {img.trim() && (
                         <tr>
-                            <td>Preview</td>
+                            <td></td>
                             <td>
                                 <img
                                     src={img.trim()}
@@ -123,16 +146,18 @@ export default function PostForm({
                                 <button
                                     type="button"
                                     onClick={() => setImg("")}
-                                    style={{ color: "#d00", fontSize: 12, background: "none", border: "none", cursor: "pointer" }}
+                                    style={{ color: "#d00", fontSize: 11, background: "none", border: "none", cursor: "pointer" }}
                                 >
                                     [Remove]
                                 </button>
                             </td>
                         </tr>
                     )}
-                    <tr>
+                    <tr className="rules">
                         <td colSpan={2}>
-                            <span className="postCost">~{ESTIMATED_SOL_COST[mode]} SOL per {mode}</span>
+                            <ul className="rules" style={{ listStyle: "none", padding: 0, margin: "5px 0", fontSize: 11, color: "#707070" }}>
+                                <li>Every post is a Solana transaction (~{ESTIMATED_SOL_COST[mode]} SOL).</li>
+                            </ul>
                         </td>
                     </tr>
                 </tbody>

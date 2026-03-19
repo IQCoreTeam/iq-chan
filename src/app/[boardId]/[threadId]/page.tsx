@@ -53,23 +53,14 @@ export default function ThreadPage({
                 </span>
             </div>
 
-            <hr style={{ border: "none", borderTop: "1px solid #b7c5d9" }} />
-
             {threadSeed && (
-                <>
-                    <div id="togglePostFormLink">
-                        [<a href="#postform">Post a Reply</a>]
-                    </div>
-                    <div id="postform">
-                        <PostForm
-                            mode="reply"
-                            onSubmit={(data: { com: string; name: string; img?: string }) =>
-                                postReply(threadSeed, threadPda, boardId, data)
-                            }
-                            loading={postLoading}
-                        />
-                    </div>
-                </>
+                <PostForm
+                    mode="reply"
+                    onSubmit={(data: { com: string; name: string; img?: string }) =>
+                        postReply(threadSeed, threadPda, boardId, data)
+                    }
+                    loading={postLoading}
+                />
             )}
 
             <hr style={{ border: "none", borderTop: "1px solid #b7c5d9" }} />
