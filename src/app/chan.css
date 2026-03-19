@@ -117,7 +117,7 @@
 
 /* OP post */
 .opContainer {
-    overflow: hidden;
+    display: inline;
 }
 
 .post.op {
@@ -137,8 +137,7 @@
     border-top: none;
     display: table;
     padding: 2px;
-    margin: 2px 0;
-    overflow: hidden;
+    margin: 4px 0;
 }
 
 .sideArrows {
@@ -153,7 +152,6 @@
 .postInfo {
     padding: 2px 5px;
     font-size: 13px;
-    position: relative;
 }
 
 .postInfo.desktop {
@@ -197,10 +195,11 @@
 }
 
 /* Post message */
-.postMessage {
+blockquote.postMessage {
     font-size: 13px;
     line-height: 1.3em;
-    padding: 5px;
+    padding: 5px 10px;
+    margin: 0;
     word-wrap: break-word;
     white-space: pre-wrap;
     overflow-wrap: break-word;
@@ -249,12 +248,17 @@
 }
 
 .post.reply .file {
-    margin: 3px 20px 0;
+    margin: 0;
+    display: inline;
+}
+
+.post.reply .fileText {
+    margin: 3px 0 2px 5px;
 }
 
 .post.reply .fileThumb {
     float: left;
-    margin: 3px 20px 5px 0;
+    margin: 3px 20px 5px 5px;
 }
 
 .fileThumbExpanded {
@@ -266,6 +270,7 @@
 .fileThumb img {
     border: none;
     cursor: pointer;
+    display: inline;
 }
 
 .post.op .fileThumb img {
@@ -315,6 +320,8 @@
 
 .postMenuBtn.menuOpen {
     color: #d00;
+    transform: rotate(90deg);
+    display: inline-block;
 }
 
 /* Dropdown menu */
