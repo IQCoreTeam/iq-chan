@@ -239,6 +239,16 @@
     color: #d00;
 }
 
+.postMenuBtn.menuOpen {
+    color: #d00;
+}
+
+/* Dropdown menu */
+.dd-menu ul li:hover {
+    background: #98b0d7;
+    color: #000;
+}
+
 /* Backlinks */
 .backlink {
     font-size: 12px;
