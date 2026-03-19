@@ -28,8 +28,8 @@ function useSiteStats() {
                 }
                 setTotalPosts(rows.length);
                 setTotalThreads(threads.size);
-            } catch (e) {
-                console.error("stats fetch failed:", e);
+            } catch {
+                // stats are non-critical, fail silently
             }
         }
 

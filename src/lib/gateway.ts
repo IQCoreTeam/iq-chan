@@ -5,7 +5,7 @@ const isDev = process.env.NODE_ENV === "development";
 
 export type Row = Post & Record<string, unknown>;
 
-export async function fetchTableRows(
+async function fetchTableRows(
     tablePda: string,
     limit = 50,
     before?: string,
