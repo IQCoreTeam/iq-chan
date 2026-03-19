@@ -19,19 +19,14 @@ function useSiteStats() {
         async function load() {
             try {
                 const result = await iqlabs.reader.getTablelistFromRoot(connection, "iqchan");
-                const threadSeeds = result.globalTableSeeds;
                 if (cancelled) return;
-                setTotalThreads(threadSeeds.length);
+                setTotalThreads(result.globalTableSeeds.length);
 
+                // dbRoot sigs = all posts (old + new) + table creations
+                // subtract thread count to remove create_ext_table txs
                 const dbRootKey = new PublicKey(result.rootPda);
-                const postCounts = await Promise.all(
-                    threadSeeds.map(async (seedHex: string) => {
-                        const pda = iqlabs.contract.getTablePda(dbRootKey, Buffer.from(seedHex, "hex"));
-                        const sigs = await connection.getSignaturesForAddress(pda, { limit: 1000 });
-                        return sigs.length;
-                    }),
-                );
-                if (!cancelled) setTotalPosts(postCounts.reduce((a, b) => a + b, 0));
+                const sigs = await connection.getSignaturesForAddress(dbRootKey, { limit: 1000 });
+                if (!cancelled) setTotalPosts(sigs.length);
             } catch (e) {
                 console.error("stats fetch failed:", e);
             }
@@ -136,7 +131,7 @@ export default function HomePage() {
                     </div>
                     <div className="boxcontent">
                         <div className="stat-cell">
-                            <b>Total Posts:</b> {totalPosts !== null ? totalPosts.toLocaleString() : "..."}
+                            <b>Total Transactions:</b> {totalPosts !== null ? totalPosts.toLocaleString() : "..."}
                         </div>
                         <div className="stat-cell">
                             <b>Active Threads:</b> {totalThreads !== null ? totalThreads.toLocaleString() : "..."}
