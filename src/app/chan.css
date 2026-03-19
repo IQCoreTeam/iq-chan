@@ -383,6 +383,25 @@
     margin: 0;
 }
 
+/* Footer board nav */
+#boardNavDesktopFoot {
+    font-size: 12px;
+    color: #89a;
+    background: #d6daf0;
+    border-top: 1px solid #b7c5d9;
+    padding: 2px 5px;
+    overflow: hidden;
+}
+
+#boardNavDesktopFoot a {
+    color: #34345c;
+    text-decoration: none;
+}
+
+#boardNavDesktopFoot a:hover {
+    color: #d00;
+}
+
 /* Footer */
 #absbot {
     text-align: center;
@@ -394,6 +413,10 @@
 #absbot a {
     color: #34345c;
     text-decoration: none;
+}
+
+#footer-links {
+    margin-top: 5px;
 }
 
 /* Highlight on hover/click */

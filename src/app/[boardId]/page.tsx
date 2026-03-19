@@ -7,6 +7,7 @@ import { usePost } from "../../hooks/use-post";
 import { BOARDS } from "../../lib/constants";
 import ThreadList from "../../components/thread-list";
 import PostForm from "../../components/post-form";
+import { FooterNav } from "../../components/board-nav";
 
 export default function BoardPage() {
     const { boardId } = useParams<{ boardId: string }>();
@@ -77,22 +78,9 @@ export default function BoardPage() {
 
             <hr style={{ border: "none", borderTop: "1px solid #b7c5d9" }} />
 
-            <div className="navLinksBot">
-                [<Link href="/">Home</Link>]
-                {" "}
-                [<a href="#top">Top</a>]
-            </div>
+            <FooterNav />
 
-            <div id="absbot">
-                All trademarks and copyrights on this page are owned by their respective parties.
-                Images uploaded are the responsibility of the Poster.
-                <br />
-                <a href="https://iqlabs.dev" target="_blank" rel="noopener noreferrer">About</a>
-                {" \u2022 "}
-                <a href="https://x.com/IQLabsOfficial" target="_blank" rel="noopener noreferrer">Feedback</a>
-                {" \u2022 "}
-                <a href="https://github.com/IQCoreTeam" target="_blank" rel="noopener noreferrer">Source</a>
-            </div>
+            <div id="bottom"></div>
         </>
     );
 }

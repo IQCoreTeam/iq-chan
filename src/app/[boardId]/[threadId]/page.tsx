@@ -9,6 +9,7 @@ import { BOARDS } from "../../../lib/constants";
 import ThreadDetail from "../../../components/thread-detail";
 import PostForm from "../../../components/post-form";
 import QuickReply from "../../../components/quick-reply";
+import { FooterNav } from "../../../components/board-nav";
 
 export default function ThreadPage() {
     const params = useParams<{ boardId: string; threadId: string }>();
@@ -104,21 +105,7 @@ export default function ThreadPage() {
 
             <hr style={{ border: "none", borderTop: "1px solid #b7c5d9" }} />
 
-            <div className="navLinksBot">
-                [<Link href={`/${boardId}`}>Return</Link>]
-                {" "}
-                [<a href="#top">Top</a>]
-            </div>
-
-            <div id="absbot">
-                All posts are Solana transactions. Powered by IQ Labs.
-                <br />
-                <a href="https://iqlabs.dev" target="_blank" rel="noopener noreferrer">About</a>
-                {" \u2022 "}
-                <a href="https://x.com/IQLabsOfficial" target="_blank" rel="noopener noreferrer">Feedback</a>
-                {" \u2022 "}
-                <a href="https://github.com/IQCoreTeam" target="_blank" rel="noopener noreferrer">Source</a>
-            </div>
+            <FooterNav />
 
             <div id="bottom"></div>
 
