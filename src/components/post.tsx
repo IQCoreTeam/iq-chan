@@ -101,15 +101,29 @@ export default function Post({
                             <> &nbsp; <span>[<a href={replyLink} className="replylink">Reply</a>]</span></>
                         )}
                     </span>
-                    <a
-                        href="#"
-                        className={`postMenuBtn${menuOpen ? " menuOpen" : ""}`}
-                        title="Post menu"
-                        data-cmd="post-menu"
-                        onClick={(e) => { e.preventDefault(); setMenuOpen((v) => !v); }}
-                    >
-                        ▶
-                    </a>
+                    <span style={{ position: "relative", display: "inline" }}>
+                        <a
+                            href="#"
+                            className={`postMenuBtn${menuOpen ? " menuOpen" : ""}`}
+                            title="Post menu"
+                            data-cmd="post-menu"
+                            onClick={(e) => { e.preventDefault(); setMenuOpen((v) => !v); }}
+                        >
+                            ▶
+                        </a>
+                        {menuOpen && (
+                            <div className="dd-menu" style={{ position: "absolute", top: "100%", left: 0, background: "#d6daf0", border: "1px solid #b7c5d9", zIndex: 10, boxShadow: "1px 1px 2px rgba(0,0,0,0.15)", whiteSpace: "nowrap" }}>
+                                <ul style={{ listStyle: "none", margin: 0, padding: 0, fontSize: 12 }}>
+                                    <li style={{ padding: "3px 10px", cursor: "pointer" }} onClick={() => { window.open(`https://solscan.io/tx/${txSig}`, "_blank"); setMenuOpen(false); }}>
+                                        View on Solscan
+                                    </li>
+                                    <li style={{ padding: "3px 10px", cursor: "pointer" }} onClick={() => { navigator.clipboard.writeText(txSig); setMenuOpen(false); }}>
+                                        Copy TX signature
+                                    </li>
+                                </ul>
+                            </div>
+                        )}
+                    </span>
                     {backlinks && backlinks.length > 0 && (
                         <div className="backlink">
                             {backlinks.map((bl) => (
@@ -135,18 +149,6 @@ export default function Post({
                         </span>
                     )}
                 </div>
-                {menuOpen && (
-                    <div className="dd-menu" style={{ position: "absolute", background: "#d6daf0", border: "1px solid #b7c5d9", zIndex: 10, boxShadow: "1px 1px 2px rgba(0,0,0,0.15)" }}>
-                        <ul style={{ listStyle: "none", margin: 0, padding: 0, fontSize: 12 }}>
-                            <li style={{ padding: "3px 10px", cursor: "pointer" }} onClick={() => { window.open(`https://solscan.io/tx/${txSig}`, "_blank"); setMenuOpen(false); }}>
-                                View on Solscan
-                            </li>
-                            <li style={{ padding: "3px 10px", cursor: "pointer" }} onClick={() => { navigator.clipboard.writeText(txSig); setMenuOpen(false); }}>
-                                Copy TX signature
-                            </li>
-                        </ul>
-                    </div>
-                )}
                 <blockquote className="postMessage">
                     {formatPostMessage(com)}
                 </blockquote>
