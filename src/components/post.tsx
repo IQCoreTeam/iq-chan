@@ -7,10 +7,10 @@ export default function Post({
     time,
     sub,
     img,
+    isOp,
     isOwner,
     onEdit,
     onDelete,
-    disableLinks,
 }: {
     txSig: string;
     com: string;
@@ -18,65 +18,62 @@ export default function Post({
     time: number;
     sub?: string;
     img?: string;
+    isOp?: boolean;
     isOwner?: boolean;
     onEdit?: () => void;
     onDelete?: () => void;
-    disableLinks?: boolean;
 }) {
     const timeStr = new Date(time * 1000).toLocaleString();
+    const shortSig = txSig.slice(0, 8);
+
+    const postClass = isOp ? "post op" : "post reply";
 
     return (
-        <div id={`post-${txSig}`} className="p-2 transition-colors duration-300">
-            {/* ─── Image ────────────────────────────────────────── */}
-            {img && (
-                <div className="float-left mr-3 mb-1">
-                    {disableLinks ? (
-                        <img
-                            src={img}
-                            alt=""
-                            className="max-w-[150px] max-h-[150px] border border-gray-300"
-                        />
-                    ) : (
-                        <a href={img} target="_blank" rel="noopener noreferrer">
+        <div className={`postContainer ${isOp ? "opContainer" : "replyContainer"}`} id={`pc${shortSig}`}>
+            {!isOp && <div className="sideArrows">&gt;&gt;</div>}
+            <div id={`p${shortSig}`} className={postClass}>
+                {img && (
+                    <div className="file">
+                        <a className="fileThumb" href={img} target="_blank" rel="noopener noreferrer">
                             <img
                                 src={img}
                                 alt=""
-                                className="max-w-[150px] max-h-[150px] border border-gray-300"
+                                style={{ maxHeight: 150, maxWidth: 150 }}
+                                loading="lazy"
                             />
                         </a>
+                    </div>
+                )}
+                <div className="postInfo">
+                    {sub && <span className="subject">{sub} </span>}
+                    <span className="nameBlock">
+                        <span className="name">{name}</span>
+                    </span>
+                    {" "}
+                    <span className="dateTime">{timeStr}</span>
+                    {" "}
+                    <span className="postNum">
+                        <a href={`#p${shortSig}`} title="Link to this post">No.</a>
+                        <a href={`#p${shortSig}`}>{shortSig}</a>
+                    </span>
+                    {isOwner && (
+                        <span style={{ marginLeft: 5 }}>
+                            {onEdit && (
+                                <button onClick={onEdit} style={{ color: "#34345c", fontSize: 12, background: "none", border: "none", cursor: "pointer", textDecoration: "underline" }}>
+                                    [Edit]
+                                </button>
+                            )}
+                            {onDelete && (
+                                <button onClick={onDelete} style={{ color: "#d00", fontSize: 12, background: "none", border: "none", cursor: "pointer", textDecoration: "underline" }}>
+                                    [Delete]
+                                </button>
+                            )}
+                        </span>
                     )}
                 </div>
-            )}
-
-            {/* ─── Header ───────────────────────────────────────── */}
-            <div className="text-sm">
-                <span className="font-bold text-green-800">{name}</span>
-                {" "}
-                <span className="text-gray-500">{txSig.slice(0, 8)}</span>
-                {" "}
-                <span className="text-gray-400">{timeStr}</span>
-                {isOwner && (
-                    <span className="ml-2">
-                        {onEdit && (
-                            <button onClick={onEdit} className="text-blue-600 hover:underline text-xs mr-1">
-                                [Edit]
-                            </button>
-                        )}
-                        {onDelete && (
-                            <button onClick={onDelete} className="text-red-600 hover:underline text-xs">
-                                [Delete]
-                            </button>
-                        )}
-                    </span>
-                )}
-            </div>
-
-            {/* ─── Subject ──────────────────────────────────────── */}
-            {sub && <div className="font-bold text-base mt-1">{sub}</div>}
-
-            {/* ─── Body ─────────────────────────────────────────── */}
-            <div className="mt-1 text-sm whitespace-pre-wrap clear-both">
-                {com}
+                <blockquote className="postMessage">
+                    {com}
+                </blockquote>
             </div>
         </div>
     );

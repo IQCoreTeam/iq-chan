@@ -1,0 +1,329 @@
+/* Yotsuba B (blue) theme for board/thread pages */
+
+.yotsuba-b {
+    font-family: arial, helvetica, sans-serif;
+    font-size: 13px;
+    background: #eef2ff;
+    color: #000;
+}
+
+/* Board nav desktop */
+#boardNavDesktop {
+    font-size: 12px;
+    color: #89a;
+    background: #d6daf0;
+    border-bottom: 1px solid #b7c5d9;
+    padding: 2px 5px;
+    overflow: hidden;
+}
+
+#boardNavDesktop a {
+    color: #34345c;
+    text-decoration: none;
+}
+
+#boardNavDesktop a:hover {
+    color: #d00;
+}
+
+#navtopright {
+    float: right;
+}
+
+/* Board banner */
+.boardBanner {
+    text-align: center;
+    margin: 10px 0;
+}
+
+.boardTitle {
+    font-family: Tahoma, sans-serif;
+    font-size: 28px;
+    font-weight: bold;
+    color: #af0a0f;
+    letter-spacing: -2px;
+}
+
+/* Post form */
+.postForm {
+    margin: 0 auto;
+    border-spacing: 1px;
+    border: 1px solid #b7c5d9;
+    background: #d6daf0;
+}
+
+.postForm td:first-child {
+    background: #98b0d7;
+    color: #000;
+    font-weight: bold;
+    padding: 2px 5px;
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.postForm td:last-child {
+    background: #d6daf0;
+    padding: 2px;
+}
+
+.postForm input[type="text"],
+.postForm input[type="url"],
+.postForm textarea {
+    border: 1px solid #aaa;
+    font-size: 12px;
+    padding: 2px;
+    width: 300px;
+}
+
+.postForm textarea {
+    width: 350px;
+}
+
+.postForm input[type="submit"] {
+    margin-left: 5px;
+}
+
+/* Nav links */
+.navLinks {
+    margin: 5px 0;
+    font-size: 12px;
+}
+
+.navLinks a {
+    color: #34345c;
+    text-decoration: none;
+}
+
+.navLinks a:hover {
+    color: #d00;
+}
+
+/* Thread container */
+.thread {
+    margin: 0;
+    clear: both;
+}
+
+/* OP post */
+.opContainer {
+    overflow: hidden;
+}
+
+.post.op {
+    margin: 5px 0;
+}
+
+.post.op .postInfo {
+    display: inline;
+}
+
+/* Reply post */
+.replyContainer {
+    margin-left: 25px;
+    margin-top: 2px;
+}
+
+.post.reply {
+    background: #d6daf0;
+    border: 1px solid #b7c5d9;
+    border-left: none;
+    border-top: none;
+    display: table;
+    padding: 2px;
+    margin: 2px 0;
+}
+
+.sideArrows {
+    float: left;
+    margin-right: 2px;
+    margin-top: 0;
+    color: #b7c5d9;
+    font-size: 13px;
+}
+
+/* Post info line */
+.postInfo {
+    padding: 2px 5px;
+    font-size: 13px;
+}
+
+.subject {
+    color: #0f0c5d;
+    font-weight: bold;
+}
+
+.nameBlock .name {
+    color: #117743;
+    font-weight: bold;
+}
+
+.dateTime {
+    color: #000;
+}
+
+.postNum a {
+    color: #34345c;
+    text-decoration: none;
+}
+
+.postNum a:hover {
+    color: #d00;
+}
+
+/* Post message */
+.postMessage {
+    font-size: 13px;
+    line-height: 1.3em;
+    padding: 5px;
+    word-wrap: break-word;
+    white-space: pre-wrap;
+}
+
+.quote {
+    color: #789922;
+}
+
+.quotelink {
+    color: #d00;
+    text-decoration: underline;
+}
+
+/* File / thumbnail */
+.file {
+    margin: 3px 20px 5px;
+}
+
+.fileThumb {
+    float: left;
+    margin: 3px 20px 5px;
+}
+
+.fileThumb img {
+    border: none;
+    max-width: 150px;
+    max-height: 150px;
+}
+
+/* Thread stats */
+.thread-stats {
+    display: inline;
+    font-size: 12px;
+    color: #707070;
+}
+
+/* Bottom nav */
+.navLinksBot {
+    font-size: 12px;
+    margin: 10px 0;
+}
+
+.navLinksBot a {
+    color: #34345c;
+    text-decoration: none;
+}
+
+.navLinksBot a:hover {
+    color: #d00;
+}
+
+/* Board page thread preview */
+.threadPreview {
+    background: #d6daf0;
+    border: 1px solid #b7c5d9;
+    border-left: none;
+    border-top: none;
+    margin: 5px 0;
+    padding: 5px;
+    display: block;
+    text-decoration: none;
+    color: #000;
+}
+
+.threadPreview:hover {
+    background: #d0d4ea;
+}
+
+/* Toggle post form */
+#togglePostFormLink {
+    text-align: center;
+    margin: 10px 0;
+    font-size: 13px;
+}
+
+#togglePostFormLink a {
+    color: #34345c;
+    text-decoration: none;
+}
+
+#togglePostFormLink a:hover {
+    color: #d00;
+}
+
+/* Horizontal rules */
+.board hr {
+    border: none;
+    border-top: 1px solid #b7c5d9;
+    margin: 0;
+}
+
+/* Footer */
+#absbot {
+    text-align: center;
+    font-size: 11px;
+    color: #999;
+    margin: 20px 0;
+}
+
+#absbot a {
+    color: #34345c;
+    text-decoration: none;
+}
+
+/* Loading */
+.loading-text {
+    text-align: center;
+    padding: 20px;
+    color: #707070;
+    font-size: 13px;
+}
+
+/* Pagination */
+.pagination {
+    text-align: center;
+    padding: 10px;
+    font-size: 12px;
+}
+
+.pagination a,
+.pagination button {
+    color: #34345c;
+    text-decoration: none;
+    padding: 0 3px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.pagination a:hover,
+.pagination button:hover {
+    color: #d00;
+}
+
+.pagination .current {
+    font-weight: bold;
+    text-decoration: underline;
+}
+
+/* Wallet cost */
+.postCost {
+    font-size: 11px;
+    color: #707070;
+}
+
+/* Image preview in form */
+.imgPreview {
+    max-height: 80px;
+    max-width: 120px;
+    border: 1px solid #aaa;
+}

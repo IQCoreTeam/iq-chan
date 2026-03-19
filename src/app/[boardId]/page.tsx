@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useThreads } from "../../hooks/use-threads";
 import { usePost } from "../../hooks/use-post";
+import { BOARDS } from "../../lib/constants";
 import ThreadList from "../../components/thread-list";
 import PostForm from "../../components/post-form";
 
@@ -16,28 +18,29 @@ export default function BoardPage({
     const { threads, loading, error, hasMore, loadMore, refresh } = useThreads(boardId);
     const { createThread, loading: postLoading } = usePost();
 
-    if (loading && threads.length === 0) return <div className="p-4 text-center text-sm text-gray-500">Loading threads...</div>;
-    if (error) return <div className="p-4 text-center text-sm text-red-600">Error: {error.message}</div>;
+    const boardMeta = BOARDS.find((b) => b.id === boardId);
+    const boardTitle = boardMeta ? `/${boardId}/ - ${boardMeta.title}` : `/${boardId}/`;
 
     return (
         <>
-            {/* ─── Controls ─────────────────────────────────────── */}
-            <div className="flex items-center gap-2 mb-3 text-sm">
-                <button
-                    onClick={refresh}
-                    className="text-blue-700 hover:underline"
-                >
-                    Refresh
-                </button>
+            <div className="boardBanner">
+                <div className="boardTitle">{boardTitle}</div>
             </div>
 
-            {/* ─── New thread form ────────────────────────────────── */}
-            <button
-                onClick={() => setShowForm((v) => !v)}
-                className="bg-[#d6daf0] border border-gray-400 px-4 py-1 text-sm hover:bg-[#c9cee6] mb-2"
-            >
-                {showForm ? "Close" : "Start a New Thread"}
-            </button>
+            <hr style={{ border: "none", borderTop: "1px solid #b7c5d9" }} />
+
+            <div className="navLinks">
+                [<Link href="/">Home</Link>]
+                {" "}
+                [<a href="#" onClick={(e) => { e.preventDefault(); refresh(); }}>Refresh</a>]
+            </div>
+
+            <div id="togglePostFormLink">
+                [<a href="#" onClick={(e) => { e.preventDefault(); setShowForm((v) => !v); }}>
+                    {showForm ? "Close Post Form" : "Start a New Thread"}
+                </a>]
+            </div>
+
             {showForm && (
                 <PostForm
                     mode="thread"
@@ -51,26 +54,48 @@ export default function BoardPage({
                 />
             )}
 
-            {/* ─── Thread list ────────────────────────────────────── */}
-            <div className="mt-4">
-                {threads.length === 0 ? (
-                    <div className="p-4 text-center text-sm text-gray-500">
-                        No threads yet. Be the first to post!
-                    </div>
-                ) : (
-                    <>
-                        <ThreadList threads={threads} boardId={boardId} />
-                        {hasMore && (
+            <hr style={{ border: "none", borderTop: "1px solid #b7c5d9" }} />
+
+            {loading && threads.length === 0 ? (
+                <div className="loading-text">Loading threads...</div>
+            ) : error ? (
+                <div className="loading-text" style={{ color: "#d00" }}>Error: {error.message}</div>
+            ) : threads.length === 0 ? (
+                <div className="loading-text">No threads yet. Be the first to post!</div>
+            ) : (
+                <>
+                    <ThreadList threads={threads} boardId={boardId} />
+                    {hasMore && (
+                        <div style={{ textAlign: "center", padding: 10 }}>
                             <button
                                 onClick={loadMore}
                                 disabled={loading}
-                                className="w-full py-2 text-sm text-blue-700 hover:underline disabled:opacity-40"
+                                style={{ color: "#34345c", background: "none", border: "none", cursor: "pointer", fontSize: 13, textDecoration: "underline" }}
                             >
-                                {loading ? "Loading..." : "Load More"}
+                                {loading ? "Loading..." : "[Load More]"}
                             </button>
-                        )}
-                    </>
-                )}
+                        </div>
+                    )}
+                </>
+            )}
+
+            <hr style={{ border: "none", borderTop: "1px solid #b7c5d9" }} />
+
+            <div className="navLinksBot">
+                [<Link href="/">Home</Link>]
+                {" "}
+                [<a href="#top">Top</a>]
+            </div>
+
+            <div id="absbot">
+                All trademarks and copyrights on this page are owned by their respective parties.
+                Images uploaded are the responsibility of the Poster.
+                <br />
+                <a href="https://iqlabs.dev" target="_blank" rel="noopener noreferrer">About</a>
+                {" \u2022 "}
+                <a href="https://x.com/IQLabsOfficial" target="_blank" rel="noopener noreferrer">Feedback</a>
+                {" \u2022 "}
+                <a href="https://github.com/IQCoreTeam" target="_blank" rel="noopener noreferrer">Source</a>
             </div>
         </>
     );

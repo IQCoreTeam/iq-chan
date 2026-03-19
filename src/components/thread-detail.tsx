@@ -27,10 +27,9 @@ export default function ThreadDetail({
     loading: boolean;
 }) {
     return (
-        <div>
-            {/* ─── OP ─────────────────────────────────────────────── */}
-            {thread && (
-                <>
+        <div className="board">
+            <div className="thread">
+                {thread && (
                     <Post
                         txSig={thread.__txSignature ?? ""}
                         sub={thread.sub}
@@ -38,80 +37,52 @@ export default function ThreadDetail({
                         name={thread.name}
                         time={thread.time}
                         img={thread.img}
+                        isOp
                     />
-                    <hr className="border-gray-300" />
-                </>
-            )}
+                )}
 
-            {/* ─── Replies ────────────────────────────────────────── */}
-            {loading && replies.length === 0 ? (
-                <div className="p-4 text-center text-sm text-gray-500">
-                    Loading replies...
-                </div>
-            ) : (
-                replies.map((reply, i) => (
-                    <div key={reply.__txSignature ?? i}>
+                {loading && replies.length === 0 ? (
+                    <div className="loading-text">Loading replies...</div>
+                ) : (
+                    replies.map((reply, i) => (
                         <Post
+                            key={reply.__txSignature ?? i}
                             txSig={reply.__txSignature ?? ""}
                             com={reply.com}
                             name={reply.name}
                             time={reply.time}
                             img={reply.img}
                         />
-                        {i < replies.length - 1 && (
-                            <hr className="border-gray-300" />
-                        )}
+                    ))
+                )}
+            </div>
+
+            <hr style={{ borderTop: "1px solid #b7c5d9", border: "none", borderTopWidth: 1, borderTopStyle: "solid", borderTopColor: "#b7c5d9" }} />
+
+            <div className="navLinksBot">
+                [<a href="#" onClick={(e) => { e.preventDefault(); onRefresh(); }}>Update</a>]
+                {" "}
+                <span className="thread-stats">
+                    {totalReplies} replies
+                </span>
+
+                {totalPages > 1 && (
+                    <div className="pagination">
+                        <button onClick={onPrevPage} disabled={page === 0 || loading}>[Prev]</button>
+                        {Array.from({ length: totalPages }, (_, i) => (
+                            <button
+                                key={i}
+                                onClick={() => onPageChange(i)}
+                                disabled={loading}
+                                className={i === page ? "current" : ""}
+                            >
+                                {i + 1}
+                            </button>
+                        ))}
+                        <button onClick={onNextPage} disabled={page === totalPages - 1 || loading}>[Next]</button>
                     </div>
-                ))
-            )}
-
-            {/* ─── Pagination ─────────────────────────────────────── */}
-            {totalPages > 1 && (
-                <nav className="mt-4 flex items-center gap-2 px-2 py-2 border-t border-gray-300">
-                    <button
-                        onClick={onPrevPage}
-                        disabled={page === 0 || loading}
-                        className="text-sm text-blue-700 hover:underline disabled:opacity-40"
-                    >
-                        Prev
-                    </button>
-
-                    {Array.from({ length: totalPages }, (_, i) => (
-                        <button
-                            key={i}
-                            onClick={() => onPageChange(i)}
-                            disabled={loading}
-                            className={`text-sm ${
-                                i === page
-                                    ? "font-bold underline"
-                                    : "text-blue-700 hover:underline"
-                            }`}
-                        >
-                            {i + 1}
-                        </button>
-                    ))}
-
-                    <button
-                        onClick={onNextPage}
-                        disabled={page === totalPages - 1 || loading}
-                        className="text-sm text-blue-700 hover:underline disabled:opacity-40"
-                    >
-                        Next
-                    </button>
-
-                    <button
-                        onClick={onRefresh}
-                        disabled={loading}
-                        className="ml-auto text-sm text-blue-700 hover:underline disabled:opacity-40"
-                    >
-                        Refresh
-                    </button>
-
-                    <span className="text-xs text-gray-500">
-                        {totalReplies} replies
-                    </span>
-                </nav>
-            )}
+                )}
+            </div>
         </div>
     );
 }

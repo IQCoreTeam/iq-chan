@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Header from "../components/header";
 import Providers from "./providers";
 import "./globals.css";
+import "./chan.css";
 
 export const metadata: Metadata = {
     title: {
@@ -34,10 +35,10 @@ export default function RootLayout({
 }) {
     return (
         <html lang="en">
-            <body className="bg-[#ffffee] text-gray-900 min-h-screen">
+            <body className="yotsuba-b">
                 <Providers>
                     <Header />
-                    <main className="max-w-3xl mx-auto py-4 px-2">
+                    <main style={{ maxWidth: 900, margin: "0 auto", padding: "0 10px" }}>
                         {children}
                     </main>
                 </Providers>

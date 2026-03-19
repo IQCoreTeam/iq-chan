@@ -21,7 +21,7 @@ export default function PostForm({
 
     if (!publicKey) {
         return (
-            <div className="border border-gray-300 bg-[#f0e0d6] p-3 text-center text-sm text-gray-600">
+            <div style={{ textAlign: "center", padding: 10, fontSize: 13, color: "#707070" }}>
                 Connect your wallet to post
             </div>
         );
@@ -42,81 +42,101 @@ export default function PostForm({
     }
 
     return (
-        <form
-            onSubmit={handleSubmit}
-            className="border border-gray-300 bg-[#f0e0d6] p-3 space-y-2"
-        >
-            {/* ─── Subject (thread only) ────────────────────────── */}
-            {mode === "thread" && (
-                <input
-                    type="text"
-                    placeholder="Subject"
-                    value={sub}
-                    onChange={(e) => setSub(e.target.value)}
-                    className="w-full border border-gray-400 px-2 py-1 text-sm"
-                />
-            )}
-
-            {/* ─── Comment ──────────────────────────────────────── */}
-            <textarea
-                placeholder="Comment"
-                value={com}
-                onChange={(e) => setCom(e.target.value)}
-                rows={4}
-                className="w-full border border-gray-400 px-2 py-1 text-sm resize-y"
-                required
-            />
-
-            {/* ─── Image URL ───────────────────────────────────── */}
-            <input
-                type="url"
-                placeholder="Image URL (optional)"
-                value={img}
-                onChange={(e) => setImg(e.target.value)}
-                className="w-full border border-gray-400 px-2 py-1 text-sm"
-            />
-
-            {/* ─── Image preview ──────────────────────────────── */}
-            {img.trim() && (
-                <div className="flex items-center gap-2">
-                    <img
-                        src={img.trim()}
-                        alt="preview"
-                        className="max-h-20 max-w-[120px] border border-gray-400 object-contain"
-                        onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-                    />
-                    <button
-                        type="button"
-                        onClick={() => setImg("")}
-                        className="text-xs text-red-600 hover:underline"
-                    >
-                        Remove
-                    </button>
-                </div>
-            )}
-
-            {/* ─── Name ─────────────────────────────────────────── */}
-            <input
-                type="text"
-                placeholder="Name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full border border-gray-400 px-2 py-1 text-sm"
-            />
-
-            {/* ─── Submit ───────────────────────────────────────── */}
-            <div className="flex items-center justify-between">
-                <span className="text-xs text-gray-500">
-                    ~{ESTIMATED_SOL_COST[mode]} SOL
-                </span>
-                <button
-                    type="submit"
-                    disabled={loading || !com.trim()}
-                    className="bg-gray-200 border border-gray-400 px-4 py-1 text-sm hover:bg-gray-300 disabled:opacity-50"
-                >
-                    {loading ? "Posting..." : mode === "thread" ? "Create Thread" : "Post Reply"}
-                </button>
-            </div>
+        <form onSubmit={handleSubmit} style={{ textAlign: "center" }}>
+            <table className="postForm" style={{ margin: "0 auto" }}>
+                <tbody>
+                    <tr>
+                        <td>Name</td>
+                        <td>
+                            <input
+                                name="name"
+                                type="text"
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                                placeholder="Anonymous"
+                            />
+                        </td>
+                    </tr>
+                    {mode === "thread" && (
+                        <tr>
+                            <td>Subject</td>
+                            <td>
+                                <input
+                                    name="sub"
+                                    type="text"
+                                    value={sub}
+                                    onChange={(e) => setSub(e.target.value)}
+                                    placeholder="Subject"
+                                />
+                                <input
+                                    type="submit"
+                                    value={loading ? "Posting..." : "Post"}
+                                    disabled={loading || !com.trim()}
+                                />
+                            </td>
+                        </tr>
+                    )}
+                    <tr>
+                        <td>Comment</td>
+                        <td>
+                            <textarea
+                                name="com"
+                                cols={48}
+                                rows={4}
+                                value={com}
+                                onChange={(e) => setCom(e.target.value)}
+                                required
+                            />
+                            {mode === "reply" && (
+                                <input
+                                    type="submit"
+                                    value={loading ? "Posting..." : "Post"}
+                                    disabled={loading || !com.trim()}
+                                    style={{ marginLeft: 5 }}
+                                />
+                            )}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Image URL</td>
+                        <td>
+                            <input
+                                name="img"
+                                type="url"
+                                value={img}
+                                onChange={(e) => setImg(e.target.value)}
+                                placeholder="https://..."
+                            />
+                        </td>
+                    </tr>
+                    {img.trim() && (
+                        <tr>
+                            <td>Preview</td>
+                            <td>
+                                <img
+                                    src={img.trim()}
+                                    alt="preview"
+                                    className="imgPreview"
+                                    onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                                />
+                                {" "}
+                                <button
+                                    type="button"
+                                    onClick={() => setImg("")}
+                                    style={{ color: "#d00", fontSize: 12, background: "none", border: "none", cursor: "pointer" }}
+                                >
+                                    [Remove]
+                                </button>
+                            </td>
+                        </tr>
+                    )}
+                    <tr>
+                        <td colSpan={2}>
+                            <span className="postCost">~{ESTIMATED_SOL_COST[mode]} SOL per {mode}</span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
         </form>
     );
 }
