@@ -10,6 +10,7 @@ export default function Post({
     isOwner,
     onEdit,
     onDelete,
+    disableLinks,
 }: {
     txSig: string;
     com: string;
@@ -20,6 +21,7 @@ export default function Post({
     isOwner?: boolean;
     onEdit?: () => void;
     onDelete?: () => void;
+    disableLinks?: boolean;
 }) {
     const timeStr = new Date(time * 1000).toLocaleString();
 
@@ -28,13 +30,21 @@ export default function Post({
             {/* ─── Image ────────────────────────────────────────── */}
             {img && (
                 <div className="float-left mr-3 mb-1">
-                    <a href={img} target="_blank" rel="noopener noreferrer">
+                    {disableLinks ? (
                         <img
                             src={img}
                             alt=""
                             className="max-w-[150px] max-h-[150px] border border-gray-300"
                         />
-                    </a>
+                    ) : (
+                        <a href={img} target="_blank" rel="noopener noreferrer">
+                            <img
+                                src={img}
+                                alt=""
+                                className="max-w-[150px] max-h-[150px] border border-gray-300"
+                            />
+                        </a>
+                    )}
                 </div>
             )}
 

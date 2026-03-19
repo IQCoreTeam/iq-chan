@@ -38,6 +38,7 @@ export default function ThreadList({
                             time={op.time as number}
                             sub={op.sub as string | undefined}
                             img={op.img as string | undefined}
+                            disableLinks
                         />
                     </Link>
                 );
