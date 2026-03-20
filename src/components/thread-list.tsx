@@ -7,13 +7,16 @@ import { ThreadEntry } from "../lib/board";
 import Post from "./post";
 import QuickReply from "./quick-reply";
 import { usePost } from "../hooks/use-post";
+import { formatDate } from "../lib/time";
 
 export default function ThreadList({
     threads,
     boardId,
+    onRefresh,
 }: {
     threads: ThreadEntry[];
     boardId: string;
+    onRefresh?: () => void;
 }) {
     const [hidden, setHidden] = useState<Set<string>>(new Set());
     const [qrThread, setQrThread] = useState<{ pda: string; seed: string; opSig: string } | null>(null);
@@ -62,7 +65,7 @@ export default function ThreadList({
                                     </span>
                                     {" "}
                                     <span className="dateTime" data-utc={op.time}>
-                                        {new Date(op.time * 1000).toLocaleString()}
+                                        {formatDate(op.time)}
                                     </span>
                                     {" "}
                                     <span className="postNum desktop">
@@ -106,6 +109,7 @@ export default function ThreadList({
                                             name={reply.name}
                                             time={reply.time}
                                             img={reply.img}
+                                            replyLink={threadHref}
                                             onQuote={handleQuoteOnBoard(thread.threadPda, op.threadSeed ?? "", op.__txSignature ?? thread.threadPda)}
                                         />
                                     ))}
@@ -121,7 +125,7 @@ export default function ThreadList({
                     threadSig={qrThread.opSig}
                     initialQuote={qrThread.opSig}
                     onSubmit={(data) =>
-                        postReply(qrThread.seed, qrThread.pda, boardId, data).then(() => setQrThread(null))
+                        postReply(qrThread.seed, qrThread.pda, boardId, data).then(() => { setQrThread(null); onRefresh?.(); })
                     }
                     loading={postLoading}
                     onClose={() => setQrThread(null)}
