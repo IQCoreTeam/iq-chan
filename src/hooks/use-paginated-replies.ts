@@ -45,8 +45,12 @@ export function usePaginatedReplies(
                 }
 
                 if (!cancelled) {
-                    setAllRows(merged as Post[]);
-                    setPage(0);
+                    // Preserve optimistic rows not yet in gateway response
+                    setAllRows((prev) => {
+                        const sigs = new Set(merged.map((r) => (r as Post).__txSignature));
+                        const optimistic = prev.filter((r) => r.__txSignature && !sigs.has(r.__txSignature));
+                        return [...(merged as Post[]), ...optimistic];
+                    });
                 }
             } catch (e) {
                 if (!cancelled) setError(e instanceof Error ? e : new Error(String(e)));

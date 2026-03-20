@@ -428,6 +428,7 @@ blockquote.postMessage {
     border-top: 1px solid #b7c5d9;
     padding: 2px 5px;
     overflow: hidden;
+    clear: both;
 }
 
 #boardNavDesktopFoot a {
