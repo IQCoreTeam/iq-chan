@@ -109,7 +109,7 @@ export default function ThreadList({
                                             name={reply.name}
                                             time={reply.time}
                                             img={reply.img}
-                                            replyLink={threadHref}
+                                            replyLink={`${threadHref}:p${reply.__txSignature ?? ""}`}
                                             onQuote={handleQuoteOnBoard(thread.threadPda, op.threadSeed ?? "", op.__txSignature ?? thread.threadPda)}
                                         />
                                     ))}

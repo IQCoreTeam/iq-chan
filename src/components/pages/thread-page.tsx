@@ -5,6 +5,7 @@ import HashLink from "../hash-link";
 import { usePaginatedReplies } from "../../hooks/use-paginated-replies";
 import { usePost } from "../../hooks/use-post";
 import { useThreads } from "../../hooks/use-threads";
+import { scrollToPost } from "../../lib/highlight";
 import { BOARDS, THREADS_PER_PAGE, BUMP_LIMIT } from "../../lib/constants";
 import ThreadDetail from "../thread-detail";
 import PostForm from "../post-form";
@@ -13,7 +14,7 @@ import { FooterNav } from "../board-nav";
 
 const BACKOFF = [10, 15, 20, 30, 60, 90, 120];
 
-export default function ThreadPage({ boardId, threadId: threadPda }: { boardId: string; threadId: string }) {
+export default function ThreadPage({ boardId, threadId: threadPda, scrollTo }: { boardId: string; threadId: string; scrollTo?: string | null }) {
     const [qrOpen, setQrOpen] = useState(false);
     const [qrQuote, setQrQuote] = useState<string | undefined>();
     const [autoUpdate, setAutoUpdate] = useState(false);
@@ -37,6 +38,16 @@ export default function ThreadPage({ boardId, threadId: threadPda }: { boardId: 
     const boardMeta = BOARDS.find((b) => b.id === boardId);
     const boardTitle = boardMeta ? `/${boardId}/ - ${boardMeta.title}` : `/${boardId}/`;
     const threadSeed = op?.threadSeed ?? "";
+
+    // Scroll to a specific post when navigating from board page
+    const scrolledRef = useRef(false);
+    useEffect(() => {
+        if (!scrollTo || scrolledRef.current || loading) return;
+        if (document.getElementById(`p${scrollTo}`)) {
+            scrolledRef.current = true;
+            scrollToPost(scrollTo);
+        }
+    }, [scrollTo, loading, replies]);
 
     // Which board page this thread is on (like 4chan's page number in stats)
     const boardPage = (() => {
