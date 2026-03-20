@@ -14,7 +14,7 @@ async function fetchTableRows(
     if (before) url += `&before=${before}`;
 
     if (isDev) console.log("[gateway] rows →", tablePda.slice(0, 8), limit);
-    const res = await fetch(url);
+    const res = await fetch(url, { cache: "no-store" });
     if (!res.ok) {
         if (res.status === 404) return { rows: [] };
         throw new Error(`fetchTableRows failed: ${res.status}`);
@@ -65,7 +65,7 @@ export async function fetchTableSlice(
 
     const url = `${GATEWAY_URL}/table/${tablePda}/slice?sigs=${sigs.join(",")}`;
     if (isDev) console.log("[gateway] slice →", tablePda.slice(0, 8), sigs.length, "sigs");
-    const res = await fetch(url);
+    const res = await fetch(url, { cache: "no-store" });
     if (!res.ok) throw new Error(`fetchTableSlice failed: ${res.status}`);
     const data = await res.json();
     const rows = data.rows ?? [];
