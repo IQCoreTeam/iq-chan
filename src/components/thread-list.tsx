@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import Link from "next/link";
+import { hashHref } from "../hooks/use-hash-router";
+import HashLink from "./hash-link";
 import { ThreadEntry } from "../lib/board";
 import Post from "./post";
 import QuickReply from "./quick-reply";
@@ -30,6 +31,7 @@ export default function ThreadList({
 
                 const isHidden = hidden.has(thread.threadPda);
                 const omitted = Math.max(0, thread.replyCount - thread.lastReplies.length);
+                const threadHref = hashHref(`/${boardId}/${thread.threadPda}`);
 
                 return (
                     <div key={thread.threadPda}>
@@ -64,8 +66,8 @@ export default function ThreadList({
                                     </span>
                                     {" "}
                                     <span className="postNum desktop">
-                                        <a href={`/${boardId}/${thread.threadPda}`} title="Link to this post">No.</a>
-                                        <a href={`/${boardId}/${thread.threadPda}`} title="Reply to this post">{(op.__txSignature ?? "").slice(0, 8)}</a>
+                                        <a href={threadHref} title="Link to this post">No.</a>
+                                        <a href={threadHref} title="Reply to this post">{(op.__txSignature ?? "").slice(0, 8)}</a>
                                     </span>
                                     {" "}
                                     <span style={{ fontSize: 12, color: "#707070" }}>
@@ -82,16 +84,16 @@ export default function ThreadList({
                                         time={op.time}
                                         img={op.img}
                                         isOp
-                                        replyLink={`/${boardId}/${thread.threadPda}`}
+                                        replyLink={threadHref}
                                         onQuote={handleQuoteOnBoard(thread.threadPda, op.threadSeed ?? "", op.__txSignature ?? thread.threadPda)}
                                     />
 
                                     {omitted > 0 && (
                                         <span className="summary">
                                             {omitted} {omitted === 1 ? "reply" : "replies"} omitted.{" "}
-                                            <Link href={`/${boardId}/${thread.threadPda}`} className="replylink">
+                                            <HashLink href={`/${boardId}/${thread.threadPda}`} className="replylink">
                                                 Click here
-                                            </Link>{" "}
+                                            </HashLink>{" "}
                                             to view.
                                         </span>
                                     )}
