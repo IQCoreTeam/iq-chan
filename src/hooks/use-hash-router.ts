@@ -3,9 +3,12 @@
 import { useState, useEffect } from "react";
 
 function parseHash(): { boardId: string | null; threadId: string | null } {
-    const hash = window.location.hash.replace(/^#\/?/, "");
-    if (!hash) return { boardId: null, threadId: null };
-    const parts = hash.split("/");
+    const raw = window.location.hash;
+    // Only treat #/ prefixed hashes as routes. Everything else (#bottom, #p...) is an anchor.
+    if (!raw.startsWith("#/")) return { boardId: null, threadId: null };
+    const path = raw.slice(2); // strip "#/"
+    if (!path) return { boardId: null, threadId: null };
+    const parts = path.split("/");
     return {
         boardId: parts[0] || null,
         threadId: parts[1] || null,

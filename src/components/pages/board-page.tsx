@@ -89,7 +89,7 @@ export default function BoardPage({ boardId }: { boardId: string }) {
                 {" "}
                 [<a href="#" onClick={(e) => { e.preventDefault(); refresh(); setPage(0); }}>Refresh</a>]
                 {" "}
-                [<a href="#bottom">Bottom</a>]
+                [<a href="#" onClick={(e) => { e.preventDefault(); document.getElementById("bottom")?.scrollIntoView({ behavior: "smooth" }); }}>Bottom</a>]
             </div>
 
             <hr style={{ border: "none", borderTop: "1px solid #b7c5d9" }} />

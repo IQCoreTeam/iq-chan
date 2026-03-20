@@ -122,7 +122,7 @@ export default function ThreadPage({ boardId, threadId: threadPda }: { boardId: 
                 <div>
                     [<HashLink href={`/${boardId}`} accessKey="a">Return</HashLink>]
                     {" "}
-                    [<a href="#bottom">Bottom</a>]
+                    [<a href="#" onClick={(e) => { e.preventDefault(); document.getElementById("bottom")?.scrollIntoView({ behavior: "smooth" }); }}>Bottom</a>]
                     {" "}
                     [<a href="#" onClick={(e) => { e.preventDefault(); manualUpdate(); }}>Update</a>]
                     {" "}
@@ -164,7 +164,7 @@ export default function ThreadPage({ boardId, threadId: threadPda }: { boardId: 
                 <div>
                     [<HashLink href={`/${boardId}`} accessKey="a">Return</HashLink>]
                     {" "}
-                    [<a href="#top">Top</a>]
+                    [<a href="#" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: "smooth" }); }}>Top</a>]
                     {" "}
                     [<a href="#" onClick={(e) => { e.preventDefault(); manualUpdate(); }}>Update</a>]
                     {" "}
