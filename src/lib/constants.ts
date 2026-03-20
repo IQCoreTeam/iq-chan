@@ -9,6 +9,7 @@ import iqlabs from "iqlabs-sdk";
 
 export const DB_ROOT_ID = "iqchan";
 export const THREADS_PER_PAGE = 20;
+export const BUMP_LIMIT = 300;
 export const FEED_SEED_PREFIX = "feedmY}AGBJiqLabs";
 export const BOARDS: { id: string; title: string; description: string; image: string }[] = [
     { id: "po", title: "Politically Incorrect", description: "Political discussion", image: "/boards/po.png" },

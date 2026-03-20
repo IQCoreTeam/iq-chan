@@ -4,7 +4,8 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import HashLink from "../hash-link";
 import { usePaginatedReplies } from "../../hooks/use-paginated-replies";
 import { usePost } from "../../hooks/use-post";
-import { BOARDS } from "../../lib/constants";
+import { useThreads } from "../../hooks/use-threads";
+import { BOARDS, THREADS_PER_PAGE, BUMP_LIMIT } from "../../lib/constants";
 import ThreadDetail from "../thread-detail";
 import PostForm from "../post-form";
 import QuickReply from "../quick-reply";
@@ -22,7 +23,6 @@ export default function ThreadPage({ boardId, threadId: threadPda }: { boardId: 
     const {
         op,
         replies,
-        page,
         totalReplies,
         loading,
         error,
@@ -32,9 +32,18 @@ export default function ThreadPage({ boardId, threadId: threadPda }: { boardId: 
 
     const { postReply, loading: postLoading } = usePost();
 
+    const { threads: boardThreads } = useThreads(boardId);
+
     const boardMeta = BOARDS.find((b) => b.id === boardId);
     const boardTitle = boardMeta ? `/${boardId}/ - ${boardMeta.title}` : `/${boardId}/`;
     const threadSeed = op?.threadSeed ?? "";
+
+    // Which board page this thread is on (like 4chan's page number in stats)
+    const boardPage = (() => {
+        const idx = boardThreads.findIndex((t) => t.threadPda === threadPda);
+        if (idx < 0) return 1;
+        return Math.floor(idx / THREADS_PER_PAGE) + 1;
+    })();
 
     const backoffIdx = useRef(0);
 
@@ -75,11 +84,11 @@ export default function ThreadPage({ boardId, threadId: threadPda }: { boardId: 
     }, [refresh, autoUpdate]);
 
     // Add row to UI instantly, then refresh from gateway in background
-    const handlePostReply = useCallback(async (data: { com: string; name: string; img?: string }) => {
-        const row = await postReply(threadSeed, threadPda, boardId, data);
+    const handlePostReply = useCallback(async (data: { com: string; name: string; img?: string; options?: string }) => {
+        const row = await postReply(threadSeed, threadPda, boardId, data, totalReplies);
         if (row) addOptimisticRow(row);
         refresh();
-    }, [postReply, threadSeed, threadPda, boardId, addOptimisticRow, refresh]);
+    }, [postReply, threadSeed, threadPda, boardId, totalReplies, addOptimisticRow, refresh]);
 
     const onQuote = useCallback((sig: string) => {
         setQrQuote(sig);
@@ -130,7 +139,7 @@ export default function ThreadPage({ boardId, threadId: threadPda }: { boardId: 
                     {" / "}
                     <span className="ts-images" title="Images">{replies.filter((r) => r.img).length}</span>
                     {" / "}
-                    <span className="ts-page" title="Page">{page + 1}</span>
+                    <span className="ts-page" title="Page">{boardPage}</span>
                 </div>
             </div>
 
@@ -175,7 +184,7 @@ export default function ThreadPage({ boardId, threadId: threadPda }: { boardId: 
                     {" / "}
                     <span className="ts-images" title="Images">{replies.filter((r) => r.img).length}</span>
                     {" / "}
-                    <span className="ts-page" title="Page">{page + 1}</span>
+                    <span className="ts-page" title="Page">{boardPage}</span>
                 </div>
             </div>
 

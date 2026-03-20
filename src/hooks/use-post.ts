@@ -9,6 +9,7 @@ import iqlabs from "iqlabs-sdk";
 const idl = require("iqlabs-sdk/idl/code_in.json");
 import {
     DB_ROOT_ID,
+    BUMP_LIMIT,
     threadTableSeed,
     deriveTablePda,
     deriveInstructionTablePda,
@@ -149,16 +150,25 @@ export function usePost() {
             threadSeed: string,
             threadPda: string,
             boardId: string,
-            data: { com: string; name: string; img?: string },
+            data: { com: string; name: string; img?: string; options?: string },
+            replyCount = 0,
         ) => {
             if (!wallet.publicKey) throw new Error("Wallet not connected");
             setLoading(true);
             setError(null);
 
             try {
-                const feedPda = getFeedPda(DB_ROOT_KEY, boardId);
                 const dbRootIdBytes = Buffer.from(iqlabs.utils.toSeedBytes(DB_ROOT_ID));
                 const seedBytes = Buffer.from(iqlabs.utils.toSeedBytes(threadSeed));
+
+                // sage or bump limit → don't bump the thread in the feed
+                const isSage = data.options === "sage";
+                const overBumpLimit = replyCount >= BUMP_LIMIT;
+                const shouldBump = !isSage && !overBumpLimit;
+
+                const remaining = shouldBump
+                    ? [getFeedPda(DB_ROOT_KEY, boardId)]
+                    : [];
 
                 const row = {
                     sub: "",
@@ -176,7 +186,7 @@ export function usePost() {
                     seedBytes,
                     JSON.stringify(row),
                     false,
-                    [feedPda],
+                    remaining,
                 );
 
                 await notifyPost(threadPda, txSig, row);
