@@ -110,7 +110,7 @@ export function usePost() {
                 await connection.confirmTransaction(tx1Sig, "confirmed");
 
                 // TX2: write OP row
-                const rowJson = JSON.stringify({
+                const row = {
                     sub: data.sub,
                     com: data.com,
                     name: data.name,
@@ -118,20 +118,19 @@ export function usePost() {
                     ...(data.img ? { img: data.img } : {}),
                     threadPda,
                     threadSeed: seed,
-                });
+                };
 
                 const txSig = await iqlabs.writer.writeRow(
                     connection,
                     wallet as any,
                     dbRootIdBytes,
                     seedBytes,
-                    rowJson,
+                    JSON.stringify(row),
                     false,
                     [feedPda],
                 );
 
-                // Notify gateway so it caches the new row immediately
-                notifyPost(threadPda, txSig);
+                notifyPost(threadPda, txSig, row);
             } catch (e) {
                 const err = e instanceof Error ? e : new Error(String(e));
                 setError(err);
@@ -161,27 +160,26 @@ export function usePost() {
                 const dbRootIdBytes = Buffer.from(iqlabs.utils.toSeedBytes(DB_ROOT_ID));
                 const seedBytes = Buffer.from(iqlabs.utils.toSeedBytes(threadSeed));
 
-                const rowJson = JSON.stringify({
+                const row = {
                     sub: "",
                     com: data.com,
                     name: data.name,
                     time: Math.floor(Date.now() / 1000),
                     ...(data.img ? { img: data.img } : {}),
                     threadPda,
-                });
+                };
 
                 const txSig = await iqlabs.writer.writeRow(
                     connection,
                     wallet as any,
                     dbRootIdBytes,
                     seedBytes,
-                    rowJson,
+                    JSON.stringify(row),
                     false,
                     [feedPda],
                 );
 
-                // Notify gateway so it caches the new row immediately
-                notifyPost(threadPda, txSig);
+                notifyPost(threadPda, txSig, row);
             } catch (e) {
                 const err = e instanceof Error ? e : new Error(String(e));
                 setError(err);
