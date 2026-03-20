@@ -130,7 +130,7 @@ export function usePost() {
                     [feedPda],
                 );
 
-                notifyPost(threadPda, txSig, row);
+                await notifyPost(threadPda, txSig, row);
             } catch (e) {
                 const err = e instanceof Error ? e : new Error(String(e));
                 setError(err);
@@ -179,7 +179,8 @@ export function usePost() {
                     [feedPda],
                 );
 
-                notifyPost(threadPda, txSig, row);
+                await notifyPost(threadPda, txSig, row);
+                return { ...row, __txSignature: txSig };
             } catch (e) {
                 const err = e instanceof Error ? e : new Error(String(e));
                 setError(err);

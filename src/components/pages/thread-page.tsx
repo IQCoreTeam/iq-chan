@@ -2,7 +2,6 @@
 
 import { useState, useCallback, useEffect, useRef } from "react";
 import HashLink from "../hash-link";
-import { useHashRoute } from "../../hooks/use-hash-router";
 import { usePaginatedReplies } from "../../hooks/use-paginated-replies";
 import { usePost } from "../../hooks/use-post";
 import { BOARDS } from "../../lib/constants";
@@ -13,10 +12,7 @@ import { FooterNav } from "../board-nav";
 
 const BACKOFF = [10, 15, 20, 30, 60, 90, 120];
 
-export default function ThreadPage() {
-    const { boardId, threadId: threadPda } = useHashRoute();
-    if (!boardId || !threadPda) return null;
-
+export default function ThreadPage({ boardId, threadId: threadPda }: { boardId: string; threadId: string }) {
     const [qrOpen, setQrOpen] = useState(false);
     const [qrQuote, setQrQuote] = useState<string | undefined>();
     const [autoUpdate, setAutoUpdate] = useState(false);
@@ -31,6 +27,7 @@ export default function ThreadPage() {
         loading,
         error,
         refresh,
+        addOptimisticRow,
     } = usePaginatedReplies(threadPda);
 
     const { postReply, loading: postLoading } = usePost();
@@ -41,6 +38,7 @@ export default function ThreadPage() {
 
     const backoffIdx = useRef(0);
 
+    // Reset backoff when new posts arrive
     useEffect(() => {
         if (totalReplies > prevCount.current && prevCount.current > 0) {
             backoffIdx.current = 0;
@@ -48,6 +46,10 @@ export default function ThreadPage() {
         prevCount.current = totalReplies;
     }, [totalReplies]);
 
+    // Bump this to restart the interval (used by manualUpdate)
+    const [restartKey, setRestartKey] = useState(0);
+
+    // Auto-update with exponential backoff countdown
     useEffect(() => {
         if (!autoUpdate) { setCountdown(0); backoffIdx.current = 0; return; }
         let seconds = BACKOFF[backoffIdx.current];
@@ -62,23 +64,22 @@ export default function ThreadPage() {
             setCountdown(seconds);
         }, 1000);
         return () => clearInterval(id);
-    }, [autoUpdate, refresh]);
+    }, [autoUpdate, refresh, restartKey]);
 
     const manualUpdate = useCallback(() => {
         refresh();
-        backoffIdx.current = 0;
-        setCountdown(BACKOFF[0]);
-    }, [refresh]);
+        if (autoUpdate) {
+            backoffIdx.current = 0;
+            setRestartKey((k) => k + 1);
+        }
+    }, [refresh, autoUpdate]);
 
-    const refreshAfterPost = useCallback(() => {
-        const before = prevCount.current;
-        setTimeout(() => {
-            refresh();
-            setTimeout(() => {
-                if (prevCount.current <= before) refresh();
-            }, 3000);
-        }, 1000);
-    }, [refresh]);
+    // Add row to UI instantly, then refresh from gateway in background
+    const handlePostReply = useCallback(async (data: { com: string; name: string; img?: string }) => {
+        const row = await postReply(threadSeed, threadPda, boardId, data);
+        if (row) addOptimisticRow(row);
+        refresh();
+    }, [postReply, threadSeed, threadPda, boardId, addOptimisticRow, refresh]);
 
     const onQuote = useCallback((sig: string) => {
         setQrQuote(sig);
@@ -101,9 +102,7 @@ export default function ThreadPage() {
             {threadSeed && (
                 <PostForm
                     mode="reply"
-                    onSubmit={(data: { com: string; name: string; img?: string }) =>
-                        postReply(threadSeed, threadPda, boardId, data).then(refreshAfterPost)
-                    }
+                    onSubmit={handlePostReply}
                     loading={postLoading}
                 />
             )}
@@ -187,7 +186,7 @@ export default function ThreadPage() {
             {qrOpen && threadSeed && (
                 <QuickReply
                     threadSig={op?.__txSignature ?? threadPda}
-                    onSubmit={(data) => postReply(threadSeed, threadPda, boardId, data).then(refreshAfterPost)}
+                    onSubmit={handlePostReply}
                     loading={postLoading}
                     onClose={() => setQrOpen(false)}
                     initialQuote={qrQuote}
