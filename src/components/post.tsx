@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useRef } from "react";
 import { formatPostMessage } from "../lib/format";
-import { scrollToPost, highlightPost } from "../lib/highlight";
+import { scrollToPost, highlightPost, showPostPreview, hidePostPreview } from "../lib/highlight";
+import { formatDate, timeAgo } from "../lib/time";
 
 export default function Post({
     txSig,
@@ -90,7 +91,7 @@ export default function Post({
                 {" "}
             </span>
             {" "}
-            <span className="dateTime" data-utc={time}>{new Date(time * 1000).toLocaleString()}</span>
+            <span className="dateTime" data-utc={time} title={timeAgo(time)}>{formatDate(time)}</span>
             {" "}
             <span className="postNum desktop">
                 <a
@@ -99,7 +100,7 @@ export default function Post({
                     onClick={replyLink ? undefined : (e) => { e.preventDefault(); scrollToPost(txSig); }}
                 >No.</a>
                 {digitsLink}
-                {replyLink && (
+                {isOp && replyLink && (
                     <> &nbsp; <span>[<a href={replyLink} className="replylink">Reply</a>]</span></>
                 )}
             </span>
@@ -134,8 +135,8 @@ export default function Post({
                                 href={`#p${bl}`}
                                 className="quotelink"
                                 onClick={(e) => { e.preventDefault(); scrollToPost(bl); }}
-                                onMouseEnter={() => highlightPost(bl, true)}
-                                onMouseLeave={() => highlightPost(bl, false)}
+                                onMouseEnter={(e) => { highlightPost(bl, true); showPostPreview(bl, e); }}
+                                onMouseLeave={() => { highlightPost(bl, false); hidePostPreview(); }}
                             >
                                 &gt;&gt;{bl.slice(0, 8)}
                             </a>

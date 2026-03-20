@@ -474,7 +474,7 @@ blockquote.postMessage {
 /* Pagelist (board page) */
 .pagelist {
     font-size: 12px;
-    display: inline-flex;
+    display: flex;
     align-items: center;
     gap: 2px;
     padding: 3px 0;

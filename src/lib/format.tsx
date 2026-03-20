@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { scrollToPost, highlightPost } from "./highlight";
+import { scrollToPost, highlightPost, showPostPreview, hidePostPreview } from "./highlight";
 
 /** Find a post element whose id starts with "p" + sig prefix. */
 function findPostId(sig: string): string | null {
@@ -37,8 +37,8 @@ function QuoteLink({ sig, display }: { sig: string; display: string }) {
             href={`#p${fullId}`}
             className="quotelink"
             onClick={(e) => { e.preventDefault(); scrollToPost(fullId); }}
-            onMouseEnter={() => highlightPost(fullId, true)}
-            onMouseLeave={() => highlightPost(fullId, false)}
+            onMouseEnter={(e) => { highlightPost(fullId, true); showPostPreview(fullId, e); }}
+            onMouseLeave={() => { highlightPost(fullId, false); hidePostPreview(); }}
         >
             {display}
         </a>

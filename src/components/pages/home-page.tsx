@@ -156,8 +156,9 @@ export default function HomePage() {
                     <a href="https://x.com/IQLabsOfficial" target="_blank" rel="noopener noreferrer">Feedback</a>
                     {" \u2022 "}
                     <a href="https://github.com/IQCoreTeam" target="_blank" rel="noopener noreferrer">Source</a>
-                    <br /><br /><br />
-                    Copyright &copy; 2025-2026 IQ Labs. All posts are on-chain.
+                    <br /><br />
+                    All trademarks and copyrights on this page are owned by their respective parties.
+                    Images uploaded are the responsibility of the Poster. All posts are Solana transactions. Powered by IQ Labs.
                 </div>
             </div>
         </div>

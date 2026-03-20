@@ -101,7 +101,7 @@ export default function BoardPage({ boardId }: { boardId: string }) {
             ) : threads.length === 0 ? (
                 <div className="loading-text">No threads yet. Be the first to post!</div>
             ) : (
-                <ThreadList threads={pageThreads} boardId={boardId} />
+                <ThreadList threads={pageThreads} boardId={boardId} onRefresh={refresh} />
             )}
 
             <PageList page={page} totalPages={totalPages} onPage={handlePage} />
