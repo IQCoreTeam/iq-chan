@@ -1,13 +1,13 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { useHashRoute } from "../hooks/use-hash-router";
+import HashLink from "./hash-link";
 import WalletButton from "./wallet-button";
 import { BoardList } from "./board-nav";
 
 export default function Header() {
-    const pathname = usePathname();
-    if (pathname === "/") return null;
+    const { boardId } = useHashRoute();
+    if (!boardId) return null;
 
     return (
         <div id="boardNavDesktop">
@@ -15,7 +15,7 @@ export default function Header() {
             <span id="navtopright">
                 <WalletButton />
                 {" "}
-                [<Link href="/">Home</Link>]
+                [<HashLink href="/">Home</HashLink>]
             </span>
         </div>
     );

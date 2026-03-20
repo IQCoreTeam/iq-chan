@@ -1,14 +1,14 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import Link from "next/link";
-import { useParams } from "next/navigation";
+import HashLink from "../hash-link";
+import { useHashRoute } from "../../hooks/use-hash-router";
 import { useThreads } from "../../hooks/use-threads";
 import { usePost } from "../../hooks/use-post";
 import { BOARDS, THREADS_PER_PAGE } from "../../lib/constants";
-import ThreadList from "../../components/thread-list";
-import PostForm from "../../components/post-form";
-import { FooterNav } from "../../components/board-nav";
+import ThreadList from "../thread-list";
+import PostForm from "../post-form";
+import { FooterNav } from "../board-nav";
 
 function PageList({ page, totalPages, onPage }: { page: number; totalPages: number; onPage: (n: number) => void }) {
     return (
@@ -40,7 +40,9 @@ function PageList({ page, totalPages, onPage }: { page: number; totalPages: numb
 }
 
 export default function BoardPage() {
-    const { boardId } = useParams<{ boardId: string }>();
+    const { boardId } = useHashRoute();
+    if (!boardId) return null;
+
     const { threads, loading, error, hasMore, loadMore, refresh } = useThreads(boardId);
     const { createThread, loading: postLoading } = usePost();
     const [page, setPage] = useState(0);
@@ -56,7 +58,6 @@ export default function BoardPage() {
 
     function handlePage(n: number) {
         setPage(n);
-        // Load more from server if near the end
         if (n >= totalPages - 1 && hasMore) loadMore();
         window.scrollTo(0, 0);
     }
@@ -88,7 +89,7 @@ export default function BoardPage() {
             <hr style={{ border: "none", borderTop: "1px solid #b7c5d9" }} />
 
             <div className="navLinks desktop">
-                [<Link href="/">Home</Link>]
+                [<HashLink href="/">Home</HashLink>]
                 {" "}
                 [<a href="#" onClick={(e) => { e.preventDefault(); refresh(); setPage(0); }}>Refresh</a>]
                 {" "}

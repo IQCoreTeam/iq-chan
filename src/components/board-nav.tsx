@@ -1,9 +1,8 @@
 "use client";
 
-import Link from "next/link";
+import HashLink from "./hash-link";
 import { BOARDS } from "../lib/constants";
 
-/** Board link list used in header and footer nav bars. */
 export function BoardList() {
     return (
         <span className="boardList">
@@ -11,7 +10,7 @@ export function BoardList() {
             {BOARDS.map((b, i) => (
                 <span key={b.id}>
                     {i > 0 && " / "}
-                    <Link href={`/${b.id}`} title={b.title}>{b.id}</Link>
+                    <HashLink href={`/${b.id}`} title={b.title}>{b.id}</HashLink>
                 </span>
             ))}
             ]
@@ -19,14 +18,13 @@ export function BoardList() {
     );
 }
 
-/** Footer with board nav + about links, matching 4chan's bottom section. */
 export function FooterNav() {
     return (
         <>
             <div id="boardNavDesktopFoot">
                 <BoardList />
                 <span id="navbotright" style={{ float: "right" }}>
-                    [<Link href="/">Home</Link>]
+                    [<HashLink href="/">Home</HashLink>]
                 </span>
             </div>
             <div id="absbot">

@@ -1,22 +1,22 @@
 "use client";
 
 import { useState, useCallback, useEffect, useRef } from "react";
-import Link from "next/link";
-import { useParams } from "next/navigation";
-import { usePaginatedReplies } from "../../../hooks/use-paginated-replies";
-import { usePost } from "../../../hooks/use-post";
-import { BOARDS } from "../../../lib/constants";
-import ThreadDetail from "../../../components/thread-detail";
-import PostForm from "../../../components/post-form";
-import QuickReply from "../../../components/quick-reply";
-import { FooterNav } from "../../../components/board-nav";
+import HashLink from "../hash-link";
+import { useHashRoute } from "../../hooks/use-hash-router";
+import { usePaginatedReplies } from "../../hooks/use-paginated-replies";
+import { usePost } from "../../hooks/use-post";
+import { BOARDS } from "../../lib/constants";
+import ThreadDetail from "../thread-detail";
+import PostForm from "../post-form";
+import QuickReply from "../quick-reply";
+import { FooterNav } from "../board-nav";
 
 const BACKOFF = [10, 15, 20, 30, 60, 90, 120];
 
 export default function ThreadPage() {
-    const params = useParams<{ boardId: string; threadId: string }>();
-    const boardId = params.boardId;
-    const threadPda = params.threadId;
+    const { boardId, threadId: threadPda } = useHashRoute();
+    if (!boardId || !threadPda) return null;
+
     const [qrOpen, setQrOpen] = useState(false);
     const [qrQuote, setQrQuote] = useState<string | undefined>();
     const [autoUpdate, setAutoUpdate] = useState(false);
@@ -39,7 +39,6 @@ export default function ThreadPage() {
     const boardTitle = boardMeta ? `/${boardId}/ - ${boardMeta.title}` : `/${boardId}/`;
     const threadSeed = op?.threadSeed ?? "";
 
-    // Track reply count changes to reset backoff
     const backoffIdx = useRef(0);
 
     useEffect(() => {
@@ -49,7 +48,6 @@ export default function ThreadPage() {
         prevCount.current = totalReplies;
     }, [totalReplies]);
 
-    // Auto-update with exponential backoff countdown
     useEffect(() => {
         if (!autoUpdate) { setCountdown(0); backoffIdx.current = 0; return; }
         let seconds = BACKOFF[backoffIdx.current];
@@ -72,7 +70,6 @@ export default function ThreadPage() {
         setCountdown(BACKOFF[0]);
     }, [refresh]);
 
-    // Refresh after posting — retry once at 3s if first attempt didn't pick it up
     const refreshAfterPost = useCallback(() => {
         const before = prevCount.current;
         setTimeout(() => {
@@ -115,7 +112,7 @@ export default function ThreadPage() {
 
             <div className="navLinks desktop" style={{ display: "flex", alignItems: "center" }}>
                 <div>
-                    [<Link href={`/${boardId}`} accessKey="a">Return</Link>]
+                    [<HashLink href={`/${boardId}`} accessKey="a">Return</HashLink>]
                     {" "}
                     [<a href="#bottom">Bottom</a>]
                     {" "}
@@ -157,7 +154,7 @@ export default function ThreadPage() {
 
             <div className="navLinks navLinksBot desktop" style={{ position: "relative", display: "flex", alignItems: "center" }}>
                 <div>
-                    [<Link href={`/${boardId}`} accessKey="a">Return</Link>]
+                    [<HashLink href={`/${boardId}`} accessKey="a">Return</HashLink>]
                     {" "}
                     [<a href="#top">Top</a>]
                     {" "}
