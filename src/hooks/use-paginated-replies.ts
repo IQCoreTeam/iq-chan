@@ -31,7 +31,7 @@ export function usePaginatedReplies(
                 if (cancelled) return;
 
                 // Find OP to get threadSeed for instruction table
-                const op = rows.find((r) => r.sub && (r.sub as string).length > 0);
+                const op = rows.find((r) => !!r.threadSeed);
                 const threadSeed = (op as Post)?.threadSeed;
 
                 let merged = rows;
@@ -61,13 +61,13 @@ export function usePaginatedReplies(
 
     // Separate OP and replies
     const op = useMemo(
-        () => allRows.find((r) => r.sub && r.sub.length > 0) ?? null,
+        () => allRows.find((r) => !!r.threadSeed) ?? null,
         [allRows],
     );
 
     const allReplies = useMemo(
         () => allRows
-            .filter((r) => !r.sub || r.sub.length === 0)
+            .filter((r) => !r.threadSeed)
             .sort((a, b) => a.time - b.time),
         [allRows],
     );

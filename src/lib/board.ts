@@ -55,7 +55,7 @@ export async function fetchFeedThreads(
 
             const time = post.time ?? 0;
             const existing = threads.get(post.threadPda);
-            const isOp = !!post.sub && post.sub.length > 0;
+            const isOp = !!post.threadSeed;
 
             if (existing) {
                 if (isOp) existing.opData = post;
@@ -80,11 +80,11 @@ export async function fetchFeedThreads(
     await Promise.all(
         [...threads.values()].map(async (entry) => {
             const rows = await fetchAllTableRows(entry.threadPda, 50);
-            const op = rows.find((r) => r.sub && r.sub.length > 0) as Post | undefined;
+            const op = rows.find((r) => !!r.threadSeed) as Post | undefined;
             if (op && !entry.opData) entry.opData = op;
 
             const replies = rows
-                .filter((r) => !r.sub || r.sub.length === 0)
+                .filter((r) => !r.threadSeed)
                 .sort((a, b) => (a.time as number) - (b.time as number));
 
             entry.replyCount = replies.length;
