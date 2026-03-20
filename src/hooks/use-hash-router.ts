@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 
 function parseHash(): { boardId: string | null; threadId: string | null } {
-    if (typeof window === "undefined") return { boardId: null, threadId: null };
     const hash = window.location.hash.replace(/^#\/?/, "");
     if (!hash) return { boardId: null, threadId: null };
     const parts = hash.split("/");
@@ -14,9 +13,10 @@ function parseHash(): { boardId: string | null; threadId: string | null } {
 }
 
 export function useHashRoute() {
-    const [route, setRoute] = useState(parseHash);
+    const [route, setRoute] = useState<{ boardId: string | null; threadId: string | null }>({ boardId: null, threadId: null });
 
     useEffect(() => {
+        setRoute(parseHash());
         function onHashChange() { setRoute(parseHash()); }
         window.addEventListener("hashchange", onHashChange);
         return () => window.removeEventListener("hashchange", onHashChange);

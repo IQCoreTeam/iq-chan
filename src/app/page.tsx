@@ -8,7 +8,7 @@ import ThreadPage from "../components/pages/thread-page";
 export default function App() {
     const { boardId, threadId } = useHashRoute();
 
-    if (boardId && threadId) return <ThreadPage />;
-    if (boardId) return <BoardPage />;
+    if (boardId && threadId) return <ThreadPage boardId={boardId} threadId={threadId} />;
+    if (boardId) return <BoardPage boardId={boardId} />;
     return <HomePage />;
 }

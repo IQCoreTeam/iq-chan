@@ -2,7 +2,6 @@
 
 import { useState, useMemo } from "react";
 import HashLink from "../hash-link";
-import { useHashRoute } from "../../hooks/use-hash-router";
 import { useThreads } from "../../hooks/use-threads";
 import { usePost } from "../../hooks/use-post";
 import { BOARDS, THREADS_PER_PAGE } from "../../lib/constants";
@@ -39,10 +38,7 @@ function PageList({ page, totalPages, onPage }: { page: number; totalPages: numb
     );
 }
 
-export default function BoardPage() {
-    const { boardId } = useHashRoute();
-    if (!boardId) return null;
-
+export default function BoardPage({ boardId }: { boardId: string }) {
     const { threads, loading, error, hasMore, loadMore, refresh } = useThreads(boardId);
     const { createThread, loading: postLoading } = usePost();
     const [page, setPage] = useState(0);

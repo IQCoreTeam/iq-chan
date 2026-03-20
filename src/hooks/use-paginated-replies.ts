@@ -97,6 +97,13 @@ export function usePaginatedReplies(
         setRefreshKey((k) => k + 1);
     }, []);
 
+    const addOptimisticRow = useCallback((row: Post) => {
+        setAllRows((prev) => {
+            if (prev.some((r) => r.__txSignature === row.__txSignature)) return prev;
+            return [...prev, row];
+        });
+    }, []);
+
     return {
         op,
         replies,
@@ -109,5 +116,6 @@ export function usePaginatedReplies(
         nextPage,
         prevPage,
         refresh,
+        addOptimisticRow,
     };
 }
