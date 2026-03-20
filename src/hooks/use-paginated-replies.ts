@@ -5,7 +5,7 @@ import { mergeInstructions } from "../lib/parse";
 import { deriveInstructionTablePda } from "../lib/constants";
 import type { Post, Reply } from "../lib/types";
 
-const PAGE_SIZE_DEFAULT = 20;
+const PAGE_SIZE_DEFAULT = 500;
 
 export function usePaginatedReplies(
     threadPda: string,
