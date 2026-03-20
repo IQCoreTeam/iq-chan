@@ -93,7 +93,11 @@ export default function Post({
             <span className="dateTime" data-utc={time}>{new Date(time * 1000).toLocaleString()}</span>
             {" "}
             <span className="postNum desktop">
-                <a href={replyLink ?? `#p${txSig}`} title="Link to this post">No.</a>
+                <a
+                    href={replyLink ?? `#p${txSig}`}
+                    title="Link to this post"
+                    onClick={replyLink ? undefined : (e) => { e.preventDefault(); scrollToPost(txSig); }}
+                >No.</a>
                 {digitsLink}
                 {replyLink && (
                     <> &nbsp; <span>[<a href={replyLink} className="replylink">Reply</a>]</span></>
