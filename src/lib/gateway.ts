@@ -43,6 +43,19 @@ export async function fetchAllTableRows(
     return allRows;
 }
 
+/** Notify gateway about a new tx so it caches it and invalidates stale rows. */
+export async function notifyPost(tablePda: string, txSignature: string): Promise<void> {
+    try {
+        await fetch(`${GATEWAY_URL}/table/${tablePda}/notify`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ txSignature }),
+        });
+    } catch {
+        // Non-critical — gateway will pick it up on next poll
+    }
+}
+
 export async function fetchTableSlice(
     tablePda: string,
     sigs: string[],

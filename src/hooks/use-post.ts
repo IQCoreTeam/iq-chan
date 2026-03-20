@@ -15,6 +15,7 @@ import {
     DB_ROOT_KEY,
 } from "../lib/constants";
 import { getFeedPda } from "../lib/board";
+import { notifyPost } from "../lib/gateway";
 
 const THREAD_COLUMNS = ["sub", "com", "name", "time", "img", "threadPda", "threadSeed"];
 
@@ -119,7 +120,7 @@ export function usePost() {
                     threadSeed: seed,
                 });
 
-                await iqlabs.writer.writeRow(
+                const txSig = await iqlabs.writer.writeRow(
                     connection,
                     wallet as any,
                     dbRootIdBytes,
@@ -128,6 +129,9 @@ export function usePost() {
                     false,
                     [feedPda],
                 );
+
+                // Notify gateway so it caches the new row immediately
+                notifyPost(threadPda, txSig);
             } catch (e) {
                 const err = e instanceof Error ? e : new Error(String(e));
                 setError(err);
@@ -166,7 +170,7 @@ export function usePost() {
                     threadPda,
                 });
 
-                await iqlabs.writer.writeRow(
+                const txSig = await iqlabs.writer.writeRow(
                     connection,
                     wallet as any,
                     dbRootIdBytes,
@@ -175,6 +179,9 @@ export function usePost() {
                     false,
                     [feedPda],
                 );
+
+                // Notify gateway so it caches the new row immediately
+                notifyPost(threadPda, txSig);
             } catch (e) {
                 const err = e instanceof Error ? e : new Error(String(e));
                 setError(err);

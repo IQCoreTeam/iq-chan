@@ -56,7 +56,7 @@ export default function ThreadPage() {
                 <PostForm
                     mode="reply"
                     onSubmit={(data: { com: string; name: string; img?: string }) =>
-                        postReply(threadSeed, threadPda, boardId, data)
+                        postReply(threadSeed, threadPda, boardId, data).then(() => setTimeout(refresh, 1000))
                     }
                     loading={postLoading}
                 />
@@ -125,7 +125,7 @@ export default function ThreadPage() {
             {qrOpen && threadSeed && (
                 <QuickReply
                     threadSig={op?.__txSignature ?? threadPda}
-                    onSubmit={(data) => postReply(threadSeed, threadPda, boardId, data)}
+                    onSubmit={(data) => postReply(threadSeed, threadPda, boardId, data).then(() => setTimeout(refresh, 1000))}
                     loading={postLoading}
                     onClose={() => setQrOpen(false)}
                     initialQuote={qrQuote}
