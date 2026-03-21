@@ -302,5 +302,7 @@ export function usePost() {
         [connection, wallet],
     );
 
-    return { createThread, postReply, editPost, deletePost, loading, status, step, totalSteps, error };
+    const clearStatus = useCallback(() => { setStatus(""); setError(null); }, []);
+
+    return { createThread, postReply, editPost, deletePost, loading, status, step, totalSteps, error, clearStatus };
 }

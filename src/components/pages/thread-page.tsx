@@ -31,7 +31,7 @@ export default function ThreadPage({ boardId, threadId: threadPda, scrollTo }: {
         addOptimisticRow,
     } = usePaginatedReplies(threadPda);
 
-    const { postReply, loading: postLoading, status: postStatus, step: postStep, totalSteps: postTotalSteps } = usePost();
+    const { postReply, loading: postLoading, status: postStatus, step: postStep, totalSteps: postTotalSteps, clearStatus } = usePost();
 
     const { threads: boardThreads } = useThreads(boardId);
 
@@ -127,6 +127,7 @@ export default function ThreadPage({ boardId, threadId: threadPda, scrollTo }: {
                     statusText={postStatus}
                     step={postStep}
                     totalSteps={postTotalSteps}
+                    onClearStatus={clearStatus}
                 />
             )}
 
@@ -151,7 +152,7 @@ export default function ThreadPage({ boardId, threadId: threadPda, scrollTo }: {
                 <div className="thread-stats" style={{ marginLeft: "auto" }}>
                     <span className="ts-replies" title="Replies">{totalReplies}</span>
                     {" / "}
-                    <span className="ts-images" title="Images">{replies.filter((r) => r.img).length}</span>
+                    <span className="ts-images" title="Images">{(op?.img ? 1 : 0) + replies.filter((r) => r.img).length}</span>
                     {" / "}
                     <span className="ts-page" title="Page">{boardPage}</span>
                 </div>
@@ -196,7 +197,7 @@ export default function ThreadPage({ boardId, threadId: threadPda, scrollTo }: {
                 <div className="thread-stats" style={{ marginLeft: "auto" }}>
                     <span className="ts-replies" title="Replies">{totalReplies}</span>
                     {" / "}
-                    <span className="ts-images" title="Images">{replies.filter((r) => r.img).length}</span>
+                    <span className="ts-images" title="Images">{(op?.img ? 1 : 0) + replies.filter((r) => r.img).length}</span>
                     {" / "}
                     <span className="ts-page" title="Page">{boardPage}</span>
                 </div>
@@ -216,6 +217,7 @@ export default function ThreadPage({ boardId, threadId: threadPda, scrollTo }: {
                     totalSteps={postTotalSteps}
                     onClose={() => setQrOpen(false)}
                     initialQuote={qrQuote}
+                    onClearStatus={clearStatus}
                 />
             )}
         </>
