@@ -10,6 +10,8 @@ export default function QuickReply({
     onSubmit,
     loading,
     statusText,
+    step,
+    totalSteps,
     onClose,
     initialQuote,
 }: {
@@ -17,10 +19,18 @@ export default function QuickReply({
     onSubmit: (data: { com: string; name: string; img?: string; options?: string }) => void;
     loading: boolean;
     statusText?: string;
+    step?: number;
+    totalSteps?: number;
     onClose: () => void;
     initialQuote?: string;
 }) {
     const { publicKey } = useWallet();
+    const [dismissed, setDismissed] = useState(false);
+    const isError = !!statusText?.startsWith("Error:");
+    const showOverlay = statusText && !dismissed && (loading || isError);
+
+    useEffect(() => { if (loading) setDismissed(false); }, [loading]);
+
     const [name, setName] = useState("");
     const [com, setCom] = useState(initialQuote ? `>>${initialQuote}\n` : "");
     const [img, setImg] = useState("");
@@ -94,7 +104,7 @@ export default function QuickReply({
 
     return (
         <>
-        {loading && statusText && <PostingOverlay statusText={statusText} />}
+        {showOverlay && <PostingOverlay statusText={statusText} step={step} totalSteps={totalSteps} isError={isError} onDismiss={() => setDismissed(true)} />}
         <div
             ref={panelRef}
             id="quickReply"

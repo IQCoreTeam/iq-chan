@@ -31,7 +31,7 @@ export default function ThreadPage({ boardId, threadId: threadPda, scrollTo }: {
         addOptimisticRow,
     } = usePaginatedReplies(threadPda);
 
-    const { postReply, loading: postLoading, status: postStatus } = usePost();
+    const { postReply, loading: postLoading, status: postStatus, step: postStep, totalSteps: postTotalSteps } = usePost();
 
     const { threads: boardThreads } = useThreads(boardId);
 
@@ -125,6 +125,8 @@ export default function ThreadPage({ boardId, threadId: threadPda, scrollTo }: {
                     onSubmit={handlePostReply}
                     loading={postLoading}
                     statusText={postStatus}
+                    step={postStep}
+                    totalSteps={postTotalSteps}
                 />
             )}
 
@@ -210,6 +212,8 @@ export default function ThreadPage({ boardId, threadId: threadPda, scrollTo }: {
                     onSubmit={handlePostReply}
                     loading={postLoading}
                     statusText={postStatus}
+                    step={postStep}
+                    totalSteps={postTotalSteps}
                     onClose={() => setQrOpen(false)}
                     initialQuote={qrQuote}
                 />
