@@ -12,6 +12,7 @@ export default function PostForm({
     statusText,
     step,
     totalSteps,
+    onClearStatus,
 }: {
     mode: "thread" | "reply";
     onSubmit: (data: { sub?: string; com: string; name: string; img?: string; options?: string }) => void;
@@ -19,14 +20,12 @@ export default function PostForm({
     statusText?: string;
     step?: number;
     totalSteps?: number;
+    onClearStatus?: () => void;
 }) {
     const { publicKey } = useWallet();
     const [showForm, setShowForm] = useState(false);
-    const [dismissed, setDismissed] = useState(false);
     const isError = !!statusText?.startsWith("Error:");
-    const showOverlay = statusText && !dismissed && (loading || isError);
-
-    useEffect(() => { if (loading) setDismissed(false); }, [loading]);
+    const showOverlay = !!statusText && (loading || isError);
     const [sub, setSub] = useState("");
     const [com, setCom] = useState("");
     const [name, setName] = useState("");
@@ -62,7 +61,7 @@ export default function PostForm({
 
     return (
         <form onSubmit={handleSubmit} style={{ textAlign: "center" }}>
-            {showOverlay && <PostingOverlay statusText={statusText} step={step} totalSteps={totalSteps} isError={isError} onDismiss={() => setDismissed(true)} />}
+            {showOverlay && <PostingOverlay statusText={statusText} step={step} totalSteps={totalSteps} isError={isError} onDismiss={onClearStatus} />}
             <div id="togglePostFormLink" style={{ display: showForm ? "none" : "block" }}>
                 [<a href="#" onClick={(e) => { e.preventDefault(); setShowForm(true); }}>{label}</a>]
             </div>

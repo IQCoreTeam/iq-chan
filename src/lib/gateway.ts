@@ -1,21 +1,31 @@
-import { getGatewayUrl, GATEWAY_FALLBACK } from "./config";
+import { getGatewayUrl, getFallbacks } from "./config";
 import type { Post } from "./types";
 
 const isDev = process.env.NODE_ENV === "development";
 
 export type Row = Post & Record<string, unknown>;
 
-/** Fetch with fallback - tries primary gateway, falls back to gateway.iqlabs.dev on failure. */
+/** Fetch with fallback chain: primary → fallbacks in order */
 async function gwFetch(path: string): Promise<Response> {
     const primary = getGatewayUrl();
+    const tried = new Set<string>();
+
+    tried.add(primary);
     try {
         const res = await fetch(`${primary}${path}`, { cache: "no-store" });
         if (res.ok || res.status === 404) return res;
     } catch {}
-    if (primary !== GATEWAY_FALLBACK) {
-        return fetch(`${GATEWAY_FALLBACK}${path}`, { cache: "no-store" });
+
+    for (const fallback of getFallbacks()) {
+        if (tried.has(fallback)) continue;
+        tried.add(fallback);
+        try {
+            const res = await fetch(`${fallback}${path}`, { cache: "no-store" });
+            if (res.ok || res.status === 404) return res;
+        } catch {}
     }
-    throw new Error("gateway unreachable");
+
+    throw new Error("all gateways unreachable");
 }
 
 async function fetchTableRows(
