@@ -40,7 +40,7 @@ function PageList({ page, totalPages, onPage }: { page: number; totalPages: numb
 
 export default function BoardPage({ boardId }: { boardId: string }) {
     const { threads, loading, error, hasMore, loadMore, refresh } = useThreads(boardId);
-    const { createThread, loading: postLoading } = usePost();
+    const { createThread, loading: postLoading, status: postStatus } = usePost();
     const [page, setPage] = useState(0);
 
     const boardMeta = BOARDS.find((b) => b.id === boardId);
@@ -80,6 +80,7 @@ export default function BoardPage({ boardId }: { boardId: string }) {
                     )
                 }
                 loading={postLoading}
+                statusText={postStatus}
             />
 
             <hr style={{ border: "none", borderTop: "1px solid #b7c5d9" }} />
