@@ -180,7 +180,7 @@ export default function QuickReply({
                     />
                 </div>
                 <div style={{ marginBottom: 3, fontSize: 11, color: "#707070" }}>
-                    ~{ESTIMATED_SOL_COST.reply} SOL per reply
+                    Your reply is permanently stored on the blockchain and cannot be deleted.
                 </div>
                 <div style={{ marginBottom: 3 }}>
                     <input

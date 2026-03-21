@@ -178,7 +178,7 @@ export default function PostForm({
                     <tr className="rules">
                         <td colSpan={2}>
                             <ul>
-                                <li>Every {mode === "thread" ? "thread" : "reply"} is a Solana transaction (~{ESTIMATED_SOL_COST[mode]} SOL).</li>
+                                <li>Your {mode === "thread" ? "thread" : "reply"} is permanently stored on the Solana blockchain and cannot be deleted.</li>
                             </ul>
                         </td>
                     </tr>

@@ -75,7 +75,7 @@ export default function PostingOverlay({ statusText, step, totalSteps, isError, 
                         <img
                             src="/q_download.gif"
                             alt=""
-                            style={{ display: "block", width: "100%" }}
+                            style={{ display: "block", maxWidth: 150, margin: "0 auto" }}
                         />
                     </div>
                 )}

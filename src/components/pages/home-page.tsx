@@ -47,18 +47,18 @@ export default function HomePage() {
         <div className="fp-wrap">
             <div className="fp-logo">
                 <HashLink href="/" title="Home">
-                    <img alt="iqchan" src="/iqchan-logo.png" width="300" height="120" />
+                    <img alt="BlockChan" src="/blockchan.png" width="300" height="120" />
                 </HashLink>
             </div>
 
             <div className="box-outer" id="announce">
                 <div className="box-inner">
                     <div className="boxbar">
-                        <h2>What is iqchan?</h2>
+                        <h2>What is BlockChan?</h2>
                     </div>
                     <div className="boxcontent">
                         <p>
-                            iqchan is a simple on-chain bulletin board where anyone can post
+                            BlockChan is a simple on-chain bulletin board where anyone can post
                             comments and share images. There are boards dedicated to a variety
                             of topics, from business and finance to technology, anime, and
                             shitposting. Users do not need to register an account before

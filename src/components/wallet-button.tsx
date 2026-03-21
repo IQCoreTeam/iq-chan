@@ -31,6 +31,8 @@ export default function WalletButton() {
         setError("");
         try {
             select(wallet.adapter.name);
+            // Wait for wallet adapter to process selection before connecting
+            await new Promise((r) => setTimeout(r, 100));
             await connect();
             setOpen(false);
         } catch (e) {
