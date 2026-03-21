@@ -3,15 +3,18 @@
 import { useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { ESTIMATED_SOL_COST } from "../lib/constants";
+import PostingOverlay from "./posting-overlay";
 
 export default function PostForm({
     mode,
     onSubmit,
     loading,
+    statusText,
 }: {
     mode: "thread" | "reply";
     onSubmit: (data: { sub?: string; com: string; name: string; img?: string; options?: string }) => void;
     loading: boolean;
+    statusText?: string;
 }) {
     const { publicKey } = useWallet();
     const [showForm, setShowForm] = useState(false);
@@ -50,6 +53,7 @@ export default function PostForm({
 
     return (
         <form onSubmit={handleSubmit} style={{ textAlign: "center" }}>
+            {loading && statusText && <PostingOverlay statusText={statusText} />}
             <div id="togglePostFormLink" style={{ display: showForm ? "none" : "block" }}>
                 [<a href="#" onClick={(e) => { e.preventDefault(); setShowForm(true); }}>{label}</a>]
             </div>
@@ -85,7 +89,7 @@ export default function PostForm({
                             {mode === "reply" && (
                                 <input
                                     type="submit"
-                                    value={loading ? "Posting..." : "Post"}
+                                    value={loading ? (statusText || "Posting...") : "Post"}
                                     disabled={loading || !com.trim()}
                                     tabIndex={10}
                                 />
@@ -106,7 +110,7 @@ export default function PostForm({
                                 />
                                 <input
                                     type="submit"
-                                    value={loading ? "Posting..." : "Post"}
+                                    value={loading ? (statusText || "Posting...") : "Post"}
                                     disabled={loading || !com.trim()}
                                     tabIndex={10}
                                 />

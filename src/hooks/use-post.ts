@@ -24,6 +24,7 @@ export function usePost() {
     const { connection } = useConnection();
     const wallet = useWallet();
     const [loading, setLoading] = useState(false);
+    const [status, setStatus] = useState("");
     const [error, setError] = useState<Error | null>(null);
 
     // ─── Create Thread (2 TXs: ext table + OP row) ──────────────────────────
@@ -36,6 +37,7 @@ export function usePost() {
             if (!wallet.publicKey || !wallet.signTransaction)
                 throw new Error("Wallet not connected");
             setLoading(true);
+            setStatus("Posting... sign 1/2");
             setError(null);
 
             try {
@@ -110,6 +112,8 @@ export function usePost() {
                 const tx1Sig = await connection.sendRawTransaction(signed1.serialize());
                 await connection.confirmTransaction(tx1Sig, "confirmed");
 
+                setStatus("Posting... sign 2/2");
+
                 // TX2: write OP row
                 const row = {
                     sub: data.sub,
@@ -138,6 +142,7 @@ export function usePost() {
                 throw err;
             } finally {
                 setLoading(false);
+                setStatus("");
             }
         },
         [connection, wallet],
@@ -155,6 +160,7 @@ export function usePost() {
         ) => {
             if (!wallet.publicKey) throw new Error("Wallet not connected");
             setLoading(true);
+            setStatus("Posting reply... 1 signature needed");
             setError(null);
 
             try {
@@ -197,6 +203,7 @@ export function usePost() {
                 throw err;
             } finally {
                 setLoading(false);
+                setStatus("");
             }
         },
         [connection, wallet],
@@ -229,6 +236,7 @@ export function usePost() {
                 throw err;
             } finally {
                 setLoading(false);
+                setStatus("");
             }
         },
         [connection, wallet],
@@ -261,10 +269,11 @@ export function usePost() {
                 throw err;
             } finally {
                 setLoading(false);
+                setStatus("");
             }
         },
         [connection, wallet],
     );
 
-    return { createThread, postReply, editPost, deletePost, loading, error };
+    return { createThread, postReply, editPost, deletePost, loading, status, error };
 }

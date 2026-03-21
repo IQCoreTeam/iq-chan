@@ -3,17 +3,20 @@
 import { useState, useRef, useEffect } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { ESTIMATED_SOL_COST } from "../lib/constants";
+import PostingOverlay from "./posting-overlay";
 
 export default function QuickReply({
     threadSig,
     onSubmit,
     loading,
+    statusText,
     onClose,
     initialQuote,
 }: {
     threadSig: string;
     onSubmit: (data: { com: string; name: string; img?: string; options?: string }) => void;
     loading: boolean;
+    statusText?: string;
     onClose: () => void;
     initialQuote?: string;
 }) {
@@ -90,6 +93,8 @@ export default function QuickReply({
     if (!publicKey) return null;
 
     return (
+        <>
+        {loading && statusText && <PostingOverlay statusText={statusText} />}
         <div
             ref={panelRef}
             id="quickReply"
@@ -178,12 +183,13 @@ export default function QuickReply({
                     />
                     <input
                         type="submit"
-                        value={loading ? "Posting..." : "Post"}
+                        value={loading ? (statusText || "Posting...") : "Post"}
                         disabled={loading || !com.trim()}
                         style={{ marginLeft: 5, background: "#f0e0d6", border: "1px solid #c0a89a", padding: "1px 6px", fontSize: 12, cursor: "pointer" }}
                     />
                 </div>
             </form>
         </div>
+        </>
     );
 }
