@@ -25,6 +25,8 @@ export function usePost() {
     const wallet = useWallet();
     const [loading, setLoading] = useState(false);
     const [status, setStatus] = useState("");
+    const [step, setStep] = useState(0);
+    const [totalSteps, setTotalSteps] = useState(0);
     const [error, setError] = useState<Error | null>(null);
 
     // ─── Create Thread (2 TXs: ext table + OP row) ──────────────────────────
@@ -37,6 +39,8 @@ export function usePost() {
             if (!wallet.publicKey || !wallet.signTransaction)
                 throw new Error("Wallet not connected");
             setLoading(true);
+            setTotalSteps(2);
+            setStep(1);
             setStatus("Posting... sign 1/2");
             setError(null);
 
@@ -105,13 +109,26 @@ export function usePost() {
 
                 const sim = await connection.simulateTransaction(tx1);
                 if (sim.value.err) {
-                    throw new Error(`createExtTable simulation failed: ${JSON.stringify(sim.value.err)}`);
+                    const logs = sim.value.logs ?? [];
+                    console.error("[iqchan] simulation logs:", logs);
+                    const logsStr = logs.join("\n");
+                    let msg: string;
+                    if (logsStr.includes("insufficient") || logsStr.includes("lamports")) {
+                        msg = "Insufficient SOL balance";
+                    } else if (logsStr.includes("already in use")) {
+                        msg = "Account already exists — please try again";
+                    } else {
+                        msg = logs.find(l => l.includes("Error"))
+                            ?? `Transaction failed (${JSON.stringify(sim.value.err)})`;
+                    }
+                    throw new Error(msg);
                 }
 
                 const signed1 = await wallet.signTransaction(tx1);
                 const tx1Sig = await connection.sendRawTransaction(signed1.serialize());
                 await connection.confirmTransaction(tx1Sig, "confirmed");
 
+                setStep(2);
                 setStatus("Posting... sign 2/2");
 
                 // TX2: write OP row
@@ -139,10 +156,12 @@ export function usePost() {
             } catch (e) {
                 const err = e instanceof Error ? e : new Error(String(e));
                 setError(err);
+                setStatus(`Error: ${err.message}`);
                 throw err;
             } finally {
                 setLoading(false);
-                setStatus("");
+                setStep(0);
+                setTotalSteps(0);
             }
         },
         [connection, wallet],
@@ -160,6 +179,8 @@ export function usePost() {
         ) => {
             if (!wallet.publicKey) throw new Error("Wallet not connected");
             setLoading(true);
+            setTotalSteps(1);
+            setStep(1);
             setStatus("Posting reply... 1 signature needed");
             setError(null);
 
@@ -200,10 +221,12 @@ export function usePost() {
             } catch (e) {
                 const err = e instanceof Error ? e : new Error(String(e));
                 setError(err);
+                setStatus(`Error: ${err.message}`);
                 throw err;
             } finally {
                 setLoading(false);
-                setStatus("");
+                setStep(0);
+                setTotalSteps(0);
             }
         },
         [connection, wallet],
@@ -233,10 +256,12 @@ export function usePost() {
             } catch (e) {
                 const err = e instanceof Error ? e : new Error(String(e));
                 setError(err);
+                setStatus(`Error: ${err.message}`);
                 throw err;
             } finally {
                 setLoading(false);
-                setStatus("");
+                setStep(0);
+                setTotalSteps(0);
             }
         },
         [connection, wallet],
@@ -266,14 +291,16 @@ export function usePost() {
             } catch (e) {
                 const err = e instanceof Error ? e : new Error(String(e));
                 setError(err);
+                setStatus(`Error: ${err.message}`);
                 throw err;
             } finally {
                 setLoading(false);
-                setStatus("");
+                setStep(0);
+                setTotalSteps(0);
             }
         },
         [connection, wallet],
     );
 
-    return { createThread, postReply, editPost, deletePost, loading, status, error };
+    return { createThread, postReply, editPost, deletePost, loading, status, step, totalSteps, error };
 }

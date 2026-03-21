@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { ESTIMATED_SOL_COST } from "../lib/constants";
 import PostingOverlay from "./posting-overlay";
@@ -10,14 +10,23 @@ export default function PostForm({
     onSubmit,
     loading,
     statusText,
+    step,
+    totalSteps,
 }: {
     mode: "thread" | "reply";
     onSubmit: (data: { sub?: string; com: string; name: string; img?: string; options?: string }) => void;
     loading: boolean;
     statusText?: string;
+    step?: number;
+    totalSteps?: number;
 }) {
     const { publicKey } = useWallet();
     const [showForm, setShowForm] = useState(false);
+    const [dismissed, setDismissed] = useState(false);
+    const isError = !!statusText?.startsWith("Error:");
+    const showOverlay = statusText && !dismissed && (loading || isError);
+
+    useEffect(() => { if (loading) setDismissed(false); }, [loading]);
     const [sub, setSub] = useState("");
     const [com, setCom] = useState("");
     const [name, setName] = useState("");
@@ -53,7 +62,7 @@ export default function PostForm({
 
     return (
         <form onSubmit={handleSubmit} style={{ textAlign: "center" }}>
-            {loading && statusText && <PostingOverlay statusText={statusText} />}
+            {showOverlay && <PostingOverlay statusText={statusText} step={step} totalSteps={totalSteps} isError={isError} onDismiss={() => setDismissed(true)} />}
             <div id="togglePostFormLink" style={{ display: showForm ? "none" : "block" }}>
                 [<a href="#" onClick={(e) => { e.preventDefault(); setShowForm(true); }}>{label}</a>]
             </div>

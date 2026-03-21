@@ -20,7 +20,7 @@ export default function ThreadList({
 }) {
     const [hidden, setHidden] = useState<Set<string>>(new Set());
     const [qrThread, setQrThread] = useState<{ pda: string; seed: string; opSig: string } | null>(null);
-    const { postReply, loading: postLoading, status: postStatus } = usePost();
+    const { postReply, loading: postLoading, status: postStatus, step: postStep, totalSteps: postTotalSteps } = usePost();
 
     const handleQuoteOnBoard = useCallback((threadPda: string, threadSeed: string, opSig: string) => (_txSig: string) => {
         setQrThread({ pda: threadPda, seed: threadSeed, opSig });
@@ -129,6 +129,8 @@ export default function ThreadList({
                     }
                     loading={postLoading}
                     statusText={postStatus}
+                    step={postStep}
+                    totalSteps={postTotalSteps}
                     onClose={() => setQrThread(null)}
                 />
             )}
