@@ -38,11 +38,11 @@ export function usePost() {
         ) => {
             if (!wallet.publicKey || !wallet.signTransaction)
                 throw new Error("Wallet not connected");
-            setError(null);
-            setStatus("Posting... sign 1/2");
             setLoading(true);
             setTotalSteps(2);
             setStep(1);
+            setStatus("Posting... sign 1/2");
+            setError(null);
 
             try {
                 const randomId = crypto.randomUUID();
@@ -178,11 +178,11 @@ export function usePost() {
             replyCount = 0,
         ) => {
             if (!wallet.publicKey) throw new Error("Wallet not connected");
-            setError(null);
-            setStatus("Posting reply... 1 signature needed");
             setLoading(true);
             setTotalSteps(1);
             setStep(1);
+            setStatus("Posting reply... 1 signature needed");
+            setError(null);
 
             try {
                 const dbRootIdBytes = Buffer.from(iqlabs.utils.toSeedBytes(DB_ROOT_ID));
