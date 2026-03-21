@@ -110,7 +110,7 @@ export function usePost() {
                 const sim = await connection.simulateTransaction(tx1);
                 if (sim.value.err) {
                     const logs = sim.value.logs ?? [];
-                    console.error("[iqchan] simulation logs:", logs);
+                    console.error("[blockchan] simulation logs:", logs);
                     const logsStr = logs.join("\n");
                     let msg: string;
                     if (logsStr.includes("insufficient") || logsStr.includes("lamports")) {

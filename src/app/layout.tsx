@@ -6,8 +6,8 @@ import "./chan.css";
 
 export const metadata: Metadata = {
     title: {
-        default: "iqchan",
-        template: "%s | iqchan",
+        default: "BlockChan",
+        template: "%s | BlockChan",
     },
     description: "On-chain imageboard on Solana",
     icons: {
@@ -15,14 +15,14 @@ export const metadata: Metadata = {
         apple: "/apple-icon.png",
     },
     openGraph: {
-        title: "iqchan",
+        title: "BlockChan",
         description: "On-chain imageboard on Solana",
         type: "website",
         images: ["/og-image.png"],
     },
     twitter: {
         card: "summary_large_image",
-        title: "iqchan",
+        title: "BlockChan",
         description: "On-chain imageboard on Solana",
         images: ["/og-image.png"],
     },
