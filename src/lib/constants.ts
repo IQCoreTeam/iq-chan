@@ -12,10 +12,10 @@ export const THREADS_PER_PAGE = 20;
 export const BUMP_LIMIT = 300;
 export const FEED_SEED_PREFIX = "feedmY}AGBJiqLabs";
 export const BOARDS: { id: string; title: string; description: string; image: string }[] = [
-    { id: "po", title: "Politically Incorrect", description: "Political discussion", image: "/boards/po.png" },
-    { id: "biz", title: "Business & Finance", description: "Business and finance discussion", image: "/boards/biz.png" },
-    { id: "a", title: "Anime & Manga", description: "Anime and manga discussion", image: "/boards/a.png" },
-    { id: "g", title: "Technology", description: "Technology discussion", image: "/boards/g.png" },
+    { id: "po", title: "Politically Incorrect", description: "Political discussion", image: "/boards/po.webp" },
+    { id: "biz", title: "Business & Finance", description: "Business and finance discussion", image: "/boards/biz.webp" },
+    { id: "a", title: "Anime & Manga", description: "Anime and manga discussion", image: "/boards/a.webp" },
+    { id: "g", title: "Technology", description: "Technology discussion", image: "/boards/g.webp" },
 ];
 
 export const ESTIMATED_SOL_COST = {

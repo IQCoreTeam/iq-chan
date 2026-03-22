@@ -26,7 +26,7 @@ export default class ErrorBoundary extends Component<
                     </div>
                     <hr style={{ border: "none", borderTop: "1px solid #b7c5d9" }} />
                     <div style={{ padding: "30px 10px" }}>
-                        <img src="/error.png" alt="Error" style={{ maxWidth: 200, margin: "0 auto 20px", display: "block" }} />
+                        <img src="/error.webp" alt="Error" style={{ maxWidth: 200, margin: "0 auto 20px", display: "block" }} />
                         <p style={{ fontSize: 14, color: "#d00", marginBottom: 10 }}>
                             {this.state.error.message}
                         </p>

@@ -21,13 +21,13 @@ export const metadata: Metadata = {
         title: "BlockChan",
         description: "On-chain imageboard on Solana",
         type: "website",
-        images: ["/og-image.png"],
+        images: ["/og-image.webp"],
     },
     twitter: {
         card: "summary_large_image",
         title: "BlockChan",
         description: "On-chain imageboard on Solana",
-        images: ["/og-image.png"],
+        images: ["/og-image.webp"],
     },
 };
 

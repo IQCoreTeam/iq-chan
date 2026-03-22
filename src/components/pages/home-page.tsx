@@ -47,7 +47,7 @@ export default function HomePage() {
         <div className="fp-wrap">
             <div className="fp-logo">
                 <HashLink href="/" title="Home">
-                    <img alt="BlockChan" src="/blockchan.png" width="300" height="120" />
+                    <img alt="BlockChan" src="/blockchan.webp" width="300" height="120" />
                 </HashLink>
             </div>
 
