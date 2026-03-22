@@ -6,7 +6,7 @@ import { usePaginatedReplies } from "../../hooks/use-paginated-replies";
 import { usePost } from "../../hooks/use-post";
 import { useThreads } from "../../hooks/use-threads";
 import { scrollToPost } from "../../lib/highlight";
-import { BOARDS, THREADS_PER_PAGE, BUMP_LIMIT } from "../../lib/constants";
+import { BOARDS, THREADS_PER_PAGE } from "../../lib/constants";
 import ThreadDetail from "../thread-detail";
 import PostForm from "../post-form";
 import QuickReply from "../quick-reply";
@@ -133,7 +133,7 @@ export default function ThreadPage({ boardId, threadId: threadPda, scrollTo }: {
 
             <hr className="desktop" id="op" style={{ border: "none", borderTop: "1px solid #b7c5d9" }} />
 
-            <div className="navLinks desktop" style={{ display: "flex", alignItems: "center" }}>
+            <div className="navLinks desktop threadNav">
                 <div>
                     [<HashLink href={`/${boardId}`} accessKey="a">Return</HashLink>]
                     {" "}
@@ -158,7 +158,7 @@ export default function ThreadPage({ boardId, threadId: threadPda, scrollTo }: {
                 </div>
             </div>
 
-            <hr style={{ border: "none", borderTop: "1px solid #b7c5d9" }} />
+            <hr className="desktop" style={{ border: "none", borderTop: "1px solid #b7c5d9" }} />
 
             {loading && !op ? (
                 <div className="loading-text">Loading...</div>
@@ -175,7 +175,8 @@ export default function ThreadPage({ boardId, threadId: threadPda, scrollTo }: {
 
             <hr style={{ border: "none", borderTop: "1px solid #b7c5d9" }} />
 
-            <div className="navLinks navLinksBot desktop" style={{ position: "relative", display: "flex", alignItems: "center" }}>
+            {/* Desktop footer */}
+            <div className="navLinks navLinksBot desktop threadNav" style={{ position: "relative" }}>
                 <div>
                     [<HashLink href={`/${boardId}`} accessKey="a">Return</HashLink>]
                     {" "}
@@ -195,6 +196,41 @@ export default function ThreadPage({ boardId, threadId: threadPda, scrollTo }: {
                     [<a href="#" onClick={(e) => { e.preventDefault(); setQrOpen(true); }} style={{ color: "#34345c", textDecoration: "none" }}>Post a Reply</a>]
                 </div>
                 <div className="thread-stats" style={{ marginLeft: "auto" }}>
+                    <span className="ts-replies" title="Replies">{totalReplies}</span>
+                    {" / "}
+                    <span className="ts-images" title="Images">{(op?.img ? 1 : 0) + replies.filter((r) => r.img).length}</span>
+                    {" / "}
+                    <span className="ts-page" title="Page">{boardPage}</span>
+                </div>
+            </div>
+
+            {/* Mobile footer */}
+            <div className="mobileThreadFooter mobile">
+                <div className="mobile center">
+                    <a className="mobilePostFormToggle button" href="#" onClick={(e) => { e.preventDefault(); setQrOpen(true); }}>Post a Reply</a>
+                </div>
+
+                <div className="navLinks mobile">
+                    <span className="mobileib button"><HashLink href={`/${boardId}`} accessKey="a">Return</HashLink></span>
+                    {" "}
+                    <span className="mobileib button"><a href="#" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: "smooth" }); }}>Top</a></span>
+                    <div className="btn-row">
+                        <span className="mobileib button"><label onClick={manualUpdate}>Update</label></span>
+                        {" "}
+                        <span className="mobileib button">
+                            <label>
+                                <input
+                                    type="checkbox"
+                                    checked={autoUpdate}
+                                    onChange={(e) => setAutoUpdate(e.target.checked)}
+                                />Auto
+                            </label>
+                        </span>
+                        {countdown > 0 && <span className="mobile-tu-status">{countdown}s</span>}
+                    </div>
+                </div>
+
+                <div className="thread-stats mobile">
                     <span className="ts-replies" title="Replies">{totalReplies}</span>
                     {" / "}
                     <span className="ts-images" title="Images">{(op?.img ? 1 : 0) + replies.filter((r) => r.img).length}</span>

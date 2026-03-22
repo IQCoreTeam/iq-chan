@@ -10,6 +10,9 @@ export const metadata: Metadata = {
         template: "%s | BlockChan",
     },
     description: "On-chain imageboard on Solana",
+    other: {
+        "format-detection": "telephone=no",
+    },
     icons: {
         icon: "/favicon.ico",
         apple: "/apple-icon.png",

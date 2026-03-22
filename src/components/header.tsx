@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useHashRoute } from "../hooks/use-hash-router";
+import { useHashRoute, hashHref } from "../hooks/use-hash-router";
 import HashLink from "./hash-link";
 import WalletButton from "./wallet-button";
 import { BoardList } from "./board-nav";
+import { BOARDS } from "../lib/constants";
 import { getGatewayUrl, getFallbacks, GATEWAY_FALLBACKS } from "../lib/config";
 
 export default function Header() {
@@ -15,6 +16,29 @@ export default function Header() {
     const [fbInput, setFbInput] = useState("");
 
     useEffect(() => { setFallbacks(getFallbacks()); }, []);
+
+    // Mobile header auto-hide on scroll down, show on scroll up (like 4chan)
+    useEffect(() => {
+        if (!boardId) return;
+        let lastY = 0;
+        const nav = document.getElementById("boardNavMobile");
+        if (!nav) return;
+        document.body.classList.add("hasDropDownNav");
+        function onScroll() {
+            const y = window.scrollY;
+            if (y > lastY && y > 50) {
+                nav!.style.top = "-" + nav!.offsetHeight + "px";
+            } else {
+                nav!.style.top = "0";
+            }
+            lastY = y;
+        }
+        window.addEventListener("scroll", onScroll, { passive: true });
+        return () => {
+            window.removeEventListener("scroll", onScroll);
+            document.body.classList.remove("hasDropDownNav");
+        };
+    }, [boardId]);
 
     if (!boardId) return null;
 
@@ -51,8 +75,14 @@ export default function Header() {
         setFallbacks(GATEWAY_FALLBACKS);
     }
 
+    function handleBoardSelect(e: React.ChangeEvent<HTMLSelectElement>) {
+        const val = e.target.value;
+        if (val) window.location.hash = hashHref(`/${val}`);
+    }
+
     return (
         <>
+            {/* Desktop nav */}
             <div id="boardNavDesktop">
                 <BoardList />
                 <span id="navtopright">
@@ -65,6 +95,32 @@ export default function Header() {
                     }} style={{ color: "#34345c", textDecoration: "none" }}>{showSettings ? "Close Settings" : "Settings"}</a>]
                     {" "}
                     [<HashLink href="/">Home</HashLink>]
+                </span>
+            </div>
+
+            {/* Mobile nav — single compact row */}
+            <div id="boardNavMobile">
+                <span className="boardSelect">
+                    <strong>Board</strong>
+                    <select
+                        id="boardSelectMobile"
+                        value={boardId}
+                        onChange={handleBoardSelect}
+                    >
+                        {BOARDS.map((b) => (
+                            <option key={b.id} value={b.id}>/{b.id}/ - {b.title}</option>
+                        ))}
+                    </select>
+                </span>
+                <span className="pageJump">
+                    <a href="#" onClick={(e) => { e.preventDefault(); document.getElementById("bottom")?.scrollIntoView({ behavior: "smooth" }); }}>&#9660;</a>
+                    <a href="#" onClick={(e) => {
+                        e.preventDefault();
+                        setGwInput(getGatewayUrl());
+                        setShowSettings((v) => !v);
+                    }}>Settings</a>
+                    <WalletButton />
+                    <HashLink href="/">Home</HashLink>
                 </span>
             </div>
             {showSettings && (
@@ -82,7 +138,7 @@ export default function Header() {
                             value={gwInput}
                             onChange={(e) => setGwInput(e.target.value)}
                             placeholder={getGatewayUrl()}
-                            style={{ width: 300, fontSize: 12, padding: "1px 3px", border: "1px solid #aaa", outline: "none" }}
+                            style={{ width: "min(300px, 60vw)", fontSize: 12, padding: "1px 3px", border: "1px solid #aaa", outline: "none" }}
                         />
                         {" "}
                         <button onClick={handleSaveGw} style={{ fontSize: 12, padding: "1px 6px", border: "1px solid #aaa", background: "#f8f8f8", cursor: "pointer" }}>Save</button>
@@ -107,7 +163,7 @@ export default function Header() {
                             value={fbInput}
                             onChange={(e) => setFbInput(e.target.value)}
                             placeholder="https://my-gateway.com"
-                            style={{ width: 200, fontSize: 12, padding: "1px 3px", border: "1px solid #aaa", outline: "none" }}
+                            style={{ width: "min(200px, 50vw)", fontSize: 12, padding: "1px 3px", border: "1px solid #aaa", outline: "none" }}
                         />
                         {" "}
                         <button onClick={addFallback} style={{ fontSize: 12, padding: "1px 6px", border: "1px solid #aaa", background: "#f8f8f8", cursor: "pointer" }}>Add Fallback</button>

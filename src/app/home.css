@@ -241,30 +241,71 @@ br.clear-bug {
 }
 
 /* Mobile */
-@media all and (max-device-width: 640px) {
+@media only screen and (max-width: 480px) {
     .fp-wrap {
         min-width: 0;
         width: auto;
-        padding: 10px;
+        padding: 8px;
+        font-size: 14px;
+    }
+
+    .fp-logo {
+        padding: 15px 5px 10px;
+    }
+
+    .fp-logo img {
+        max-width: 80%;
+        height: auto;
+    }
+
+    .boxbar h2 {
+        font-size: 14px;
+    }
+
+    .boxcontent {
+        font-size: 14px;
+        line-height: 1.4;
     }
 
     #boards .column {
         float: none;
         width: auto;
-        margin-bottom: 25px;
+        margin-bottom: 15px;
+    }
+
+    #boards .column ul {
+        margin: 5px 0 10px;
+    }
+
+    #boards .column li {
+        padding: 3px 0;
     }
 
     .boardlink {
         display: inline-block;
-        font-size: 1.2em;
-        padding: 5px 10px 5px 0;
+        font-size: 1.1em;
+        padding: 4px 8px 4px 0;
     }
 
-    #ft ul {
-        width: auto;
-        border-top: none;
-        line-height: 2;
+    .c-thread {
+        width: 140px;
+        margin-bottom: 8px;
+    }
+
+    .c-thread img {
+        max-width: 120px;
+        height: auto;
+    }
+
+    .c-teaser {
+        font-size: 11px;
+    }
+
+    .stat-cell {
         display: block;
+        width: auto;
+        padding: 3px 0;
+        font-size: 14px;
     }
 
     #ft ul {
@@ -284,9 +325,11 @@ br.clear-bug {
     #ft li a {
         color: #34345c;
         text-decoration: underline;
+        font-size: 14px;
     }
 
-    .fp-logo a {
-        font-size: 36px;
+    #copyright {
+        font-size: 12px;
+        padding: 0 10px;
     }
 }

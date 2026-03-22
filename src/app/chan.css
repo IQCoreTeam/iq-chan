@@ -30,6 +30,58 @@
     float: right;
 }
 
+/* Mobile nav (hidden on desktop) */
+#boardNavMobile {
+    display: none;
+    background: #d6daf0;
+    border-bottom: 2px solid #b7c5d9;
+    padding: 2px 6px;
+    font-size: 11px;
+    font-family: arial, helvetica, sans-serif;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+#boardNavMobile .boardSelect,
+#boardNavMobile .pageJump {
+    display: inline;
+    vertical-align: middle;
+}
+
+#boardNavMobile .pageJump {
+    float: right;
+}
+
+#boardNavMobile .boardSelect strong {
+    -webkit-text-size-adjust: 100%;
+    color: #000;
+    font-family: arial, helvetica, sans-serif;
+    font-size: x-small;
+    padding-right: 5px;
+}
+
+#boardNavMobile #boardSelectMobile {
+    font-size: 11px;
+    margin-left: 2px;
+    padding: 1px;
+    max-width: 45vw;
+    vertical-align: middle;
+}
+
+#boardNavMobile .pageJump a {
+    color: #34345c;
+    text-decoration: none;
+    margin-left: 6px;
+}
+
+#boardNavMobile .pageJump a:hover {
+    color: #d00;
+}
+
+#boardNavMobile .wallet-addr {
+    display: none;
+}
+
 /* Board banner */
 .boardBanner {
     text-align: center;
@@ -125,6 +177,13 @@
 .navLinks {
     margin: 5px 0;
     font-size: 12px;
+}
+
+.navLinks.threadNav {
+    display: flex;
+    align-items: center;
+    clear: both;
+    border-top: 1px solid #b7c5d9;
 }
 
 .navLinks a {
@@ -347,7 +406,6 @@ blockquote.postMessage {
 
 .postMenuBtn.menuOpen {
     color: #d00;
-    transform: rotate(90deg);
     display: inline-block;
 }
 
@@ -385,6 +443,7 @@ blockquote.postMessage {
 .navLinksBot {
     font-size: 12px;
     margin: 10px 0;
+    clear: both;
 }
 
 .navLinksBot a {
@@ -500,37 +559,585 @@ blockquote.postMessage {
     color: #89a;
 }
 
-/* Pagination (thread page) */
-.pagination {
-    text-align: center;
-    padding: 10px;
-    font-size: 12px;
-}
 
-.pagination a,
-.pagination button {
-    color: #34345c;
-    text-decoration: none;
-    padding: 0 3px;
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 12px;
-}
-
-.pagination a:hover,
-.pagination button:hover {
-    color: #d00;
-}
-
-.pagination .current {
-    font-weight: bold;
-    text-decoration: underline;
-}
 
 /* Image preview in form */
 .imgPreview {
     max-height: 80px;
     max-width: 120px;
     border: 1px solid #aaa;
+}
+
+/* Mobile-only elements (hidden on desktop) */
+.postInfoM.mobile,
+.mFileInfo.mobile,
+.mobileThreadFooter.mobile {
+    display: none;
+}
+
+/* Mobile backlinks (hidden on desktop, shown on mobile) */
+.backlink.mobile {
+    display: none;
+}
+
+.backlink.desktop {
+    display: inline-block;
+}
+
+/* Mobile post link bar (hidden on desktop, shown on mobile) */
+.postLink.mobile {
+    display: none;
+}
+
+/* ===== Mobile styles (matches 4chan's yotsubluemobile approach) ===== */
+@media only screen and (max-width: 480px) {
+    /* Hide desktop nav, show mobile nav */
+    #boardNavDesktop {
+        display: none;
+    }
+
+    #boardNavMobile {
+        display: block;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 9000;
+        transition: top 0.2s ease-in-out;
+    }
+
+    body.hasDropDownNav {
+        margin-top: 30px;
+    }
+
+    /* Mobile post info: show mobile, hide desktop */
+    .postInfoM.mobile {
+        display: flex !important;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: 0 5px;
+        border-bottom: 1px solid #b7c5d9;
+        background-color: #c9cde8;
+        padding: 5px;
+        margin: 0;
+        color: #000;
+        font-family: arial, helvetica, sans-serif;
+        font-size: 10pt;
+        -webkit-text-size-adjust: 100%;
+        position: relative;
+    }
+
+    .postInfoM.mobile .postMenuBtn {
+        text-decoration: none;
+        color: #000;
+        cursor: pointer;
+        font-size: 16pt;
+        font-weight: bold;
+        line-height: 1;
+        vertical-align: middle;
+        margin-right: 5px;
+    }
+
+    .postInfoM.mobile .dateTime {
+        font-size: 9pt;
+        margin-left: auto;
+    }
+
+    .postInfoM.mobile .nameBlock {
+        font-size: 10pt;
+        display: inline-block;
+        max-width: 40vw;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        vertical-align: middle;
+    }
+
+    .postInfoM.mobile .nameBlock .name {
+        color: #117743;
+        font-weight: bold;
+    }
+
+    .postInfoM.mobile .nameBlock .subject {
+        color: #0f0c5d;
+        font-weight: bold;
+    }
+
+    .postInfoM.mobile .dateTime {
+        color: #000;
+    }
+
+    .postInfoM.mobile .dateTime a {
+        color: #34345c;
+        text-decoration: none;
+    }
+
+    .postInfo.desktop {
+        display: none !important;
+    }
+
+    .backlink.desktop {
+        display: none !important;
+    }
+
+    .backlink.mobile {
+        display: block;
+        padding: 3px 5px;
+        clear: both;
+        line-height: 2;
+        background: #c9cde8;
+        border-top: 1px solid #b7c5d9;
+    }
+
+    .backlink.mobile a {
+        color: #d00;
+        text-decoration: underline;
+        padding-right: 4px;
+    }
+
+    /* Mobile "View Thread" bar */
+    .postLink.mobile {
+        display: block;
+        background: #d6daf0;
+        border-top: 1px solid #b7c5d9;
+        padding: 4px 8px;
+        font-size: 10pt;
+        overflow: hidden;
+    }
+
+    .postLink.mobile .info {
+        float: left;
+        line-height: 24px;
+        color: #707070;
+    }
+
+    .postLink.mobile .button {
+        float: right;
+        background: #d6daf0;
+        border: 1px solid #aaa;
+        padding: 3px 12px;
+        color: #34345c;
+        text-decoration: none;
+        font-size: 10pt;
+    }
+
+    /* Hide desktop summary on mobile (replaced by postLink bar) */
+    .summary.desktop {
+        display: none;
+    }
+
+    /* Base mobile font */
+    .yotsuba-b {
+        -webkit-text-size-adjust: 100%;
+        font-size: 10pt;
+    }
+
+    /* Board banner */
+    .boardBanner {
+        padding: 10px 5px 8px;
+    }
+
+    .boardTitle {
+        font-size: 20px;
+    }
+
+    /* Post form: full-width stacked layout */
+    .postForm {
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .postForm td:first-child {
+        display: block;
+        width: 100%;
+        border: none;
+        padding: 4px 5px 1px;
+        font-size: 11px;
+    }
+
+    .postForm td:last-child {
+        display: block;
+        width: 100%;
+        padding: 1px 5px 4px;
+    }
+
+    .postForm tr {
+        display: block;
+    }
+
+    .postForm input[type="text"],
+    .postForm input[type="url"] {
+        width: 100%;
+        box-sizing: border-box;
+        font-size: 16px;
+        padding: 4px;
+    }
+
+    .postForm textarea {
+        width: 100%;
+        box-sizing: border-box;
+        font-size: 16px;
+        padding: 4px;
+        min-width: 0;
+    }
+
+    .postForm input[type="submit"] {
+        width: 100%;
+        padding: 8px;
+        font-size: 16px;
+        margin: 4px 0 0;
+    }
+
+    /* Toggle post form link */
+    #togglePostFormLink {
+        font-size: 18px;
+        margin: 10px 0;
+    }
+
+    /* Thread / post layout */
+    .replyContainer {
+        margin: 7px 0 0 0;
+        padding-left: 0;
+    }
+
+    .sideArrows {
+        display: none;
+    }
+
+    .post.reply {
+        display: block;
+        overflow: visible;
+        word-wrap: break-word;
+        background: #d6daf0;
+        border: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .opContainer {
+        display: block;
+    }
+
+    .post.op {
+        overflow: visible;
+        background: #d6daf0;
+        border: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    /* Post info */
+    .postInfo {
+        font-size: 11px;
+        padding: 4px 5px;
+        word-wrap: break-word;
+    }
+
+    .postInfo .subject {
+        display: block;
+        font-size: 12px;
+    }
+
+    .postInfo .nameBlock {
+        font-size: 11px;
+    }
+
+    .dateTime {
+        font-size: 10px;
+    }
+
+    /* Post number / reply link */
+    .postNum.desktop {
+        display: inline;
+        font-size: 11px;
+    }
+
+    /* File / thumbnail */
+    .file {
+        margin: 3px 10px 5px;
+    }
+
+    .fileText {
+        display: none;
+    }
+
+    .mFileInfo.mobile {
+        display: block;
+        font-size: 9pt;
+        color: #707070;
+        padding: 2px 0;
+    }
+
+    .mFileInfo.mobile .mFileName {
+        font-size: 9pt;
+        color: #34345c;
+        word-break: break-all;
+        margin-bottom: 1px;
+    }
+
+    .fileThumb {
+        margin: 3px 10px 5px;
+    }
+
+    .post.op .fileThumb {
+        float: none;
+        display: block;
+    }
+
+    .post.op .fileThumb img {
+        max-width: 100%;
+        max-height: none;
+        height: auto;
+    }
+
+    .post.reply .fileThumb {
+        float: none;
+        display: block;
+        margin: 3px 0 5px 5px;
+    }
+
+    .post.reply .fileThumb img {
+        max-width: 100%;
+        max-height: none;
+        height: auto;
+    }
+
+    .fileThumbExpanded {
+        max-width: 100%;
+    }
+
+    .fileThumbExpanded img {
+        max-width: 100% !important;
+        height: auto !important;
+    }
+
+    /* Post message */
+    blockquote.postMessage {
+        font-size: 10pt;
+        line-height: 1.3em;
+        padding: 8px 10px;
+    }
+
+    /* Backlinks */
+    .backlink {
+        display: block;
+        clear: both;
+        padding: 3px 5px;
+        margin-left: 0;
+        line-height: 2;
+    }
+
+    .backlink a {
+        padding-right: 4px;
+    }
+
+    /* Summary */
+    .summary {
+        margin-left: 0;
+        padding: 4px 5px;
+    }
+
+    /* Nav links */
+    .navLinks {
+        font-size: 12px;
+        flex-wrap: wrap;
+        gap: 4px;
+    }
+
+    .navLinks.desktop,
+    hr.desktop {
+        display: none !important;
+    }
+
+    /* Mobile thread footer */
+    .mobileThreadFooter.mobile {
+        display: block !important;
+        clear: both;
+    }
+
+    .mobileThreadFooter .mobile.center {
+        text-align: center;
+        width: 200px;
+        margin: 10px auto;
+    }
+
+    .mobileThreadFooter .mobilePostFormToggle.button {
+        display: block;
+        background: #d6daf0;
+        border: 1px solid #b7c5d9;
+        padding: 6px 12px;
+        color: #34345c;
+        text-decoration: none;
+        font-size: 10pt;
+        text-align: center;
+    }
+
+    .mobileThreadFooter .navLinks.mobile {
+        text-align: center;
+        padding: 5px 0;
+        font-size: 10pt;
+    }
+
+    .mobileThreadFooter .mobileib.button {
+        margin: 0 2px;
+    }
+
+    .mobileThreadFooter .mobileib.button a,
+    .mobileThreadFooter .mobileib.button label {
+        background: #d6daf0;
+        border: 1px solid #b7c5d9;
+        padding: 4px 10px;
+        color: #34345c;
+        text-decoration: none;
+        font-size: 10pt;
+        cursor: pointer;
+        display: inline-block;
+    }
+
+    .mobileThreadFooter .btn-row {
+        margin-top: 5px;
+    }
+
+    .mobileThreadFooter .mobile-tu-status {
+        margin-left: 5px;
+        font-size: 9pt;
+        color: #707070;
+    }
+
+    .mobileThreadFooter .thread-stats.mobile {
+        display: block;
+        text-align: center;
+        padding: 5px 0;
+        font-size: 10pt;
+        color: #000;
+    }
+
+
+    /* Thread stats: stack vertically on mobile */
+    .thread-stats {
+        float: none;
+        display: block;
+        text-align: center;
+        margin-top: 4px;
+        font-size: 12px;
+    }
+
+    .ts-replies:before { content: "R: "; }
+    .ts-images:before { content: "I: "; }
+    .ts-page:before { content: "P: "; }
+
+    /* Pagelist */
+    .pagelist {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 4px;
+        font-size: 12px;
+        padding: 6px 0;
+    }
+
+    .pagelist .prev,
+    .pagelist .next {
+        display: block;
+        width: 100%;
+        text-align: center;
+    }
+
+    .pagelist .pages {
+        text-align: center;
+    }
+
+    /* Pagination (thread page) */
+    .pagination {
+        padding: 8px 5px;
+    }
+
+    /* Footer */
+    #boardNavDesktopFoot {
+        display: none;
+    }
+
+    #absbot {
+        padding: 0 10px;
+    }
+
+    /* Quick reply panel */
+    #quickReply {
+        position: fixed !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        top: auto !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        border-radius: 0 !important;
+        z-index: 10000 !important;
+    }
+
+    #quickReply #qrHeader {
+        cursor: default;
+    }
+
+    #quickReply input[type="text"],
+    #quickReply input[type="url"],
+    #quickReply textarea {
+        font-size: 16px !important;
+    }
+
+    #quickReply textarea {
+        min-height: 60px;
+    }
+
+    /* Post menu dropdown — open to the right, above other posts, bigger on mobile */
+    .dd-menu {
+        left: 0 !important;
+        right: auto !important;
+        z-index: 99999 !important;
+        font-size: 14pt !important;
+    }
+
+    .dd-menu ul li {
+        padding: 8px 16px !important;
+    }
+
+    /* Posting overlay */
+    .postingOverlayInner {
+        width: 90% !important;
+        max-width: 280px;
+    }
+
+    /* Highlight */
+    .post.highlight {
+        border-left: 3px solid #d6bad0 !important;
+    }
+
+    /* Loading */
+    .loading-text {
+        padding: 15px 10px;
+    }
+
+    /* Settings panel */
+    #boardNavDesktop + div {
+        overflow-x: auto;
+    }
+
+    #boardNavDesktop + div input[type="text"] {
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box;
+        font-size: 16px !important;
+    }
+
+    /* Image preview */
+    .imgPreview {
+        max-width: 80px;
+        max-height: 60px;
+    }
+
+    /* Thread hide button — hidden on mobile, use 3-dot menu instead */
+    .threadHideButton {
+        display: none;
+    }
+
 }
