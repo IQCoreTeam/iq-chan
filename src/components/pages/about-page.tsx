@@ -28,6 +28,10 @@ export default function AboutPage() {
                     that interests you and start posting!
                 </p>
                 <br />
+                <p style={{ textAlign: "center", fontStyle: "italic", color: "#89a" }}>
+                    Made by the IQ community, for the IQ community.
+                </p>
+                <br />
                 <p style={{ textAlign: "center" }}>
                     [<HashLink href="/">Home</HashLink>]
                 </p>
