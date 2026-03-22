@@ -12,7 +12,7 @@ export default function WalletButton() {
         const addr = publicKey.toBase58();
         return (
             <span style={{ fontSize: 12 }}>
-                <span style={{ fontFamily: "monospace" }}>
+                <span className="wallet-addr" style={{ fontFamily: "monospace" }}>
                     {addr.slice(0, 4)}...{addr.slice(-4)}
                 </span>
                 {" "}

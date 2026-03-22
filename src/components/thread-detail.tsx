@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import type { Post as PostType, Reply } from "../lib/types";
 import Post from "./post";
 
@@ -15,6 +15,16 @@ export default function ThreadDetail({
     loading: boolean;
     onQuote?: (sig: string) => void;
 }) {
+    const [hiddenPosts, setHiddenPosts] = useState<Set<string>>(new Set());
+
+    function togglePost(sig: string) {
+        setHiddenPosts((prev) => {
+            const next = new Set(prev);
+            if (next.has(sig)) next.delete(sig); else next.add(sig);
+            return next;
+        });
+    }
+
     const backlinkMap = useMemo(() => {
         const map: Record<string, string[]> = {};
         const allPosts = [...(thread ? [thread] : []), ...replies];
@@ -57,18 +67,23 @@ export default function ThreadDetail({
                 {loading && replies.length === 0 ? (
                     <div className="loading-text">Loading replies...</div>
                 ) : (
-                    replies.map((reply, i) => (
-                        <Post
-                            key={reply.__txSignature ?? i}
-                            txSig={reply.__txSignature ?? ""}
-                            com={reply.com}
-                            name={reply.name}
-                            time={reply.time}
-                            img={reply.img}
-                            backlinks={backlinkMap[reply.__txSignature ?? ""]}
-                            onQuote={onQuote}
-                        />
-                    ))
+                    replies.map((reply, i) => {
+                        const sig = reply.__txSignature ?? "";
+                        return (
+                            <Post
+                                key={sig || i}
+                                txSig={sig}
+                                com={reply.com}
+                                name={reply.name}
+                                time={reply.time}
+                                img={reply.img}
+                                backlinks={backlinkMap[sig]}
+                                onQuote={onQuote}
+                                onHide={() => togglePost(sig)}
+                                isHidden={hiddenPosts.has(sig)}
+                            />
+                        );
+                    })
                 )}
             </div>
         </div>

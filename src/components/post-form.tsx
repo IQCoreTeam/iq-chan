@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { ESTIMATED_SOL_COST } from "../lib/constants";
 import PostingOverlay from "./posting-overlay";
 
 export default function PostForm({

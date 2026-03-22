@@ -2,7 +2,6 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { ESTIMATED_SOL_COST } from "../lib/constants";
 import PostingOverlay from "./posting-overlay";
 
 export default function QuickReply({
@@ -40,8 +39,10 @@ export default function QuickReply({
     const panelRef = useRef<HTMLDivElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+    const isMobile = typeof window !== "undefined" && window.innerWidth <= 480;
+
     useEffect(() => {
-        // Center initially
+        if (isMobile) return;
         setPos({
             x: Math.max(0, window.innerWidth - 350) * 0.7,
             y: window.innerHeight * 0.2,
@@ -110,14 +111,14 @@ export default function QuickReply({
             className="extPanel reply"
             style={{
                 position: "fixed",
-                top: pos.y,
-                left: pos.x,
+                top: isMobile ? undefined : pos.y,
+                left: isMobile ? undefined : pos.x,
                 zIndex: 100,
                 background: "#d6daf0",
                 border: "1px solid #b7c5d9",
                 boxShadow: "2px 2px 4px rgba(0,0,0,0.2)",
-                minWidth: 350,
-                width: "auto",
+                minWidth: isMobile ? undefined : 350,
+                width: isMobile ? undefined : "auto",
                 fontSize: 13,
             }}
         >

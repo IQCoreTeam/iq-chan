@@ -151,11 +151,9 @@ export default function HomePage() {
                 </ul>
                 <br className="clear-bug" />
                 <div id="copyright">
-                    <a href="https://iqlabs.dev" target="_blank" rel="noopener noreferrer">About</a>
+                    <HashLink href="/about">About</HashLink>
                     {" \u2022 "}
-                    <a href="https://x.com/IQLabsOfficial" target="_blank" rel="noopener noreferrer">Feedback</a>
-                    {" \u2022 "}
-                    <a href="https://github.com/IQCoreTeam" target="_blank" rel="noopener noreferrer">Source</a>
+                    <HashLink href="/feedback">Feedback</HashLink>
                     <br /><br />
                     All trademarks and copyrights on this page are owned by their respective parties.
                     Images uploaded are the responsibility of the Poster. All posts are Solana transactions. Powered by IQ Labs.
