@@ -72,7 +72,7 @@ export default function Post({
                         : { maxHeight: isOp ? 250 : 125, maxWidth: isOp ? 250 : 125 }
                     }
                     loading="lazy"
-                    onError={(e) => { (e.target as HTMLImageElement).src = "/404.png"; }}
+                    onError={(e) => { (e.target as HTMLImageElement).src = "/404.webp"; }}
                 />
                 <div className="mFileInfo mobile">
                     {expanded && <div className="mFileName">{fileName}</div>}
