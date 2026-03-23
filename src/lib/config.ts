@@ -1,10 +1,12 @@
 export const RPC_ENDPOINT =
     process.env.NEXT_PUBLIC_RPC_ENDPOINT ?? "https://api.mainnet-beta.solana.com";
 
-const PRIMARY_GATEWAY = "https://fem4pe7sthdm5f9fkhc1fnmpos.ingress.akashprovid.com";
+const PRIMARY_GATEWAY = "https://gateway.solanainternet.com";
 const BACKUP_GATEWAY = "https://gateway.iqlabs.dev";
 
-export const GATEWAY_FALLBACKS = [PRIMARY_GATEWAY, BACKUP_GATEWAY];
+const AKASH_DIRECT = "https://fem4pe7sthdm5f9fkhc1fnmpos.ingress.akashprovid.com";
+
+export const GATEWAY_FALLBACKS = [PRIMARY_GATEWAY, AKASH_DIRECT, BACKUP_GATEWAY];
 
 /** Gateway URL - user can override via localStorage "blockchan_gateway" */
 export function getGatewayUrl(): string {
