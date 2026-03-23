@@ -4,3 +4,5 @@ node_modules
 .env.local
 out/
 gen-banners.*
+.iqbrowser-upload-cache.json
+downloaded-apps/
