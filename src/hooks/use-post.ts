@@ -98,7 +98,7 @@ export function usePost() {
                             column_names: THREAD_COLUMNS.map((c) => Buffer.from(c)),
                             id_col: Buffer.from("time"),
                             ext_keys: [],
-                            gate_mint_opt: null,
+                            gate_opt: null,
                             writers_opt: null,
                         },
                     ),
