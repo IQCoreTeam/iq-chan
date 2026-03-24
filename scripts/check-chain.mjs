@@ -22,7 +22,7 @@ import iqlabs from "iqlabs-sdk";
 
 const RPC_URL =
     process.env.NEXT_PUBLIC_RPC_ENDPOINT ||
-    "https://mainnet.helius-rpc.com/?api-key=fbb113ce-eeb4-4277-8c44-7153632d175a";
+    "process.env.SOLANA_RPC_ENDPOINT || "https://api.mainnet-beta.solana.com"";
 const GATEWAY = "https://gateway.iqlabs.dev";
 const DB_ROOT_ID = "iqchan";
 const FEED_SEED_PREFIX = "feedmY}AGBJiqLabs";
