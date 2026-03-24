@@ -1,7 +1,7 @@
 import { Connection, PublicKey } from "@solana/web3.js";
 
 const conn = new Connection(
-    "https://mainnet.helius-rpc.com/?api-key=fbb113ce-eeb4-4277-8c44-7153632d175a",
+    "process.env.SOLANA_RPC_ENDPOINT || "https://api.mainnet-beta.solana.com"",
 );
 
 const signer = new PublicKey("FPSYQmFh1WhbrgNKoQCDBcrf3YLc9eoNCpTyAjHXrf1c");

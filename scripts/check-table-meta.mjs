@@ -8,7 +8,7 @@
 import { Connection, PublicKey } from "@solana/web3.js";
 import iqlabs from "iqlabs-sdk";
 
-const RPC_URL = "https://mainnet.helius-rpc.com/?api-key=fbb113ce-eeb4-4277-8c44-7153632d175a";
+const RPC_URL = process.env.SOLANA_RPC_ENDPOINT || "https://api.mainnet-beta.solana.com";
 const DB_ROOT_ID = "iqchan";
 const boardId = process.argv[2] || "biz";
 
