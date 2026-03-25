@@ -5,11 +5,12 @@ import "./globals.css";
 import "./chan.css";
 
 export const metadata: Metadata = {
+    metadataBase: new URL("https://blockchan.xyz"),
     title: {
         default: "BlockChan",
         template: "%s | BlockChan",
     },
-    description: "On-chain imageboard on Solana",
+    description: "On-chain imageboard on Solana — every post is a transaction, nothing can be taken down",
     other: {
         "format-detection": "telephone=no",
     },
@@ -19,14 +20,16 @@ export const metadata: Metadata = {
     },
     openGraph: {
         title: "BlockChan",
-        description: "On-chain imageboard on Solana",
+        description: "On-chain imageboard on Solana — every post is a transaction, nothing can be taken down",
         type: "website",
-        images: ["/og-image.webp"],
+        url: "https://blockchan.xyz",
+        siteName: "BlockChan",
+        images: [{ url: "/og-image.webp", width: 1200, height: 630 }],
     },
     twitter: {
         card: "summary_large_image",
         title: "BlockChan",
-        description: "On-chain imageboard on Solana",
+        description: "On-chain imageboard on Solana — every post is a transaction, nothing can be taken down",
         images: ["/og-image.webp"],
     },
 };

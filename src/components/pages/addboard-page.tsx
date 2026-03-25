@@ -8,7 +8,6 @@ import iqlabs from "iqlabs-sdk";
 import BN from "bn.js";
 import HashLink from "../hash-link";
 import { FooterNav } from "../board-nav";
-import { useBoards } from "../../hooks/use-boards";
 import {
     DB_ROOT_ID_BYTES,
     DB_ROOT_KEY,
@@ -21,7 +20,6 @@ const idl = require("iqlabs-sdk/idl/code_in.json");
 export default function AddBoardPage() {
     const { connection } = useConnection();
     const wallet = useWallet();
-    const { creator } = useBoards();
     const [slug, setSlug] = useState("");
     const [title, setTitle] = useState("");
     const [gateEnabled, setGateEnabled] = useState(false);
@@ -32,7 +30,6 @@ export default function AddBoardPage() {
     const [error, setError] = useState("");
     const [createdSeed, setCreatedSeed] = useState("");
 
-    const isAdmin = wallet.publicKey?.toBase58() === creator;
 
     async function handleCreate() {
         if (!wallet.publicKey || !wallet.signTransaction) return;
@@ -73,9 +70,6 @@ export default function AddBoardPage() {
                 writers_opt: null,
             });
 
-            // TODO: remove — metadata table is being phased out; board name is stored in Table.name
-            // const metaSeed = `${boardId}/metadata`;
-            // ...
 
             // Send board table creation tx
             const tx = new Transaction().add(boardIx);
@@ -113,11 +107,9 @@ export default function AddBoardPage() {
                             Go to your board &rarr;
                         </HashLink>
                     </p>
-                    {!isAdmin && (
-                        <p style={{ marginTop: "10px", fontSize: "11px", color: "#89a" }}>
-                            This board is unlisted until an admin onboards it.
-                        </p>
-                    )}
+                    <p style={{ marginTop: "10px", fontSize: "11px", color: "#89a" }}>
+                        This board is unlisted until an admin onboards it.
+                    </p>
                 </div>
                 <FooterNav />
             </>

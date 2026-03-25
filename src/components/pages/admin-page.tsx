@@ -5,7 +5,6 @@ import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { PublicKey, Transaction, SystemProgram } from "@solana/web3.js";
 import iqlabs from "iqlabs-sdk";
 import { FooterNav } from "../board-nav";
-import { useBoards } from "../../hooks/use-boards";
 import { DB_ROOT_ID, DB_ROOT_ID_BYTES, DB_ROOT_KEY } from "../../lib/constants";
 import { SEED_TO_BOARD_ID } from "../../lib/board";
 
@@ -14,7 +13,7 @@ const idl = require("iqlabs-sdk/idl/code_in.json");
 export default function AdminPage() {
     const { connection } = useConnection();
     const wallet = useWallet();
-    const { creator } = useBoards();
+    const [creator, setCreator] = useState<string | null>(null);
     const [status, setStatus] = useState("");
     const [tableSeeds, setTableSeeds] = useState<string[]>([]);
     const [globalTableSeeds, setGlobalTableSeeds] = useState<string[]>([]);
@@ -32,9 +31,10 @@ export default function AdminPage() {
     useEffect(() => {
         iqlabs.reader.getTablelistFromRoot(connection, DB_ROOT_ID)
             .then(async (result: any) => {
-                const { tableSeeds: ts, globalTableSeeds: gs } = result;
+                const { tableSeeds: ts, globalTableSeeds: gs, creator: c } = result;
                 setTableSeeds(ts as string[]);
                 setGlobalTableSeeds(gs as string[]);
+                if (c) setCreator(c);
 
                 // Load existing table_creators by decoding DbRoot account directly
                 try {
