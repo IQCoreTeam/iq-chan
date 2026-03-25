@@ -6,7 +6,7 @@ import { PublicKey, Transaction, SystemProgram } from "@solana/web3.js";
 import iqlabs from "iqlabs-sdk";
 import { FooterNav } from "../board-nav";
 import { useBoards } from "../../hooks/use-boards";
-import { DB_ROOT_ID, DB_ROOT_ID_BYTES, DB_ROOT_KEY } from "../../lib/constants";
+import { DB_ROOT_ID, DB_ROOT_ID_BYTES, DB_ROOT_KEY, OFFICIAL_BOARDS } from "../../lib/constants";
 import { SEED_TO_BOARD_ID } from "../../lib/board";
 
 const idl = require("iqlabs-sdk/idl/code_in.json");

@@ -3,11 +3,11 @@
 import { useState, useEffect, createContext, useContext } from "react";
 import { useConnection } from "@solana/wallet-adapter-react";
 import { fetchBoards } from "../lib/board";
-import { DEFAULT_BOARDS } from "../lib/constants";
+import { OFFICIAL_BOARDS } from "../lib/constants";
 import type { BoardMeta } from "../lib/types";
 
-const fallbackBoards: BoardMeta[] = Object.entries(DEFAULT_BOARDS).map(([id, m]) => ({
-    id, title: m.title, description: m.description, image: m.image,
+const fallbackBoards: BoardMeta[] = Object.entries(OFFICIAL_BOARDS).map(([slug, m]) => ({
+    id: slug, seed: m.seed, title: m.title, description: m.description, image: m.image,
 }));
 
 const BoardsContext = createContext<{

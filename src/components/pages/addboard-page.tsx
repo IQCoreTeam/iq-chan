@@ -17,34 +17,27 @@ import {
 } from "../../lib/constants";
 
 const idl = require("iqlabs-sdk/idl/code_in.json");
-// TODO: remove — metadata concept is being phased out; board name is stored in Table.name on-chain
-// const METADATA_COLUMNS = ["title", "description", "image", "time"];
+const METADATA_COLUMNS = ["title", "description", "image", "time"];
 
 export default function AddBoardPage() {
     const { connection } = useConnection();
     const wallet = useWallet();
     const { creator } = useBoards();
-    const [boardId, setBoardId] = useState("");
+    const [slug, setSlug] = useState("");
     const [title, setTitle] = useState("");
-    // TODO: remove — description/image fields are being phased out along with the metadata table concept
-    // const [description, setDescription] = useState("");
-    // const [imageUrl, setImageUrl] = useState("");
-    const [gateEnabled, setGateEnabled] = useState(false);
+    const [description, setDescription] = useState("");
+    const [imageUrl, setImageUrl] = useState("");
     const [gateMint, setGateMint] = useState("");
     const [gateAmount, setGateAmount] = useState("1");
-    const [gateType, setGateType] = useState(0); // 0 = Token, 1 = Collection
+    const [gateType, setGateType] = useState(0);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
-    const [created, setCreated] = useState(false);
+    const [createdSeed, setCreatedSeed] = useState("");
 
     const isAdmin = wallet.publicKey?.toBase58() === creator;
 
     async function handleCreate() {
         if (!wallet.publicKey || !wallet.signTransaction) return;
-        if (!boardId.match(/^[a-z0-9]{1,10}$/)) {
-            setError("Board ID: 1-10 lowercase letters/numbers");
-            return;
-        }
         if (!title) { setError("Title required"); return; }
 
         setLoading(true);
@@ -52,18 +45,18 @@ export default function AddBoardPage() {
 
         try {
             const builder = iqlabs.contract.createInstructionBuilder(idl, iqlabs.contract.PROGRAM_ID);
-            const dbRootIdBytes = DB_ROOT_ID_BYTES;
+            const boardSeed = crypto.randomUUID().replace(/-/g, "");
 
-            const gate = gateEnabled && gateMint ? {
+            const gate = gateMint ? {
                 mint: new PublicKey(gateMint),
-                amount: new BN(gateType === 1 ? 1 : parseInt(gateAmount) || 1),
+                amount: new BN(parseInt(gateAmount) || 1),
                 gate_type: gateType,
             } : null;
 
-            // Step 1: Create board table (seed: boardId) — goes into global_table_seeds
-            const boardSeedBytes = Buffer.from(iqlabs.utils.toSeedBytes(boardId));
-            const boardTablePda = new PublicKey(deriveTablePda(boardId));
-            const boardInstrPda = new PublicKey(deriveInstructionTablePda(boardId));
+            // Board table (random seed) → goes into global_table_seeds
+            const boardSeedBytes = Buffer.from(iqlabs.utils.toSeedBytes(boardSeed));
+            const boardTablePda = new PublicKey(deriveTablePda(boardSeed));
+            const boardInstrPda = new PublicKey(deriveInstructionTablePda(boardSeed));
 
             const boardIx = iqlabs.contract.createExtTableInstruction(builder, {
                 signer: wallet.publicKey,
@@ -72,29 +65,52 @@ export default function AddBoardPage() {
                 instruction_table: boardInstrPda,
                 system_program: SystemProgram.programId,
             }, {
-                db_root_id: dbRootIdBytes,
+                db_root_id: DB_ROOT_ID_BYTES,
                 table_seed: boardSeedBytes,
-                table_name: Buffer.from(title),
-                column_names: ["sub", "com", "name", "time", "img", "threadPda", "threadSeed"].map((c) => Buffer.from(c)),
+                table_name: Buffer.from(boardSeed),
+                column_names: METADATA_COLUMNS.map((c) => Buffer.from(c)),
                 id_col: Buffer.from("time"),
                 ext_keys: [],
                 gate_opt: gate,
                 writers_opt: null,
             });
 
-            // TODO: remove — metadata table is being phased out; board name is stored in Table.name
-            // const metaSeed = `${boardId}/metadata`;
-            // ...
+            // Metadata table (seed: "{boardSeed}/metadata")
+            const metaSeed = `${boardSeed}/metadata`;
+            const metaSeedBytes = Buffer.from(iqlabs.utils.toSeedBytes(metaSeed));
+            const metaTablePda = new PublicKey(deriveTablePda(metaSeed));
+            const metaInstrPda = new PublicKey(deriveInstructionTablePda(metaSeed));
 
-            // Send board table creation tx
-            const tx = new Transaction().add(boardIx);
+            const metaIx = iqlabs.contract.createExtTableInstruction(builder, {
+                signer: wallet.publicKey,
+                db_root: DB_ROOT_KEY,
+                table: metaTablePda,
+                instruction_table: metaInstrPda,
+                system_program: SystemProgram.programId,
+            }, {
+                db_root_id: DB_ROOT_ID_BYTES,
+                table_seed: metaSeedBytes,
+                table_name: Buffer.from(metaSeed),
+                column_names: METADATA_COLUMNS.map((c) => Buffer.from(c)),
+                id_col: Buffer.from("time"),
+                ext_keys: [],
+                gate_opt: null,
+                writers_opt: null,
+            });
+
+            const tx = new Transaction().add(boardIx, metaIx);
             tx.feePayer = wallet.publicKey;
             tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
             const signed = await wallet.signTransaction(tx);
-            const sig = await connection.sendRawTransaction(signed.serialize());
-            await connection.confirmTransaction(sig, "confirmed");
+            await connection.sendRawTransaction(signed.serialize());
 
-            setCreated(true);
+            // Write metadata row
+            await iqlabs.writer.writeRow(
+                connection, wallet as any, DB_ROOT_ID_BYTES, metaSeedBytes,
+                JSON.stringify({ slug, title, description, image: imageUrl, time: Date.now() }),
+            );
+
+            setCreatedSeed(boardSeed);
         } catch (e) {
             setError(e instanceof Error ? e.message : String(e));
         } finally {
@@ -102,18 +118,20 @@ export default function AddBoardPage() {
         }
     }
 
-    if (created) {
+    if (createdSeed) {
         return (
             <>
                 <div className="board" style={{ textAlign: "center", padding: "40px 20px" }}>
                     <h2 className="boardTitle">Board Created</h2>
-                    <p style={{ margin: "20px 0" }}>
-                        <b>/{boardId}/</b> — {title}
-                    </p>
-                    <p>
-                        <HashLink href={`/${boardId}`} className="quoteLink">
-                            Go to /{boardId}/ &rarr;
+                    <p style={{ margin: "20px 0" }}><b>{title}</b></p>
+                    <p>Your board link:</p>
+                    <p style={{ margin: "10px 0", fontFamily: "monospace", fontSize: "13px", wordBreak: "break-all" }}>
+                        <HashLink href={`/${createdSeed}`} className="quoteLink">
+                            blockchan.xyz/#{createdSeed}
                         </HashLink>
+                    </p>
+                    <p style={{ fontSize: "11px", color: "#c33", marginTop: "10px" }}>
+                        Save this link — it cannot be recovered.
                     </p>
                     {!isAdmin && (
                         <p style={{ marginTop: "10px", fontSize: "11px", color: "#89a" }}>
@@ -145,9 +163,9 @@ export default function AddBoardPage() {
                                     <span style={{ fontSize: "10pt" }}>/</span>
                                     <input
                                         type="text"
-                                        value={boardId}
-                                        onChange={(e) => setBoardId(e.target.value.toLowerCase().replace(/[^a-z0-9]/g, ""))}
-                                        placeholder="biz"
+                                        value={slug}
+                                        onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9]/g, ""))}
+                                        placeholder="degen"
                                         maxLength={10}
                                         style={{ width: "120px" }}
                                     /><span style={{ fontSize: "10pt" }}>/</span>
@@ -165,63 +183,68 @@ export default function AddBoardPage() {
                                     <input
                                         type="submit"
                                         onClick={(e) => { e.preventDefault(); handleCreate(); }}
-                                        disabled={loading || !boardId || !title}
+                                        disabled={loading || !title}
                                         value={loading ? "Creating..." : "Create Board"}
                                     />
                                 </td>
                             </tr>
-                            {/* TODO: remove — description/image fields phased out with metadata table concept */}
+                            <tr>
+                                <td className="label">Description</td>
+                                <td>
+                                    <input
+                                        type="text"
+                                        value={description}
+                                        onChange={(e) => setDescription(e.target.value)}
+                                        placeholder="Discussion about Solana"
+                                    />
+                                </td>
+                            </tr>
+                            <tr>
+                                <td className="label">Image URL</td>
+                                <td>
+                                    <input
+                                        type="text"
+                                        value={imageUrl}
+                                        onChange={(e) => setImageUrl(e.target.value.trim())}
+                                        placeholder="https://... (optional)"
+                                    />
+                                </td>
+                            </tr>
                             <tr>
                                 <td className="label">Token Gate</td>
                                 <td>
-                                    <label style={{ fontSize: "12px", cursor: "pointer" }}>
-                                        <input
-                                            type="checkbox"
-                                            checked={gateEnabled}
-                                            onChange={(e) => setGateEnabled(e.target.checked)}
-                                            style={{ marginRight: "6px" }}
-                                        />
-                                        Enable token gate
-                                    </label>
+                                    <input
+                                        type="text"
+                                        value={gateMint}
+                                        onChange={(e) => setGateMint(e.target.value.trim())}
+                                        placeholder="Mint address (optional)"
+                                        style={{ fontFamily: "monospace", fontSize: "11px" }}
+                                    />
                                 </td>
                             </tr>
-                            {gateEnabled && (
+                            {gateMint && (
                                 <>
                                     <tr>
                                         <td className="label">Gate Type</td>
                                         <td>
                                             <select value={gateType} onChange={(e) => setGateType(Number(e.target.value))}>
-                                                <option value={0}>Token — min amount required</option>
-                                                <option value={1}>Collection — NFT ownership check</option>
+                                                <option value={0}>Token</option>
+                                                <option value={1}>Collection</option>
                                             </select>
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td className="label">Mint Address</td>
+                                        <td className="label">Min Amount</td>
                                         <td>
                                             <input
-                                                type="text"
-                                                value={gateMint}
-                                                onChange={(e) => setGateMint(e.target.value.trim())}
-                                                placeholder="Token or collection mint"
-                                                style={{ fontFamily: "monospace", fontSize: "11px", width: "300px" }}
+                                                type="number"
+                                                value={gateAmount}
+                                                onChange={(e) => setGateAmount(e.target.value)}
+                                                min="1"
+                                                style={{ width: "80px" }}
                                             />
                                         </td>
                                     </tr>
-                                    {gateType === 0 && (
-                                        <tr>
-                                            <td className="label">Min Amount</td>
-                                            <td>
-                                                <input
-                                                    type="number"
-                                                    value={gateAmount}
-                                                    onChange={(e) => setGateAmount(e.target.value)}
-                                                    min="1"
-                                                    style={{ width: "80px" }}
-                                                />
-                                            </td>
-                                        </tr>
-                                    )}
                                 </>
                             )}
                         </tbody>

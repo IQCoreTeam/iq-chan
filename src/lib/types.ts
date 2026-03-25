@@ -18,7 +18,8 @@ export interface Reply {
 }
 
 export interface BoardMeta {
-    id: string;
+    id: string;        // URL slug (for official) or seed hash (for unofficial)
+    seed: string;      // on-chain seed for PDA derivation
     title: string;
     description: string;
     image: string;

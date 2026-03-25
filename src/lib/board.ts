@@ -121,7 +121,7 @@ export async function fetchBoards(connection: Connection): Promise<{
         );
 
         const boards: BoardMeta[] = Object.entries(DEFAULT_BOARDS).map(([id, m]) => ({
-            id, title: m.title, description: m.description, image: m.image,
+            id, seed: m.seed ?? id, title: m.title, description: m.description, image: m.image,
         }));
 
         // Append any onboarded boards not in the hardcoded list
@@ -135,7 +135,7 @@ export async function fetchBoards(connection: Connection): Promise<{
                 );
                 boards.push({
                     id: boardId,
-                    title: meta.name || boardId,
+                    seed: boardId, title: meta.name || boardId,
                     description: "",
                     image: "",
                 });
@@ -146,7 +146,7 @@ export async function fetchBoards(connection: Connection): Promise<{
     } catch {
         // Fallback to hardcoded without gate info
         const boards: BoardMeta[] = Object.entries(DEFAULT_BOARDS).map(([id, m]) => ({
-            id, title: m.title, description: m.description, image: m.image,
+            id, seed: m.seed ?? id, title: m.title, description: m.description, image: m.image,
         }));
         return { boards, creator: null };
     }
