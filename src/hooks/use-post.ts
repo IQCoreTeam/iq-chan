@@ -16,6 +16,7 @@ import {
     deriveTablePda,
     deriveInstructionTablePda,
     DB_ROOT_KEY,
+    resolveBoardSeed,
 } from "../lib/constants";
 import { getFeedPda } from "../lib/board";
 import { notifyPost } from "../lib/gateway";
@@ -49,10 +50,10 @@ export function usePost() {
 
             try {
                 const randomId = crypto.randomUUID();
-                const seed = threadTableSeed(boardId, randomId);
+                const seed = threadTableSeed(resolveBoardSeed(boardId), randomId);
                 const threadPda = deriveTablePda(seed);
                 const dbRootKey = DB_ROOT_KEY;
-                const feedPda = getFeedPda(dbRootKey, boardId);
+                const feedPda = getFeedPda(dbRootKey, resolveBoardSeed(boardId));
 
                 const tablePda = new PublicKey(threadPda);
                 const instrPda = new PublicKey(deriveInstructionTablePda(seed));
@@ -201,7 +202,7 @@ export function usePost() {
                 const shouldBump = !isSage && !overBumpLimit;
 
                 const remaining = shouldBump
-                    ? [getFeedPda(DB_ROOT_KEY, boardId)]
+                    ? [getFeedPda(DB_ROOT_KEY, resolveBoardSeed(boardId))]
                     : [];
 
                 const row = {

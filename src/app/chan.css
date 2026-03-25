@@ -174,9 +174,13 @@
 }
 
 /* Nav links */
+
 .navLinks {
     margin: 5px 0;
     font-size: 12px;
+}
+.navLinks.mobile {
+    display: none;
 }
 
 .navLinks.threadNav {
@@ -788,6 +792,14 @@ blockquote.postMessage {
         margin: 4px 0 0;
     }
 
+    .postForm {
+        width: 100% !important;
+        box-sizing: border-box;
+    }
+    .postForm td:first-child {
+        display: none;
+    }
+
     /* Toggle post form link */
     #togglePostFormLink {
         font-size: 18px;
@@ -947,6 +959,20 @@ blockquote.postMessage {
     .navLinks.desktop,
     hr.desktop {
         display: none !important;
+    }
+    .navLinks.mobile {
+        display: block !important;
+    }
+    .mobileib.button a,
+    .mobileib.button label {
+        background: #d6daf0;
+        border: 1px solid #b7c5d9;
+        padding: 4px 10px;
+        border-radius: 3px;
+        font-size: 10pt;
+        color: #34345c;
+        text-decoration: none;
+        cursor: pointer;
     }
 
     /* Mobile thread footer */

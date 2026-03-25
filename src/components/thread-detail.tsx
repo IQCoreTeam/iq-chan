@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import type { Post as PostType, Reply } from "../lib/types";
 import Post from "./post";
 
+
 export default function ThreadDetail({
     thread,
     replies,

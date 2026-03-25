@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { DB_ROOT_KEY } from "../lib/constants";
+import { DB_ROOT_KEY, resolveBoardSeed } from "../lib/constants";
 import { getFeedPda, fetchFeedThreads, ThreadEntry } from "../lib/board";
 
 export function useThreads(boardId: string) {
@@ -15,7 +15,7 @@ export function useThreads(boardId: string) {
         setError(null);
 
         try {
-            const feedPda = getFeedPda(DB_ROOT_KEY, boardId);
+            const feedPda = getFeedPda(DB_ROOT_KEY, resolveBoardSeed(boardId));
             const result = await fetchFeedThreads(feedPda);
             setThreads(result.threads);
         } catch (e) {
