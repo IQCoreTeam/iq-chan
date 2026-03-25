@@ -31,7 +31,7 @@ export function usePost() {
     const [totalSteps, setTotalSteps] = useState(0);
     const [error, setError] = useState<Error | null>(null);
 
-    // ─── Create Thread (2 TXs: ext table + OP row) ──────────────────────────
+    // ─── Create Thread (2 TXs: create thread ext table + write OP row to board table) ──
 
     const createThread = useCallback(
         async (
@@ -62,7 +62,8 @@ export function usePost() {
                     iqlabs.contract.PROGRAM_ID,
                 );
                 const dbRootIdBytes = DB_ROOT_ID_BYTES;
-                const seedBytes = Buffer.from(iqlabs.utils.toSeedBytes(seed));
+                const threadSeedBytes = Buffer.from(iqlabs.utils.toSeedBytes(seed));
+                const boardSeedBytes = Buffer.from(iqlabs.utils.toSeedBytes(boardId));
 
                 // Check if dbRoot needs init
                 const dbRootInfo = await connection.getAccountInfo(dbRootKey);
@@ -96,7 +97,7 @@ export function usePost() {
                         },
                         {
                             db_root_id: dbRootIdBytes,
-                            table_seed: seedBytes,
+                            table_seed: threadSeedBytes,
                             table_name: Buffer.from(seed),
                             column_names: THREAD_COLUMNS.map((c) => Buffer.from(c)),
                             id_col: Buffer.from("time"),
@@ -138,7 +139,7 @@ export function usePost() {
                 setStep(2);
                 setStatus("Posting... sign 2/2");
 
-                // TX2: write OP row
+                // TX2: write OP row to board table — gate check happens here
                 const row = {
                     sub: data.sub,
                     com: data.com,
@@ -153,17 +154,22 @@ export function usePost() {
                     connection,
                     wallet as any,
                     dbRootIdBytes,
-                    seedBytes,
+                    boardSeedBytes,
                     JSON.stringify(row),
                     false,
                     [feedPda],
                 );
 
                 await notifyPost(threadPda, txSig, row);
+                return { ...row, __txSignature: txSig };
             } catch (e) {
-                const err = e instanceof Error ? e : new Error(String(e));
+                const raw = e instanceof Error ? e.message : String(e);
+                const msg = raw.toLowerCase().includes("ata") || raw.toLowerCase().includes("token account")
+                    ? "You are not a holder"
+                    : raw;
+                const err = new Error(msg);
                 setError(err);
-                setStatus(`Error: ${err.message}`);
+                setStatus(`Error: ${msg}`);
                 throw err;
             } finally {
                 setLoading(false);
@@ -174,7 +180,7 @@ export function usePost() {
         [connection, wallet],
     );
 
-    // ─── Post Reply (1 TX) ──────────────────────────────────────────────────
+    // ─── Post Reply (1 TX: write reply row to thread table) ─────────────────
 
     const postReply = useCallback(
         async (
@@ -211,6 +217,7 @@ export function usePost() {
                     time: Math.floor(Date.now() / 1000),
                     ...(data.img ? { img: data.img } : {}),
                     threadPda,
+                    threadSeed,
                 };
 
                 const txSig = await iqlabs.writer.writeRow(
@@ -226,9 +233,13 @@ export function usePost() {
                 await notifyPost(threadPda, txSig, row);
                 return { ...row, __txSignature: txSig };
             } catch (e) {
-                const err = e instanceof Error ? e : new Error(String(e));
+                const raw = e instanceof Error ? e.message : String(e);
+                const msg = raw.toLowerCase().includes("ata") || raw.toLowerCase().includes("token account")
+                    ? "You are not a holder"
+                    : raw;
+                const err = new Error(msg);
                 setError(err);
-                setStatus(`Error: ${err.message}`);
+                setStatus(`Error: ${msg}`);
                 throw err;
             } finally {
                 setLoading(false);

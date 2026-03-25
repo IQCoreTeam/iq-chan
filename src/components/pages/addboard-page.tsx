@@ -17,7 +17,8 @@ import {
 } from "../../lib/constants";
 
 const idl = require("iqlabs-sdk/idl/code_in.json");
-const METADATA_COLUMNS = ["title", "description", "image", "time"];
+// TODO: remove — metadata concept is being phased out; board name is stored in Table.name on-chain
+// const METADATA_COLUMNS = ["title", "description", "image", "time"];
 
 export default function AddBoardPage() {
     const { connection } = useConnection();
@@ -25,8 +26,10 @@ export default function AddBoardPage() {
     const { creator } = useBoards();
     const [boardId, setBoardId] = useState("");
     const [title, setTitle] = useState("");
-    const [description, setDescription] = useState("");
-    const [imageUrl, setImageUrl] = useState("");
+    // TODO: remove — description/image fields are being phased out along with the metadata table concept
+    // const [description, setDescription] = useState("");
+    // const [imageUrl, setImageUrl] = useState("");
+    const [gateEnabled, setGateEnabled] = useState(false);
     const [gateMint, setGateMint] = useState("");
     const [gateAmount, setGateAmount] = useState("1");
     const [gateType, setGateType] = useState(0); // 0 = Token, 1 = Collection
@@ -51,9 +54,9 @@ export default function AddBoardPage() {
             const builder = iqlabs.contract.createInstructionBuilder(idl, iqlabs.contract.PROGRAM_ID);
             const dbRootIdBytes = DB_ROOT_ID_BYTES;
 
-            const gate = gateMint ? {
+            const gate = gateEnabled && gateMint ? {
                 mint: new PublicKey(gateMint),
-                amount: new BN(parseInt(gateAmount) || 1),
+                amount: new BN(gateType === 1 ? 1 : parseInt(gateAmount) || 1),
                 gate_type: gateType,
             } : null;
 
@@ -71,54 +74,24 @@ export default function AddBoardPage() {
             }, {
                 db_root_id: dbRootIdBytes,
                 table_seed: boardSeedBytes,
-                table_name: Buffer.from(boardId),
-                column_names: METADATA_COLUMNS.map((c) => Buffer.from(c)),
+                table_name: Buffer.from(title),
+                column_names: ["sub", "com", "name", "time", "img", "threadPda", "threadSeed"].map((c) => Buffer.from(c)),
                 id_col: Buffer.from("time"),
                 ext_keys: [],
                 gate_opt: gate,
                 writers_opt: null,
             });
 
-            // Step 2: Create metadata table (seed: "{boardId}/metadata")
-            const metaSeed = `${boardId}/metadata`;
-            const metaSeedBytes = Buffer.from(iqlabs.utils.toSeedBytes(metaSeed));
-            const metaTablePda = new PublicKey(deriveTablePda(metaSeed));
-            const metaInstrPda = new PublicKey(deriveInstructionTablePda(metaSeed));
+            // TODO: remove — metadata table is being phased out; board name is stored in Table.name
+            // const metaSeed = `${boardId}/metadata`;
+            // ...
 
-            const metaIx = iqlabs.contract.createExtTableInstruction(builder, {
-                signer: wallet.publicKey,
-                db_root: DB_ROOT_KEY,
-                table: metaTablePda,
-                instruction_table: metaInstrPda,
-                system_program: SystemProgram.programId,
-            }, {
-                db_root_id: dbRootIdBytes,
-                table_seed: metaSeedBytes,
-                table_name: Buffer.from(metaSeed),
-                column_names: METADATA_COLUMNS.map((c) => Buffer.from(c)),
-                id_col: Buffer.from("time"),
-                ext_keys: [],
-                gate_opt: null,
-                writers_opt: null,
-            });
-
-            // Send both table creations in one tx
-            const tx = new Transaction().add(boardIx, metaIx);
+            // Send board table creation tx
+            const tx = new Transaction().add(boardIx);
             tx.feePayer = wallet.publicKey;
             tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
             const signed = await wallet.signTransaction(tx);
             await connection.sendRawTransaction(signed.serialize());
-
-            // Step 3: Write metadata row
-            const metaRow = JSON.stringify({
-                title,
-                description,
-                image: imageUrl,
-                time: Date.now(),
-            });
-            await iqlabs.writer.writeRow(
-                connection, wallet as any, dbRootIdBytes, metaSeedBytes, metaRow,
-            );
 
             setCreated(true);
         } catch (e) {
@@ -196,63 +169,58 @@ export default function AddBoardPage() {
                                     />
                                 </td>
                             </tr>
-                            <tr>
-                                <td className="label">Description</td>
-                                <td>
-                                    <input
-                                        type="text"
-                                        value={description}
-                                        onChange={(e) => setDescription(e.target.value)}
-                                        placeholder="Discussion about Solana"
-                                    />
-                                </td>
-                            </tr>
-                            <tr>
-                                <td className="label">Image URL</td>
-                                <td>
-                                    <input
-                                        type="text"
-                                        value={imageUrl}
-                                        onChange={(e) => setImageUrl(e.target.value.trim())}
-                                        placeholder="https://... (optional)"
-                                    />
-                                </td>
-                            </tr>
+                            {/* TODO: remove — description/image fields phased out with metadata table concept */}
                             <tr>
                                 <td className="label">Token Gate</td>
                                 <td>
-                                    <input
-                                        type="text"
-                                        value={gateMint}
-                                        onChange={(e) => setGateMint(e.target.value.trim())}
-                                        placeholder="Mint address (optional)"
-                                        style={{ fontFamily: "monospace", fontSize: "11px" }}
-                                    />
+                                    <label style={{ fontSize: "12px", cursor: "pointer" }}>
+                                        <input
+                                            type="checkbox"
+                                            checked={gateEnabled}
+                                            onChange={(e) => setGateEnabled(e.target.checked)}
+                                            style={{ marginRight: "6px" }}
+                                        />
+                                        Enable token gate
+                                    </label>
                                 </td>
                             </tr>
-                            {gateMint && (
+                            {gateEnabled && (
                                 <>
                                     <tr>
                                         <td className="label">Gate Type</td>
                                         <td>
                                             <select value={gateType} onChange={(e) => setGateType(Number(e.target.value))}>
-                                                <option value={0}>Token</option>
-                                                <option value={1}>Collection</option>
+                                                <option value={0}>Token — min amount required</option>
+                                                <option value={1}>Collection — NFT ownership check</option>
                                             </select>
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td className="label">Min Amount</td>
+                                        <td className="label">Mint Address</td>
                                         <td>
                                             <input
-                                                type="number"
-                                                value={gateAmount}
-                                                onChange={(e) => setGateAmount(e.target.value)}
-                                                min="1"
-                                                style={{ width: "80px" }}
+                                                type="text"
+                                                value={gateMint}
+                                                onChange={(e) => setGateMint(e.target.value.trim())}
+                                                placeholder="Token or collection mint"
+                                                style={{ fontFamily: "monospace", fontSize: "11px", width: "300px" }}
                                             />
                                         </td>
                                     </tr>
+                                    {gateType === 0 && (
+                                        <tr>
+                                            <td className="label">Min Amount</td>
+                                            <td>
+                                                <input
+                                                    type="number"
+                                                    value={gateAmount}
+                                                    onChange={(e) => setGateAmount(e.target.value)}
+                                                    min="1"
+                                                    style={{ width: "80px" }}
+                                                />
+                                            </td>
+                                        </tr>
+                                    )}
                                 </>
                             )}
                         </tbody>

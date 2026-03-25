@@ -1,8 +1,10 @@
 // DbRoot ("iqchan")
-// └── thread (ext table)      seed: "{boardId}/thread/{randomId}"
+// └── board table (ext table)  seed: boardId  e.g. "po", "biz"
 //     ├── OP row:    {sub, com, name, time, img?, threadPda, threadSeed}
-//     └── reply row: {sub:"", com, name, time, img?, threadPda}
+//     └── reply row: {sub:"", com, name, time, img?, threadPda, threadSeed}
 // feed (one per board) — remainingAccounts, bump ordering
+// threadPda = board table PDA (same for all posts in the board)
+// threadSeed = unique UUID per thread OP, shared by all its replies
 
 import iqlabs from "iqlabs-sdk";
 
@@ -12,6 +14,7 @@ export const BUMP_LIMIT = 300;
 export const FEED_SEED_PREFIX = "feedmY}AGBJiqLabs";
 // Fallback board metadata for known boards (used until on-chain metadata is loaded)
 export const DEFAULT_BOARDS: Record<string, { title: string; description: string; image: string }> = {
+    iq: { title: "IQ", description: "IQ token holders only", image: "/boards/iq.webp" },
     po: { title: "Politically Incorrect", description: "Political discussion", image: "/boards/po.webp" },
     biz: { title: "Business & Finance", description: "Business and finance discussion", image: "/boards/biz.webp" },
     a: { title: "Anime & Manga", description: "Anime and manga discussion", image: "/boards/a.webp" },

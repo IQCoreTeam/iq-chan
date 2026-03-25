@@ -30,7 +30,7 @@ export function usePaginatedReplies(
                 const rows = await fetchAllTableRows(threadPda);
                 if (cancelled) return;
 
-                // Find OP to get threadSeed for instruction table
+                // Fetch instructions from thread instruction table (threadSeed-based)
                 const op = rows.find((r) => !!r.threadSeed);
                 const threadSeed = (op as Post)?.threadSeed;
 
