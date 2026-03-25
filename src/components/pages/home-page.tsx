@@ -2,12 +2,14 @@
 
 import { useState, useEffect } from "react";
 import HashLink from "../hash-link";
-import { BOARDS, DB_ROOT_KEY } from "../../lib/constants";
+import { DB_ROOT_KEY } from "../../lib/constants";
+import { useBoards } from "../../hooks/use-boards";
 import { getFeedPda } from "../../lib/board";
 import { fetchAllTableRows } from "../../lib/gateway";
+import type { BoardMeta } from "../../lib/types";
 import "../../app/home.css";
 
-function useSiteStats() {
+function useSiteStats(boards: BoardMeta[]) {
     const [totalPosts, setTotalPosts] = useState<number | null>(null);
     const [totalThreads, setTotalThreads] = useState<number | null>(null);
 
@@ -17,7 +19,7 @@ function useSiteStats() {
         async function load() {
             try {
                 const allRows = await Promise.all(
-                    BOARDS.map((b) => fetchAllTableRows(getFeedPda(DB_ROOT_KEY, b.id).toBase58())),
+                    boards.map((b) => fetchAllTableRows(getFeedPda(DB_ROOT_KEY, b.id).toBase58())),
                 );
                 if (cancelled) return;
 
@@ -28,20 +30,19 @@ function useSiteStats() {
                 }
                 setTotalPosts(rows.length);
                 setTotalThreads(threads.size);
-            } catch {
-                // stats are non-critical, fail silently
-            }
+            } catch {}
         }
 
         load();
         return () => { cancelled = true; };
-    }, []);
+    }, [boards]);
 
     return { totalPosts, totalThreads };
 }
 
 export default function HomePage() {
-    const { totalPosts, totalThreads } = useSiteStats();
+    const { boards } = useBoards();
+    const { totalPosts, totalThreads } = useSiteStats(boards);
 
     return (
         <div className="fp-wrap">
@@ -84,7 +85,7 @@ export default function HomePage() {
                         <div className="column">
                             <h3>General</h3>
                             <ul>
-                                {BOARDS.map((b) => (
+                                {boards.map((b) => (
                                     <li key={b.id}>
                                         <HashLink href={`/${b.id}`} className="boardlink">
                                             {b.title}
@@ -105,7 +106,7 @@ export default function HomePage() {
                     </div>
                     <div className="boxcontent">
                         <div id="c-threads">
-                            {BOARDS.map((b) => (
+                            {boards.map((b) => (
                                 <div key={b.id} className="c-thread">
                                     <div className="c-board">{b.title}</div>
                                     <HashLink href={`/${b.id}`} className="boardlink">
@@ -134,7 +135,7 @@ export default function HomePage() {
                             <b>Active Threads:</b> {totalThreads !== null ? totalThreads.toLocaleString() : "..."}
                         </div>
                         <div className="stat-cell">
-                            <b>Boards:</b> {BOARDS.length}
+                            <b>Boards:</b> {boards.length}
                         </div>
                     </div>
                 </div>

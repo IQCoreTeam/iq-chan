@@ -6,7 +6,8 @@ import { usePaginatedReplies } from "../../hooks/use-paginated-replies";
 import { usePost } from "../../hooks/use-post";
 import { useThreads } from "../../hooks/use-threads";
 import { scrollToPost } from "../../lib/highlight";
-import { BOARDS, THREADS_PER_PAGE } from "../../lib/constants";
+import { THREADS_PER_PAGE } from "../../lib/constants";
+import { useBoards } from "../../hooks/use-boards";
 import ThreadDetail from "../thread-detail";
 import PostForm from "../post-form";
 import QuickReply from "../quick-reply";
@@ -35,7 +36,8 @@ export default function ThreadPage({ boardId, threadId: threadPda, scrollTo }: {
 
     const { threads: boardThreads } = useThreads(boardId);
 
-    const boardMeta = BOARDS.find((b) => b.id === boardId);
+    const { boards } = useBoards();
+    const boardMeta = boards.find((b) => b.id === boardId);
     const boardTitle = boardMeta ? `/${boardId}/ - ${boardMeta.title}` : `/${boardId}/`;
     const threadSeed = op?.threadSeed ?? "";
 

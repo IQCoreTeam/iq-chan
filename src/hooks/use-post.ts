@@ -3,12 +3,14 @@
 import { useState, useCallback } from "react";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { PublicKey, SystemProgram, Transaction } from "@solana/web3.js";
+// @ts-ignore — bn.js lacks type declarations
+import BN from "bn.js";
 import iqlabs from "iqlabs-sdk";
 // TODO: remove `as any` wallet casts once SDK publishes SignerInput support
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const idl = require("iqlabs-sdk/idl/code_in.json");
 import {
-    DB_ROOT_ID,
+    DB_ROOT_ID_BYTES,
     BUMP_LIMIT,
     threadTableSeed,
     deriveTablePda,
@@ -35,6 +37,7 @@ export function usePost() {
         async (
             boardId: string,
             data: { sub: string; com: string; name: string; img?: string },
+            gate?: { mint: string; amount: number; gateType: number },
         ) => {
             if (!wallet.publicKey || !wallet.signTransaction)
                 throw new Error("Wallet not connected");
@@ -58,7 +61,7 @@ export function usePost() {
                     idl,
                     iqlabs.contract.PROGRAM_ID,
                 );
-                const dbRootIdBytes = Buffer.from(iqlabs.utils.toSeedBytes(DB_ROOT_ID));
+                const dbRootIdBytes = DB_ROOT_ID_BYTES;
                 const seedBytes = Buffer.from(iqlabs.utils.toSeedBytes(seed));
 
                 // Check if dbRoot needs init
@@ -98,7 +101,11 @@ export function usePost() {
                             column_names: THREAD_COLUMNS.map((c) => Buffer.from(c)),
                             id_col: Buffer.from("time"),
                             ext_keys: [],
-                            gate_opt: null,
+                            gate_opt: gate ? {
+                                mint: new PublicKey(gate.mint),
+                                amount: new BN(gate.amount),
+                                gate_type: gate.gateType,
+                            } : null,
                             writers_opt: null,
                         },
                     ),
@@ -185,7 +192,7 @@ export function usePost() {
             setError(null);
 
             try {
-                const dbRootIdBytes = Buffer.from(iqlabs.utils.toSeedBytes(DB_ROOT_ID));
+                const dbRootIdBytes = DB_ROOT_ID_BYTES;
                 const seedBytes = Buffer.from(iqlabs.utils.toSeedBytes(threadSeed));
 
                 // sage or bump limit → don't bump the thread in the feed
@@ -241,7 +248,7 @@ export function usePost() {
             setError(null);
 
             try {
-                const dbRootIdBytes = Buffer.from(iqlabs.utils.toSeedBytes(DB_ROOT_ID));
+                const dbRootIdBytes = DB_ROOT_ID_BYTES;
                 const seedBytes = Buffer.from(iqlabs.utils.toSeedBytes(threadSeed));
 
                 await iqlabs.writer.manageRowData(
@@ -276,7 +283,7 @@ export function usePost() {
             setError(null);
 
             try {
-                const dbRootIdBytes = Buffer.from(iqlabs.utils.toSeedBytes(DB_ROOT_ID));
+                const dbRootIdBytes = DB_ROOT_ID_BYTES;
                 const seedBytes = Buffer.from(iqlabs.utils.toSeedBytes(threadSeed));
 
                 await iqlabs.writer.manageRowData(
