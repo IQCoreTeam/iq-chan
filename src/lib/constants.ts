@@ -12,9 +12,9 @@ export const DB_ROOT_ID = "iqchan";
 export const THREADS_PER_PAGE = 20;
 export const BUMP_LIMIT = 300;
 export const FEED_SEED_PREFIX = "feedmY}AGBJiqLabs";
-// Fallback board metadata for known boards (used until on-chain metadata is loaded)
+// Fallback board metadata for known boards (used until on-chain metadata is loaded) //this board is not onboarded yet
 export const DEFAULT_BOARDS: Record<string, { title: string; description: string; image: string }> = {
-    iq: { title: "IQ", description: "IQ token holders only", image: "/boards/iq.webp" },
+    // iq: { title: "IQ", description: "IQ token holders only", image: "/boards/iq.webp" },
     po: { title: "Politically Incorrect", description: "Political discussion", image: "/boards/po.webp" },
     biz: { title: "Business & Finance", description: "Business and finance discussion", image: "/boards/biz.webp" },
     a: { title: "Anime & Manga", description: "Anime and manga discussion", image: "/boards/a.webp" },
