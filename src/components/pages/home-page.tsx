@@ -6,30 +6,84 @@ import { DB_ROOT_KEY } from "../../lib/constants";
 import { useBoards } from "../../hooks/use-boards";
 import { getFeedPda } from "../../lib/board";
 import { fetchAllTableRows } from "../../lib/gateway";
-import type { BoardMeta } from "../../lib/types";
+import type { BoardMeta, Post } from "../../lib/types";
 import "../../app/home.css";
 
-function useSiteStats(boards: BoardMeta[]) {
+interface PopularThread {
+    boardId: string;
+    boardTitle: string;
+    threadPda: string;
+    sub: string;
+    com: string;
+    name: string;
+    img?: string;
+}
+
+function useHomeData(boards: BoardMeta[]) {
     const [totalPosts, setTotalPosts] = useState<number | null>(null);
     const [totalThreads, setTotalThreads] = useState<number | null>(null);
+    const [popular, setPopular] = useState<PopularThread[]>([]);
 
     useEffect(() => {
         let cancelled = false;
 
         async function load() {
             try {
-                const allRows = await Promise.all(
-                    boards.map((b) => fetchAllTableRows(getFeedPda(DB_ROOT_KEY, b.id).toBase58())),
+                const feedResults = await Promise.all(
+                    boards.map((b) => fetchAllTableRows(getFeedPda(DB_ROOT_KEY, b.id).toBase58()).then((rows) => ({ boardId: b.id, rows }))),
                 );
                 if (cancelled) return;
 
-                const rows = allRows.flat();
-                const threads = new Set<string>();
-                for (const r of rows) {
-                    if (r.threadPda) threads.add(r.threadPda as string);
+                const allRows = feedResults.flatMap((r) => r.rows);
+                const threadMap = new Map<string, { boardId: string; op: Post | null; count: number; lastActivity: number }>();
+
+                for (const { boardId, rows } of feedResults) {
+                    for (const row of rows) {
+                        const post = row as Post;
+                        if (!post.threadPda) continue;
+                        const time = post.time ?? 0;
+                        const existing = threadMap.get(post.threadPda);
+                        if (existing) {
+                            existing.count++;
+                            existing.lastActivity = Math.max(existing.lastActivity, time);
+                            if (post.threadSeed && !existing.op) existing.op = post;
+                        } else {
+                            threadMap.set(post.threadPda, {
+                                boardId,
+                                op: post.threadSeed ? post : null,
+                                count: 1,
+                                lastActivity: time,
+                            });
+                        }
+                    }
                 }
-                setTotalPosts(rows.length);
-                setTotalThreads(threads.size);
+
+                setTotalPosts(allRows.length);
+                setTotalThreads(threadMap.size);
+
+                const now = Date.now();
+                const sorted = [...threadMap.entries()]
+                    .filter(([, t]) => t.op?.img)
+                    .sort(([, a], [, b]) => {
+                        const ageA = (now - a.lastActivity) / 60000 + 5;
+                        const ageB = (now - b.lastActivity) / 60000 + 5;
+                        return (b.count / ageB) - (a.count / ageA);
+                    })
+                    .slice(0, 8)
+                    .map(([pda, t]) => {
+                        const board = boards.find((b) => b.id === t.boardId);
+                        return {
+                            boardId: t.boardId,
+                            boardTitle: board?.title ?? t.boardId,
+                            threadPda: pda,
+                            sub: t.op!.sub || "",
+                            com: t.op!.com || "",
+                            name: t.op!.name || "",
+                            img: t.op!.img,
+                        };
+                    });
+
+                setPopular(sorted);
             } catch {}
         }
 
@@ -37,12 +91,12 @@ function useSiteStats(boards: BoardMeta[]) {
         return () => { cancelled = true; };
     }, [boards]);
 
-    return { totalPosts, totalThreads };
+    return { totalPosts, totalThreads, popular };
 }
 
 export default function HomePage() {
     const { boards } = useBoards();
-    const { totalPosts, totalThreads } = useSiteStats(boards);
+    const { totalPosts, totalThreads, popular } = useHomeData(boards);
 
     return (
         <div className="fp-wrap">
@@ -106,14 +160,20 @@ export default function HomePage() {
                     </div>
                     <div className="boxcontent">
                         <div id="c-threads">
-                            {boards.map((b) => (
-                                <div key={b.id} className="c-thread">
-                                    <div className="c-board">{b.title}</div>
-                                    <HashLink href={`/${b.id}`} className="boardlink">
-                                        {b.image && <img alt="" className="c-thumb" src={b.image} width="150" height="150" />}
+                            {popular.length === 0 ? (
+                                <div style={{ textAlign: "center", padding: "10px", color: "#89a", fontSize: "12px" }}>
+                                    No threads yet
+                                </div>
+                            ) : popular.map((t) => (
+                                <div key={t.threadPda} className="c-thread">
+                                    <div className="c-board">{t.boardTitle}</div>
+                                    <HashLink href={`/${t.boardId}/${t.threadPda}`} className="boardlink">
+                                        <img alt="" className="c-thumb" src={t.img} width="150" height="150" style={{ objectFit: "cover" }} onError={(e) => { (e.target as HTMLImageElement).src = "/404.webp"; }} />
                                     </HashLink>
                                     <div className="c-teaser">
-                                        <b>/{b.id}/</b>: {b.description}
+                                        {t.name && t.name !== "Anonymous" && <><b className="name">{t.name}</b>: </>}
+                                        {t.sub && <b>{t.sub} </b>}
+                                        {t.com.slice(0, 120)}{t.com.length > 120 ? "..." : ""}
                                     </div>
                                 </div>
                             ))}
