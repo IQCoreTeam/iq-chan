@@ -13,13 +13,12 @@ export const THREADS_PER_PAGE = 20;
 export const BUMP_LIMIT = 300;
 export const FEED_SEED_PREFIX = "feedmY}AGBJiqLabs";
 // Fallback board metadata for known boards (used until on-chain metadata is loaded) //this board is not onboarded yet
-// seed = on-chain seed for PDA derivation. For legacy boards, seed = slug.
-// For promoted user boards, seed is the random hash.
 export const DEFAULT_BOARDS: Record<string, { seed: string; title: string; description: string; image: string }> = {
-    po:  { seed: "po",  title: "Politically Incorrect", description: "Political discussion",            image: "/boards/po.webp" },
-    biz: { seed: "biz", title: "Business & Finance",    description: "Business and finance discussion", image: "/boards/biz.webp" },
-    a:   { seed: "a",   title: "Anime & Manga",         description: "Anime and manga discussion",     image: "/boards/a.webp" },
-    g:   { seed: "g",   title: "Technology",             description: "Technology discussion",           image: "/boards/g.webp" },
+    iq:  { seed: "iq",  title: "IQ Labs Community", description: "IQ token holders only", image: "/boards/iq.svg" },
+    po:  { seed: "po",  title: "Politically Incorrect", description: "Political discussion", image: "/boards/po.webp" },
+    biz: { seed: "biz", title: "Business & Finance", description: "Business and finance discussion", image: "/boards/biz.webp" },
+    a: { seed: "a", title: "Anime & Manga", description: "Anime and manga discussion", image: "/boards/a.webp" },
+    g:    { seed: "g",    title: "Technology",  description: "Technology discussion",  image: "/boards/g.webp" },
 };
 export { DEFAULT_BOARDS as OFFICIAL_BOARDS };
 
@@ -39,7 +38,6 @@ export function deriveInstructionTablePda(seed: string): string {
     return iqlabs.contract.getInstructionTablePda(DB_ROOT_KEY, iqlabs.utils.toSeedBytes(seed)).toBase58();
 }
 
-/** Resolve URL slug to on-chain seed. Official boards may differ. */
 export function resolveBoardSeed(slug: string): string {
     return DEFAULT_BOARDS[slug]?.seed ?? slug;
 }

@@ -135,7 +135,8 @@ export async function fetchBoards(connection: Connection): Promise<{
                 );
                 boards.push({
                     id: boardId,
-                    seed: boardId, title: meta.name || boardId,
+                    seed: boardId,
+                    title: meta.name || boardId,
                     description: "",
                     image: "",
                 });

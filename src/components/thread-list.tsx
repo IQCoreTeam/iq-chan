@@ -7,7 +7,6 @@ import { ThreadEntry } from "../lib/board";
 import Post from "./post";
 import QuickReply from "./quick-reply";
 import { usePost } from "../hooks/use-post";
-import { formatDate, timeAgo } from "../lib/time";
 
 export default function ThreadList({
     threads,
@@ -55,45 +54,31 @@ export default function ThreadList({
 
                 return (
                     <div key={thread.threadPda}>
-                        <div className="thread" id={`t${op.__txSignature ?? ""}`}>
+                        <div className={`thread${isThreadHidden ? " post-hidden" : ""}`} id={`t${op.__txSignature ?? ""}`}>
                             <img
                                 alt={isThreadHidden ? "+" : "-"}
-                                className="extButton threadHideButton"
+                                className="extButton threadHideButton desktop"
                                 title={isThreadHidden ? "Show thread" : "Hide thread"}
                                 onClick={() => toggleThread(thread.threadPda)}
                                 src={isThreadHidden ? "/buttons/show.svg" : "/buttons/hide.svg"}
                                 width={15}
                                 height={15}
-                                style={{ cursor: "pointer", marginRight: 4, display: "inline", verticalAlign: "top", marginTop: 2 }}
+                                style={{ cursor: "pointer", marginRight: 3, float: "left", marginTop: 3 }}
                             />
 
-                            {isThreadHidden ? (
-                                <div className="post op" style={{ display: "inline" }}>
-                                    {op.sub && <span className="subject">{op.sub}</span>}
-                                    {" "}
-                                    <span className="name">{op.name || "Anonymous"}</span>
-                                    {" "}
-                                    <span className="dateTime" title={timeAgo(op.time)}>{formatDate(op.time)}</span>
-                                    {" "}
-                                    <span className="postNum">
-                                        <HashLink href={`/${boardId}/${thread.threadPda}`}>No.{(op.__txSignature ?? thread.threadPda).slice(0, 8)}</HashLink>
-                                    </span>
-                                </div>
-                            ) : (
-                                <Post
-                                    txSig={op.__txSignature ?? thread.threadPda}
-                                    sub={op.sub}
-                                    com={op.com}
-                                    name={op.name}
-                                    time={op.time}
-                                    img={op.img}
-                                    isOp
-                                    replyLink={threadHref}
-                                    onQuote={handleQuoteOnBoard(thread.threadPda, op.threadSeed ?? "", op.__txSignature ?? thread.threadPda)}
-                                    onHide={() => toggleThread(thread.threadPda)}
-                                    isHidden={false}
-                                />
-                            )}
+                            <Post
+                                txSig={op.__txSignature ?? thread.threadPda}
+                                sub={op.sub}
+                                com={op.com}
+                                name={op.name}
+                                time={op.time}
+                                img={op.img}
+                                isOp
+                                replyLink={threadHref}
+                                onQuote={handleQuoteOnBoard(thread.threadPda, op.threadSeed ?? "", op.__txSignature ?? thread.threadPda)}
+                                onHide={() => toggleThread(thread.threadPda)}
+                                isHidden={isThreadHidden}
+                            />
 
                             {!isThreadHidden && (
                                 <>

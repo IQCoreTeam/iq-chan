@@ -9,6 +9,7 @@ import { useBoards } from "../../hooks/use-boards";
 import { useBoardGate } from "../../hooks/use-board-gate";
 import ThreadList from "../thread-list";
 import PostForm from "../post-form";
+import QuickReply from "../quick-reply";
 import { FooterNav } from "../board-nav";
 
 function PageList({ page, totalPages, onPage }: { page: number; totalPages: number; onPage: (n: number) => void }) {
@@ -44,11 +45,14 @@ export default function BoardPage({ boardId }: { boardId: string }) {
     const { threads, loading, error, hasMore, loadMore, refresh } = useThreads(boardId);
     const { createThread, loading: postLoading, status: postStatus, step: postStep, totalSteps: postTotalSteps, clearStatus } = usePost();
     const [page, setPage] = useState(0);
+    const [qrOpen, setQrOpen] = useState(false);
 
     const { boards } = useBoards();
     const boardMeta = boards.find((b) => b.id === boardId);
-    const boardTitle = boardMeta ? `/${boardId}/ - ${boardMeta.title}` : `/${boardId}/`;
     const gate = useBoardGate(boardId);
+    const displayName = boardMeta?.title ?? gate.tableName ?? "";
+    const displaySlug = boardMeta?.id ?? (gate.tableName || boardId);
+    const boardTitle = displayName ? `/${displaySlug}/ - ${displayName}` : `/${boardId.slice(0, 12)}${boardId.length > 12 ? "..." : ""}/`;
 
     const totalPages = Math.max(1, Math.ceil(threads.length / THREADS_PER_PAGE));
     const pageThreads = useMemo(() => {
@@ -65,7 +69,7 @@ export default function BoardPage({ boardId }: { boardId: string }) {
     return (
         <>
             <div className="boardBanner">
-                {boardMeta && (
+                {boardMeta?.image && (
                     <div className="title" style={{ textAlign: "center" }}>
                         <img alt={boardId} src={boardMeta.image} style={{ maxHeight: 100, display: "block", margin: "0 auto" }} />
                     </div>
@@ -74,28 +78,48 @@ export default function BoardPage({ boardId }: { boardId: string }) {
             </div>
 
             {gate.gateMint && (
-                <div style={{ textAlign: "center", padding: "4px", fontSize: "11px", color: "#789922", background: "#f0e0d6", border: "1px solid #d9bfb7", margin: "4px 0" }}>
-                    Only those who have {gate.gateAmount || 1} {gate.gateType === 1 ? "NFT from collection" : "token"} can write a post.
+                <div style={{ textAlign: "center", padding: "4px 8px", fontSize: "11px", color: "#789922", background: "#f0e0d6", border: "1px solid #d9bfb7", margin: "4px 0" }}>
+                    <div>Token-gated: hold {gate.gateAmount || 1} {gate.gateType === 1 ? "NFT from collection" : "token"} to post</div>
+                    <div style={{ fontFamily: "monospace", fontSize: "10px", color: "#707070", marginTop: "2px", wordBreak: "break-all" }}>
+                        CA: {gate.gateMint}
+                    </div>
                 </div>
             )}
 
             <hr style={{ border: "none", borderTop: "1px solid #b7c5d9" }} />
 
-            <PostForm
-                mode="thread"
-                onSubmit={(data) =>
-                    createThread(
-                        boardId,
-                        data as { sub: string; com: string; name: string; img?: string },
-                        gate.gateMint ? { mint: gate.gateMint, amount: gate.gateAmount || 1, gateType: gate.gateType || 0 } : undefined,
-                    )
-                }
-                loading={postLoading}
-                statusText={postStatus}
-                step={postStep}
-                totalSteps={postTotalSteps}
-                onClearStatus={clearStatus}
-            />
+            <div className="navLinks mobile" style={{ textAlign: "center", padding: "5px 0" }}>
+                <span className="mobileib button">
+                    <HashLink href="/">Return</HashLink>
+                </span>{" "}
+                <span className="mobileib button">
+                    <a href="#" onClick={(e) => { e.preventDefault(); document.getElementById("bottom")?.scrollIntoView({ behavior: "smooth" }); }}>Bottom</a>
+                </span>{" "}
+                <span className="mobileib button">
+                    <label onClick={() => refresh()} style={{ cursor: "pointer" }}>Refresh</label>
+                </span>
+            </div>
+
+            <div id="togglePostFormLink" className="mobile" style={{ textAlign: "center", margin: "10px 0" }}>
+                [<a href="#" onClick={(e) => { e.preventDefault(); setQrOpen(true); }}>Start a New Thread</a>]
+            </div>
+            <div className="desktopPostForm">
+                <PostForm
+                    mode="thread"
+                    onSubmit={(data) =>
+                        createThread(
+                            boardId,
+                            data as { sub: string; com: string; name: string; img?: string },
+                            gate.gateMint ? { mint: gate.gateMint, amount: gate.gateAmount || 1, gateType: gate.gateType || 0 } : undefined,
+                        )
+                    }
+                    loading={postLoading}
+                    statusText={postStatus}
+                    step={postStep}
+                    totalSteps={postTotalSteps}
+                    onClearStatus={clearStatus}
+                />
+            </div>
 
             <hr style={{ border: "none", borderTop: "1px solid #b7c5d9" }} />
 
@@ -124,6 +148,26 @@ export default function BoardPage({ boardId }: { boardId: string }) {
             <FooterNav />
 
             <div id="bottom"></div>
+
+            {qrOpen && (
+                <QuickReply
+                    threadSig={boardId}
+                    mode="thread"
+                    onSubmit={(data) =>
+                        createThread(
+                            boardId,
+                            data as { sub: string; com: string; name: string; img?: string },
+                            gate.gateMint ? { mint: gate.gateMint, amount: gate.gateAmount || 1, gateType: gate.gateType || 0 } : undefined,
+                        )
+                    }
+                    loading={postLoading}
+                    statusText={postStatus}
+                    step={postStep}
+                    totalSteps={postTotalSteps}
+                    onClose={() => setQrOpen(false)}
+                    onClearStatus={clearStatus}
+                />
+            )}
         </>
     );
 }
