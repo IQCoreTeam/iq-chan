@@ -2,7 +2,8 @@
 
 import { useState, useCallback } from "react";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
-import { PublicKey, SystemProgram, Transaction } from "@solana/web3.js";
+import { PublicKey, SystemProgram, Transaction, LAMPORTS_PER_SOL } from "@solana/web3.js";
+import { getAssociatedTokenAddress, getAccount } from "@solana/spl-token";
 // @ts-ignore — bn.js lacks type declarations
 import BN from "bn.js";
 import iqlabs from "iqlabs-sdk";
@@ -31,6 +32,24 @@ export function usePost() {
     const [totalSteps, setTotalSteps] = useState(0);
     const [error, setError] = useState<Error | null>(null);
 
+    const checkGate = useCallback(async (gate?: { mint: string; amount: number; gateType: number }) => {
+        if (!wallet.publicKey) throw new Error("Wallet not connected");
+
+        const sol = await connection.getBalance(wallet.publicKey);
+        if (sol < 0.005 * LAMPORTS_PER_SOL) throw new Error("Insufficient SOL balance");
+
+        if (!gate?.mint) return;
+        try {
+            const ata = await getAssociatedTokenAddress(new PublicKey(gate.mint), wallet.publicKey);
+            const account = await getAccount(connection, ata);
+            const balance = Number(account.amount);
+            if (balance < gate.amount) throw new Error("You are not a holder");
+        } catch (e) {
+            if (e instanceof Error && e.message === "You are not a holder") throw e;
+            throw new Error("You are not a holder");
+        }
+    }, [connection, wallet.publicKey]);
+
     // ─── Create Thread (2 TXs: create thread ext table + write OP row to board table) ──
 
     const createThread = useCallback(
@@ -48,6 +67,8 @@ export function usePost() {
             setError(null);
 
             try {
+                await checkGate(gate);
+
                 const randomId = crypto.randomUUID();
                 const seed = threadTableSeed(boardId, randomId);
                 const threadPda = deriveTablePda(seed);
@@ -189,6 +210,7 @@ export function usePost() {
             boardId: string,
             data: { com: string; name: string; img?: string; options?: string },
             replyCount = 0,
+            gate?: { mint: string; amount: number; gateType: number },
         ) => {
             if (!wallet.publicKey) throw new Error("Wallet not connected");
             setLoading(true);
@@ -198,6 +220,8 @@ export function usePost() {
             setError(null);
 
             try {
+                await checkGate(gate);
+
                 const dbRootIdBytes = DB_ROOT_ID_BYTES;
                 const seedBytes = Buffer.from(iqlabs.utils.toSeedBytes(threadSeed));
 

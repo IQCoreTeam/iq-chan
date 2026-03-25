@@ -91,7 +91,8 @@ export default function AddBoardPage() {
             tx.feePayer = wallet.publicKey;
             tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
             const signed = await wallet.signTransaction(tx);
-            await connection.sendRawTransaction(signed.serialize());
+            const sig = await connection.sendRawTransaction(signed.serialize());
+            await connection.confirmTransaction(sig, "confirmed");
 
             setCreated(true);
         } catch (e) {

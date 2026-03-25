@@ -100,7 +100,7 @@ export default function ThreadPage({ boardId, threadId: threadPda, scrollTo }: {
 
     // Add row to UI instantly, then refresh from gateway in background
     const handlePostReply = useCallback(async (data: { com: string; name: string; img?: string; options?: string }) => {
-        const row = await postReply(threadSeed, threadPda, boardId, data, totalReplies);
+        const row = await postReply(threadSeed, threadPda, boardId, data, totalReplies, gate.gateMint ? { mint: gate.gateMint, amount: gate.gateAmount || 1, gateType: gate.gateType || 0 } : undefined);
         if (row) addOptimisticRow(row);
         refresh();
     }, [postReply, threadSeed, threadPda, boardId, totalReplies, addOptimisticRow, refresh]);
