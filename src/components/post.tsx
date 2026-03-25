@@ -221,7 +221,18 @@ export default function Post({
             {!isOp && <div className="sideArrows" id={`sa${txSig}`}>&gt;&gt;</div>}
             <div id={`p${txSig}`} className={isOp ? "post op" : "post reply"}>
                 {postInfoMobile}
-                {!isHidden && (
+                {isHidden ? (
+                    <div className="postInfo desktop" style={{ display: "inline" }}>
+                        {sub && <><span className="subject">{sub}</span>{" "}</>}
+                        <span className="nameBlock"><span className="name">{name || "Anonymous"}</span>{" "}</span>
+                        <span className="dateTime" data-utc={time} title={timeAgo(time)}>{formatDate(time)}</span>
+                        {" "}
+                        <span className="postNum desktop">
+                            <a href={`#p${txSig}`} title="Link to this post" onClick={(e) => { e.preventDefault(); scrollToPost(txSig); }}>No.</a>
+                            {digitsLink}
+                        </span>
+                    </div>
+                ) : (
                     <>
                         {isOp ? <>{fileBlock}{postInfoDesktop}</> : <>{postInfoDesktop}{fileBlock}</>}
                         <blockquote className="postMessage" id={`m${txSig}`}>
