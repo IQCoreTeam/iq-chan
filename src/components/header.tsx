@@ -5,11 +5,12 @@ import { useHashRoute, hashHref } from "../hooks/use-hash-router";
 import HashLink from "./hash-link";
 import WalletButton from "./wallet-button";
 import { BoardList } from "./board-nav";
-import { BOARDS } from "../lib/constants";
+import { useBoards } from "../hooks/use-boards";
 import { getGatewayUrl, getFallbacks, GATEWAY_FALLBACKS } from "../lib/config";
 
 export default function Header() {
     const { boardId } = useHashRoute();
+    const { boards } = useBoards();
     const [showSettings, setShowSettings] = useState(false);
     const [gwInput, setGwInput] = useState("");
     const [fallbacks, setFallbacks] = useState<string[]>(GATEWAY_FALLBACKS);
@@ -107,7 +108,7 @@ export default function Header() {
                         value={boardId}
                         onChange={handleBoardSelect}
                     >
-                        {BOARDS.map((b) => (
+                        {boards.map((b) => (
                             <option key={b.id} value={b.id}>/{b.id}/ - {b.title}</option>
                         ))}
                     </select>

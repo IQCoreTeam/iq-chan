@@ -4,7 +4,8 @@ import { useState, useMemo } from "react";
 import HashLink from "../hash-link";
 import { useThreads } from "../../hooks/use-threads";
 import { usePost } from "../../hooks/use-post";
-import { BOARDS, THREADS_PER_PAGE } from "../../lib/constants";
+import { THREADS_PER_PAGE } from "../../lib/constants";
+import { useBoards } from "../../hooks/use-boards";
 import ThreadList from "../thread-list";
 import PostForm from "../post-form";
 import { FooterNav } from "../board-nav";
@@ -43,7 +44,8 @@ export default function BoardPage({ boardId }: { boardId: string }) {
     const { createThread, loading: postLoading, status: postStatus, step: postStep, totalSteps: postTotalSteps, clearStatus } = usePost();
     const [page, setPage] = useState(0);
 
-    const boardMeta = BOARDS.find((b) => b.id === boardId);
+    const { boards } = useBoards();
+    const boardMeta = boards.find((b) => b.id === boardId);
     const boardTitle = boardMeta ? `/${boardId}/ - ${boardMeta.title}` : `/${boardId}/`;
 
     const totalPages = Math.max(1, Math.ceil(threads.length / THREADS_PER_PAGE));
@@ -69,6 +71,12 @@ export default function BoardPage({ boardId }: { boardId: string }) {
                 <div className="boardTitle">{boardTitle}</div>
             </div>
 
+            {boardMeta?.gateMint && (
+                <div style={{ textAlign: "center", padding: "4px", fontSize: "11px", color: "#789922", background: "#f0e0d6", border: "1px solid #d9bfb7", margin: "4px 0" }}>
+                    Token-gated: hold {boardMeta.gateAmount || 1} of {boardMeta.gateMint.slice(0, 8)}... to post
+                </div>
+            )}
+
             <hr style={{ border: "none", borderTop: "1px solid #b7c5d9" }} />
 
             <PostForm
@@ -77,6 +85,7 @@ export default function BoardPage({ boardId }: { boardId: string }) {
                     createThread(
                         boardId,
                         data as { sub: string; com: string; name: string; img?: string },
+                        boardMeta?.gateMint ? { mint: boardMeta.gateMint, amount: boardMeta.gateAmount || 1, gateType: boardMeta.gateType || 0 } : undefined,
                     )
                 }
                 loading={postLoading}
