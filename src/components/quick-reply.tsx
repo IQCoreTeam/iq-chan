@@ -14,9 +14,10 @@ export default function QuickReply({
     onClose,
     initialQuote,
     onClearStatus,
+    mode = "reply",
 }: {
     threadSig: string;
-    onSubmit: (data: { com: string; name: string; img?: string; options?: string }) => void;
+    onSubmit: (data: { sub?: string; com: string; name: string; img?: string; options?: string }) => void;
     loading: boolean;
     statusText?: string;
     step?: number;
@@ -24,12 +25,14 @@ export default function QuickReply({
     onClose: () => void;
     initialQuote?: string;
     onClearStatus?: () => void;
+    mode?: "reply" | "thread";
 }) {
     const { publicKey } = useWallet();
     const isError = !!statusText?.startsWith("Error:");
     const showOverlay = !!statusText && (loading || isError);
 
     const [name, setName] = useState("");
+    const [sub, setSub] = useState("");
     const [com, setCom] = useState(initialQuote ? `>>${initialQuote}\n` : "");
     const [img, setImg] = useState("");
     const [options, setOptions] = useState("");
@@ -89,11 +92,13 @@ export default function QuickReply({
         e.preventDefault();
         if (!com.trim()) return;
         onSubmit({
+            ...(mode === "thread" && sub.trim() ? { sub: sub.trim() } : {}),
             com: com.trim(),
             name: name.trim() || "Anonymous",
             ...(img.trim() ? { img: img.trim() } : {}),
             ...(options.trim() ? { options: options.trim().toLowerCase() } : {}),
         });
+        setSub("");
         setCom("");
         setImg("");
         setOptions("");
@@ -137,7 +142,7 @@ export default function QuickReply({
                     userSelect: "none",
                 }}
             >
-                <span>Reply to Thread No.{threadSig.slice(0, 8)}</span>
+                <span>{mode === "thread" ? "Start a New Thread" : `Reply to Thread No.${threadSig.slice(0, 8)}`}</span>
                 <a
                     href="#"
                     onClick={(e) => { e.preventDefault(); onClose(); }}
@@ -157,6 +162,18 @@ export default function QuickReply({
                         style={{ width: "100%", fontSize: 12, padding: "1px 3px", border: "1px solid #aaa", boxSizing: "border-box", outline: "none" }}
                     />
                 </div>
+                {mode === "thread" && (
+                    <div style={{ marginBottom: 3 }}>
+                        <input
+                            name="sub"
+                            type="text"
+                            placeholder="Subject"
+                            value={sub}
+                            onChange={(e) => setSub(e.target.value)}
+                            style={{ width: "100%", fontSize: 12, padding: "1px 3px", border: "1px solid #aaa", boxSizing: "border-box", outline: "none" }}
+                        />
+                    </div>
+                )}
                 <div style={{ marginBottom: 3 }}>
                     <input
                         name="email"

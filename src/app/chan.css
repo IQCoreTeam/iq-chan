@@ -466,6 +466,9 @@ blockquote.postMessage {
     font-size: 24px;
     font-weight: bold;
 }
+#togglePostFormLink.mobile {
+    display: none;
+}
 
 #togglePostFormLink a {
     color: #34345c;
@@ -598,6 +601,16 @@ blockquote.postMessage {
     /* Hide desktop nav, show mobile nav */
     #boardNavDesktop {
         display: none;
+    }
+    .extButton.desktop,
+    .desktopPostForm {
+        display: none !important;
+    }
+    .thread {
+        margin-top: 8px;
+    }
+    #togglePostFormLink.mobile {
+        display: block !important;
     }
 
     #boardNavMobile {
@@ -1136,6 +1149,9 @@ blockquote.postMessage {
     /* Highlight */
     .post.highlight {
         border-left: 3px solid #d6bad0 !important;
+    }
+    .post.highlight .postInfoM.mobile {
+        background-color: #d6bad0 !important;
     }
 
     /* Loading */

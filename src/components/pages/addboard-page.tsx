@@ -17,7 +17,6 @@ import {
 } from "../../lib/constants";
 
 const idl = require("iqlabs-sdk/idl/code_in.json");
-const METADATA_COLUMNS = ["title", "description", "image", "time"];
 
 export default function AddBoardPage() {
     const { connection } = useConnection();
@@ -25,11 +24,10 @@ export default function AddBoardPage() {
     const { creator } = useBoards();
     const [slug, setSlug] = useState("");
     const [title, setTitle] = useState("");
-    const [description, setDescription] = useState("");
-    const [imageUrl, setImageUrl] = useState("");
+    const [gateEnabled, setGateEnabled] = useState(false);
     const [gateMint, setGateMint] = useState("");
     const [gateAmount, setGateAmount] = useState("1");
-    const [gateType, setGateType] = useState(0);
+    const [gateType, setGateType] = useState(0); // 0 = Token, 1 = Collection
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const [createdSeed, setCreatedSeed] = useState("");
@@ -45,16 +43,16 @@ export default function AddBoardPage() {
 
         try {
             const builder = iqlabs.contract.createInstructionBuilder(idl, iqlabs.contract.PROGRAM_ID);
-            const boardSeed = crypto.randomUUID().replace(/-/g, "");
+            const dbRootIdBytes = DB_ROOT_ID_BYTES;
 
-            const gate = gateMint ? {
+            const gate = gateEnabled && gateMint ? {
                 mint: new PublicKey(gateMint),
-                amount: new BN(parseInt(gateAmount) || 1),
+                amount: new BN(gateType === 1 ? 1 : parseInt(gateAmount) || 1),
                 gate_type: gateType,
             } : null;
 
-            // Board table (random seed) → goes into global_table_seeds
-            const boardSeedBytes = Buffer.from(iqlabs.utils.toSeedBytes(boardSeed));
+            // Step 1: Create board table (seed: boardId) — goes into global_table_seeds
+            const boardSeed = crypto.randomUUID().replace(/-/g, ""); const boardSeedBytes = Buffer.from(iqlabs.utils.toSeedBytes(boardSeed));
             const boardTablePda = new PublicKey(deriveTablePda(boardSeed));
             const boardInstrPda = new PublicKey(deriveInstructionTablePda(boardSeed));
 
@@ -65,50 +63,27 @@ export default function AddBoardPage() {
                 instruction_table: boardInstrPda,
                 system_program: SystemProgram.programId,
             }, {
-                db_root_id: DB_ROOT_ID_BYTES,
+                db_root_id: dbRootIdBytes,
                 table_seed: boardSeedBytes,
-                table_name: Buffer.from(boardSeed),
-                column_names: METADATA_COLUMNS.map((c) => Buffer.from(c)),
+                table_name: Buffer.from(title),
+                column_names: ["sub", "com", "name", "time", "img", "threadPda", "threadSeed"].map((c) => Buffer.from(c)),
                 id_col: Buffer.from("time"),
                 ext_keys: [],
                 gate_opt: gate,
                 writers_opt: null,
             });
 
-            // Metadata table (seed: "{boardSeed}/metadata")
-            const metaSeed = `${boardSeed}/metadata`;
-            const metaSeedBytes = Buffer.from(iqlabs.utils.toSeedBytes(metaSeed));
-            const metaTablePda = new PublicKey(deriveTablePda(metaSeed));
-            const metaInstrPda = new PublicKey(deriveInstructionTablePda(metaSeed));
+            // TODO: remove — metadata table is being phased out; board name is stored in Table.name
+            // const metaSeed = `${boardId}/metadata`;
+            // ...
 
-            const metaIx = iqlabs.contract.createExtTableInstruction(builder, {
-                signer: wallet.publicKey,
-                db_root: DB_ROOT_KEY,
-                table: metaTablePda,
-                instruction_table: metaInstrPda,
-                system_program: SystemProgram.programId,
-            }, {
-                db_root_id: DB_ROOT_ID_BYTES,
-                table_seed: metaSeedBytes,
-                table_name: Buffer.from(metaSeed),
-                column_names: METADATA_COLUMNS.map((c) => Buffer.from(c)),
-                id_col: Buffer.from("time"),
-                ext_keys: [],
-                gate_opt: null,
-                writers_opt: null,
-            });
-
-            const tx = new Transaction().add(boardIx, metaIx);
+            // Send board table creation tx
+            const tx = new Transaction().add(boardIx);
             tx.feePayer = wallet.publicKey;
             tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
             const signed = await wallet.signTransaction(tx);
-            await connection.sendRawTransaction(signed.serialize());
-
-            // Write metadata row
-            await iqlabs.writer.writeRow(
-                connection, wallet as any, DB_ROOT_ID_BYTES, metaSeedBytes,
-                JSON.stringify({ slug, title, description, image: imageUrl, time: Date.now() }),
-            );
+            const sig = await connection.sendRawTransaction(signed.serialize());
+            await connection.confirmTransaction(sig, "confirmed");
 
             setCreatedSeed(boardSeed);
         } catch (e) {
@@ -124,18 +99,23 @@ export default function AddBoardPage() {
                 <div className="board" style={{ textAlign: "center", padding: "40px 20px" }}>
                     <h2 className="boardTitle">Board Created</h2>
                     <p style={{ margin: "20px 0" }}><b>{title}</b></p>
-                    <p>Your board link:</p>
-                    <p style={{ margin: "10px 0", fontFamily: "monospace", fontSize: "13px", wordBreak: "break-all" }}>
-                        <HashLink href={`/${createdSeed}`} className="quoteLink">
-                            blockchan.xyz/#{createdSeed}
-                        </HashLink>
-                    </p>
-                    <p style={{ fontSize: "11px", color: "#c33", marginTop: "10px" }}>
+                    <p style={{ fontSize: "11px", color: "#c33", marginBottom: "10px" }}>
                         Save this link — it cannot be recovered.
+                    </p>
+                    <p style={{ margin: "10px 0", fontFamily: "monospace", fontSize: "13px", wordBreak: "break-all", background: "#f0e0d6", padding: "8px", border: "1px solid #d9bfb7", cursor: "pointer" }}
+                        onClick={() => { navigator.clipboard.writeText(`blockchan.xyz/#${createdSeed}`); }}
+                        title="Click to copy"
+                    >
+                        blockchan.xyz/#{createdSeed}
+                    </p>
+                    <p>
+                        <HashLink href={`/${createdSeed}`} className="quoteLink">
+                            Go to your board &rarr;
+                        </HashLink>
                     </p>
                     {!isAdmin && (
                         <p style={{ marginTop: "10px", fontSize: "11px", color: "#89a" }}>
-                            This board is private until an admin onboards it.
+                            This board is unlisted until an admin onboards it.
                         </p>
                     )}
                 </div>
@@ -165,7 +145,7 @@ export default function AddBoardPage() {
                                         type="text"
                                         value={slug}
                                         onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9]/g, ""))}
-                                        placeholder="degen"
+                                        placeholder="biz"
                                         maxLength={10}
                                         style={{ width: "120px" }}
                                     /><span style={{ fontSize: "10pt" }}>/</span>
@@ -189,62 +169,56 @@ export default function AddBoardPage() {
                                 </td>
                             </tr>
                             <tr>
-                                <td className="label">Description</td>
-                                <td>
-                                    <input
-                                        type="text"
-                                        value={description}
-                                        onChange={(e) => setDescription(e.target.value)}
-                                        placeholder="Discussion about Solana"
-                                    />
-                                </td>
-                            </tr>
-                            <tr>
-                                <td className="label">Image URL</td>
-                                <td>
-                                    <input
-                                        type="text"
-                                        value={imageUrl}
-                                        onChange={(e) => setImageUrl(e.target.value.trim())}
-                                        placeholder="https://... (optional)"
-                                    />
-                                </td>
-                            </tr>
-                            <tr>
                                 <td className="label">Token Gate</td>
                                 <td>
-                                    <input
-                                        type="text"
-                                        value={gateMint}
-                                        onChange={(e) => setGateMint(e.target.value.trim())}
-                                        placeholder="Mint address (optional)"
-                                        style={{ fontFamily: "monospace", fontSize: "11px" }}
-                                    />
+                                    <label style={{ fontSize: "12px", cursor: "pointer" }}>
+                                        <input
+                                            type="checkbox"
+                                            checked={gateEnabled}
+                                            onChange={(e) => setGateEnabled(e.target.checked)}
+                                            style={{ marginRight: "6px" }}
+                                        />
+                                        Enable token gate
+                                    </label>
                                 </td>
                             </tr>
-                            {gateMint && (
+                            {gateEnabled && (
                                 <>
                                     <tr>
                                         <td className="label">Gate Type</td>
                                         <td>
                                             <select value={gateType} onChange={(e) => setGateType(Number(e.target.value))}>
-                                                <option value={0}>Token</option>
-                                                <option value={1}>Collection</option>
+                                                <option value={0}>Token — min amount required</option>
+                                                <option value={1}>Collection — NFT ownership check</option>
                                             </select>
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td className="label">Min Amount</td>
+                                        <td className="label">Mint Address</td>
                                         <td>
                                             <input
-                                                type="number"
-                                                value={gateAmount}
-                                                onChange={(e) => setGateAmount(e.target.value)}
-                                                min="1"
-                                                style={{ width: "80px" }}
+                                                type="text"
+                                                value={gateMint}
+                                                onChange={(e) => setGateMint(e.target.value.trim())}
+                                                placeholder="Token or collection mint"
+                                                style={{ fontFamily: "monospace", fontSize: "11px", width: "300px" }}
                                             />
                                         </td>
                                     </tr>
+                                    {gateType === 0 && (
+                                        <tr>
+                                            <td className="label">Min Amount</td>
+                                            <td>
+                                                <input
+                                                    type="number"
+                                                    value={gateAmount}
+                                                    onChange={(e) => setGateAmount(e.target.value)}
+                                                    min="1"
+                                                    style={{ width: "80px" }}
+                                                />
+                                            </td>
+                                        </tr>
+                                    )}
                                 </>
                             )}
                         </tbody>
@@ -256,7 +230,7 @@ export default function AddBoardPage() {
 
                 <div style={{ marginTop: "16px", fontSize: "11px", color: "#89a", lineHeight: "1.6" }}>
                     <p>
-                        Your board will be <b>private</b> by default — it won't appear on the
+                        Your board will be <b>unlisted</b> by default — it won't appear on the
                         homepage. Save your board ID and share the link directly with your
                         community.
                     </p>

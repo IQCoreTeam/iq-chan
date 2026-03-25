@@ -39,8 +39,10 @@ export default function ThreadPage({ boardId, threadId: threadPda, scrollTo }: {
 
     const { boards } = useBoards();
     const boardMeta = boards.find((b) => b.id === boardId);
-    const boardTitle = boardMeta ? `/${boardId}/ - ${boardMeta.title}` : `/${boardId}/`;
     const gate = useBoardGate(boardId);
+    const displayName = boardMeta?.title ?? gate.tableName ?? "";
+    const displaySlug = boardMeta?.id ?? (gate.tableName || boardId);
+    const boardTitle = displayName ? `/${displaySlug}/ - ${displayName}` : `/${boardId.slice(0, 12)}${boardId.length > 12 ? "..." : ""}/`;
     const threadSeed = op?.threadSeed ?? "";
 
     // Scroll to a specific post when navigating from board page
@@ -122,26 +124,50 @@ export default function ThreadPage({ boardId, threadId: threadPda, scrollTo }: {
             </div>
 
             {gate.gateMint && (
-                <div style={{ textAlign: "center", padding: "4px", fontSize: "11px", color: "#789922", background: "#f0e0d6", border: "1px solid #d9bfb7", margin: "4px 0" }}>
-                    Only those who have {gate.gateAmount || 1} {gate.gateType === 1 ? "NFT from collection" : "token"} can write a post.
+                <div style={{ textAlign: "center", padding: "4px 8px", fontSize: "11px", color: "#789922", background: "#f0e0d6", border: "1px solid #d9bfb7", margin: "4px 0" }}>
+                    <div>Token-gated: hold {gate.gateAmount || 1} {gate.gateType === 1 ? "NFT from collection" : "token"} to post</div>
+                    <div style={{ fontFamily: "monospace", fontSize: "10px", color: "#707070", marginTop: "2px", wordBreak: "break-all" }}>
+                        CA: {gate.gateMint}
+                    </div>
                 </div>
             )}
 
-            <hr style={{ border: "none", borderTop: "1px solid #b7c5d9" }} />
+            <div className="navLinks mobile" style={{ textAlign: "center", padding: "5px 0" }}>
+                <span className="mobileib button">
+                    <HashLink href={`/${boardId}`} accessKey="a">Return</HashLink>
+                </span>{" "}
+                <span className="mobileib button">
+                    <a href="#" onClick={(e) => { e.preventDefault(); document.getElementById("bottom")?.scrollIntoView({ behavior: "smooth" }); }}>Bottom</a>
+                </span>
+                <div className="btn-row" style={{ display: "inline" }}>
+                    <span className="mobileib button">
+                        <label onClick={manualUpdate} style={{ cursor: "pointer" }}>Update</label>
+                    </span>{" "}
+                    <span className="mobileib button">
+                        <label><input type="checkbox" checked={autoUpdate} onChange={(e) => setAutoUpdate(e.target.checked)} />Auto</label>
+                    </span>
+                    {countdown > 0 && <span style={{ marginLeft: 3, fontSize: "10pt" }}>{countdown}</span>}
+                </div>
+            </div>
 
             {threadSeed && (
-                <PostForm
-                    mode="reply"
-                    onSubmit={handlePostReply}
-                    loading={postLoading}
-                    statusText={postStatus}
-                    step={postStep}
-                    totalSteps={postTotalSteps}
-                    onClearStatus={clearStatus}
-                />
+                <>
+                    <div id="togglePostFormLink" className="mobile" style={{ textAlign: "center", margin: "10px 0" }}>
+                        [<a href="#" onClick={(e) => { e.preventDefault(); setQrOpen(true); setQrQuote(undefined); }}>Post a Reply</a>]
+                    </div>
+                    <div className="desktopPostForm">
+                        <PostForm
+                            mode="reply"
+                            onSubmit={handlePostReply}
+                            loading={postLoading}
+                            statusText={postStatus}
+                            step={postStep}
+                            totalSteps={postTotalSteps}
+                            onClearStatus={clearStatus}
+                        />
+                    </div>
+                </>
             )}
-
-            <hr className="desktop" id="op" style={{ border: "none", borderTop: "1px solid #b7c5d9" }} />
 
             <div className="navLinks desktop threadNav">
                 <div>
@@ -182,8 +208,6 @@ export default function ThreadPage({ boardId, threadId: threadPda, scrollTo }: {
                     onQuote={onQuote}
                 />
             )}
-
-            <hr style={{ border: "none", borderTop: "1px solid #b7c5d9" }} />
 
             {/* Desktop footer */}
             <div className="navLinks navLinksBot desktop threadNav" style={{ position: "relative" }}>

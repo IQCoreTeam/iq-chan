@@ -35,14 +35,16 @@ export default function Post({
     const display = txSig.slice(0, 8);
     const [expanded, setExpanded] = useState(false);
     const [menuOpen, setMenuOpen] = useState(false);
-    const menuRef = useRef<HTMLSpanElement>(null);
+    const menuRefMobile = useRef<HTMLSpanElement>(null);
+    const menuRefDesktop = useRef<HTMLSpanElement>(null);
 
     useEffect(() => {
         if (!menuOpen) return;
         function handleClick(e: MouseEvent) {
-            if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-                setMenuOpen(false);
-            }
+            const target = e.target as Node;
+            if (menuRefMobile.current?.contains(target)) return;
+            if (menuRefDesktop.current?.contains(target)) return;
+            setMenuOpen(false);
         }
         document.addEventListener("mousedown", handleClick);
         return () => document.removeEventListener("mousedown", handleClick);
@@ -134,7 +136,7 @@ export default function Post({
     /* Mobile post info (4chan's postInfoM mobile) — shown on mobile, hidden on desktop */
     const postInfoMobile = (
         <div className="postInfoM mobile" id={`pim${txSig}`}>
-            <span ref={menuRef} style={{ position: "relative", display: "inline" }}>
+            <span ref={menuRefMobile} style={{ position: "relative", display: "inline" }}>
                 <a
                     href="#"
                     className={`postMenuBtn${menuOpen ? " menuOpen" : ""}`}
@@ -183,7 +185,7 @@ export default function Post({
                     <> &nbsp; <span>[<a href={replyLink} className="replylink">Reply</a>]</span></>
                 )}
             </span>
-            <span ref={menuRef} style={{ position: "relative", display: "inline" }}>
+            <span ref={menuRefDesktop} style={{ position: "relative", display: "inline" }}>
                 <a
                     href="#"
                     className={`postMenuBtn${menuOpen ? " menuOpen" : ""}`}
@@ -221,20 +223,9 @@ export default function Post({
             {!isOp && <div className="sideArrows" id={`sa${txSig}`}>&gt;&gt;</div>}
             <div id={`p${txSig}`} className={isOp ? "post op" : "post reply"}>
                 {postInfoMobile}
-                {isHidden ? (
-                    <div className="postInfo desktop" style={{ display: "inline" }}>
-                        {sub && <><span className="subject">{sub}</span>{" "}</>}
-                        <span className="nameBlock"><span className="name">{name || "Anonymous"}</span>{" "}</span>
-                        <span className="dateTime" data-utc={time} title={timeAgo(time)}>{formatDate(time)}</span>
-                        {" "}
-                        <span className="postNum desktop">
-                            <a href={`#p${txSig}`} title="Link to this post" onClick={(e) => { e.preventDefault(); scrollToPost(txSig); }}>No.</a>
-                            {digitsLink}
-                        </span>
-                    </div>
-                ) : (
+                {isOp ? <>{!isHidden && fileBlock}{postInfoDesktop}</> : <>{postInfoDesktop}{!isHidden && fileBlock}</>}
+                {!isHidden && (
                     <>
-                        {isOp ? <>{fileBlock}{postInfoDesktop}</> : <>{postInfoDesktop}{fileBlock}</>}
                         <blockquote className="postMessage" id={`m${txSig}`}>
                             {formatPostMessage(com)}
                         </blockquote>
