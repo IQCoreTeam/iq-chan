@@ -8,6 +8,7 @@ import { useThreads } from "../../hooks/use-threads";
 import { scrollToPost } from "../../lib/highlight";
 import { THREADS_PER_PAGE } from "../../lib/constants";
 import { useBoards } from "../../hooks/use-boards";
+import { useBoardGate } from "../../hooks/use-board-gate";
 import ThreadDetail from "../thread-detail";
 import PostForm from "../post-form";
 import QuickReply from "../quick-reply";
@@ -39,6 +40,7 @@ export default function ThreadPage({ boardId, threadId: threadPda, scrollTo }: {
     const { boards } = useBoards();
     const boardMeta = boards.find((b) => b.id === boardId);
     const boardTitle = boardMeta ? `/${boardId}/ - ${boardMeta.title}` : `/${boardId}/`;
+    const gate = useBoardGate(boardId);
     const threadSeed = op?.threadSeed ?? "";
 
     // Scroll to a specific post when navigating from board page
@@ -118,6 +120,12 @@ export default function ThreadPage({ boardId, threadId: threadPda, scrollTo }: {
                 )}
                 <div className="boardTitle">{boardTitle}</div>
             </div>
+
+            {gate.gateMint && (
+                <div style={{ textAlign: "center", padding: "4px", fontSize: "11px", color: "#789922", background: "#f0e0d6", border: "1px solid #d9bfb7", margin: "4px 0" }}>
+                    Only those who have {gate.gateAmount || 1} {gate.gateType === 1 ? "NFT from collection" : "token"} can write a post.
+                </div>
+            )}
 
             <hr style={{ border: "none", borderTop: "1px solid #b7c5d9" }} />
 

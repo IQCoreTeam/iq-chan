@@ -6,6 +6,7 @@ import { useThreads } from "../../hooks/use-threads";
 import { usePost } from "../../hooks/use-post";
 import { THREADS_PER_PAGE } from "../../lib/constants";
 import { useBoards } from "../../hooks/use-boards";
+import { useBoardGate } from "../../hooks/use-board-gate";
 import ThreadList from "../thread-list";
 import PostForm from "../post-form";
 import { FooterNav } from "../board-nav";
@@ -47,6 +48,7 @@ export default function BoardPage({ boardId }: { boardId: string }) {
     const { boards } = useBoards();
     const boardMeta = boards.find((b) => b.id === boardId);
     const boardTitle = boardMeta ? `/${boardId}/ - ${boardMeta.title}` : `/${boardId}/`;
+    const gate = useBoardGate(boardId);
 
     const totalPages = Math.max(1, Math.ceil(threads.length / THREADS_PER_PAGE));
     const pageThreads = useMemo(() => {
@@ -71,9 +73,9 @@ export default function BoardPage({ boardId }: { boardId: string }) {
                 <div className="boardTitle">{boardTitle}</div>
             </div>
 
-            {boardMeta?.gateMint && (
+            {gate.gateMint && (
                 <div style={{ textAlign: "center", padding: "4px", fontSize: "11px", color: "#789922", background: "#f0e0d6", border: "1px solid #d9bfb7", margin: "4px 0" }}>
-                    Token-gated: hold {boardMeta.gateAmount || 1} of {boardMeta.gateMint.slice(0, 8)}... to post
+                    Only those who have {gate.gateAmount || 1} {gate.gateType === 1 ? "NFT from collection" : "token"} can write a post.
                 </div>
             )}
 
@@ -85,7 +87,7 @@ export default function BoardPage({ boardId }: { boardId: string }) {
                     createThread(
                         boardId,
                         data as { sub: string; com: string; name: string; img?: string },
-                        boardMeta?.gateMint ? { mint: boardMeta.gateMint, amount: boardMeta.gateAmount || 1, gateType: boardMeta.gateType || 0 } : undefined,
+                        gate.gateMint ? { mint: gate.gateMint, amount: gate.gateAmount || 1, gateType: gate.gateType || 0 } : undefined,
                     )
                 }
                 loading={postLoading}
