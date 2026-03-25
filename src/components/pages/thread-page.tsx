@@ -6,8 +6,9 @@ import { usePaginatedReplies } from "../../hooks/use-paginated-replies";
 import { usePost } from "../../hooks/use-post";
 import { useThreads } from "../../hooks/use-threads";
 import { scrollToPost } from "../../lib/highlight";
-import { THREADS_PER_PAGE } from "../../lib/constants";
+import { THREADS_PER_PAGE, deriveTablePda } from "../../lib/constants";
 import { useBoards } from "../../hooks/use-boards";
+import { fetchAllTableRows } from "../../lib/gateway";
 import ThreadDetail from "../thread-detail";
 import PostForm from "../post-form";
 import QuickReply from "../quick-reply";
@@ -37,8 +38,20 @@ export default function ThreadPage({ boardId, threadId: threadPda, scrollTo }: {
     const { threads: boardThreads } = useThreads(boardId);
 
     const { boards } = useBoards();
-    const boardMeta = boards.find((b) => b.id === boardId);
-    const boardTitle = boardMeta ? `/${boardId}/ - ${boardMeta.title}` : `/${boardId}/`;
+    const officialMeta = boards.find((b) => b.id === boardId);
+    const [chainMeta, setChainMeta] = useState<{ slug?: string; title?: string } | null>(null);
+
+    useEffect(() => {
+        if (officialMeta || chainMeta) return;
+        const metaPda = deriveTablePda(`${boardId}/metadata`);
+        fetchAllTableRows(metaPda, 1)
+            .then((rows) => { if (rows[0]) setChainMeta(rows[0] as any); })
+            .catch(() => {});
+    }, [boardId, officialMeta, chainMeta]);
+
+    const displaySlug = officialMeta?.id ?? chainMeta?.slug ?? boardId;
+    const displayTitle = officialMeta?.title ?? chainMeta?.title ?? "";
+    const boardTitle = displayTitle ? `/${displaySlug}/ - ${displayTitle}` : `/${displaySlug}/`;
     const threadSeed = op?.threadSeed ?? "";
 
     // Scroll to a specific post when navigating from board page
@@ -111,15 +124,13 @@ export default function ThreadPage({ boardId, threadId: threadPda, scrollTo }: {
     return (
         <>
             <div className="boardBanner">
-                {boardMeta && (
+                {officialMeta?.image && (
                     <div className="title" style={{ textAlign: "center" }}>
-                        <img alt={boardId} src={boardMeta.image} style={{ maxHeight: 100, display: "block", margin: "0 auto" }} />
+                        <img alt={displaySlug} src={officialMeta.image} style={{ maxHeight: 100, display: "block", margin: "0 auto" }} />
                     </div>
                 )}
                 <div className="boardTitle">{boardTitle}</div>
             </div>
-
-            <hr style={{ border: "none", borderTop: "1px solid #b7c5d9" }} />
 
             {threadSeed && (
                 <PostForm
@@ -132,8 +143,6 @@ export default function ThreadPage({ boardId, threadId: threadPda, scrollTo }: {
                     onClearStatus={clearStatus}
                 />
             )}
-
-            <hr className="desktop" id="op" style={{ border: "none", borderTop: "1px solid #b7c5d9" }} />
 
             <div className="navLinks desktop threadNav">
                 <div>
@@ -174,8 +183,6 @@ export default function ThreadPage({ boardId, threadId: threadPda, scrollTo }: {
                     onQuote={onQuote}
                 />
             )}
-
-            <hr style={{ border: "none", borderTop: "1px solid #b7c5d9" }} />
 
             {/* Desktop footer */}
             <div className="navLinks navLinksBot desktop threadNav" style={{ position: "relative" }}>

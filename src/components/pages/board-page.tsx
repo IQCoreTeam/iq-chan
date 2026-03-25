@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import HashLink from "../hash-link";
 import { useThreads } from "../../hooks/use-threads";
 import { usePost } from "../../hooks/use-post";
-import { THREADS_PER_PAGE } from "../../lib/constants";
+import { THREADS_PER_PAGE, deriveTablePda } from "../../lib/constants";
 import { useBoards } from "../../hooks/use-boards";
+import { fetchAllTableRows } from "../../lib/gateway";
 import ThreadList from "../thread-list";
 import PostForm from "../post-form";
 import { FooterNav } from "../board-nav";
@@ -45,8 +46,22 @@ export default function BoardPage({ boardId }: { boardId: string }) {
     const [page, setPage] = useState(0);
 
     const { boards } = useBoards();
-    const boardMeta = boards.find((b) => b.id === boardId);
-    const boardTitle = boardMeta ? `/${boardId}/ - ${boardMeta.title}` : `/${boardId}/`;
+    const officialMeta = boards.find((b) => b.id === boardId);
+    const [chainMeta, setChainMeta] = useState<{ slug?: string; title?: string; description?: string } | null>(null);
+
+    // For unofficial boards, fetch metadata from chain
+    useEffect(() => {
+        if (officialMeta || chainMeta) return;
+        const metaPda = deriveTablePda(`${boardId}/metadata`);
+        fetchAllTableRows(metaPda, 1)
+            .then((rows) => { if (rows[0]) setChainMeta(rows[0] as any); })
+            .catch(() => {});
+    }, [boardId, officialMeta, chainMeta]);
+
+    const displaySlug = officialMeta?.id ?? chainMeta?.slug ?? boardId;
+    const displayTitle = officialMeta?.title ?? chainMeta?.title ?? "";
+    const boardTitle = displayTitle ? `/${displaySlug}/ - ${displayTitle}` : `/${displaySlug}/`;
+    const boardImage = officialMeta?.image;
 
     const totalPages = Math.max(1, Math.ceil(threads.length / THREADS_PER_PAGE));
     const pageThreads = useMemo(() => {
@@ -63,21 +78,33 @@ export default function BoardPage({ boardId }: { boardId: string }) {
     return (
         <>
             <div className="boardBanner">
-                {boardMeta && (
+                {boardImage && (
                     <div className="title" style={{ textAlign: "center" }}>
-                        <img alt={boardId} src={boardMeta.image} style={{ maxHeight: 100, display: "block", margin: "0 auto" }} />
+                        <img alt={displaySlug} src={boardImage} style={{ maxHeight: 100, display: "block", margin: "0 auto" }} />
                     </div>
                 )}
                 <div className="boardTitle">{boardTitle}</div>
             </div>
 
-            {boardMeta?.gateMint && (
+            {officialMeta?.gateMint && (
                 <div style={{ textAlign: "center", padding: "4px", fontSize: "11px", color: "#789922", background: "#f0e0d6", border: "1px solid #d9bfb7", margin: "4px 0" }}>
-                    Token-gated: hold {boardMeta.gateAmount || 1} of {boardMeta.gateMint.slice(0, 8)}... to post
+                    Token-gated: hold {officialMeta.gateAmount || 1} of {officialMeta.gateMint.slice(0, 8)}... to post
                 </div>
             )}
 
             <hr style={{ border: "none", borderTop: "1px solid #b7c5d9" }} />
+
+            <div className="navLinks mobile" style={{ textAlign: "center", padding: "5px 0" }}>
+                <span className="mobileib button">
+                    <HashLink href="/">Return</HashLink>
+                </span>{" "}
+                <span className="mobileib button">
+                    <a href="#" onClick={(e) => { e.preventDefault(); document.getElementById("bottom")?.scrollIntoView({ behavior: "smooth" }); }}>Bottom</a>
+                </span>{" "}
+                <span className="mobileib button">
+                    <label onClick={() => refresh()} style={{ cursor: "pointer" }}>Refresh</label>
+                </span>
+            </div>
 
             <PostForm
                 mode="thread"
@@ -85,7 +112,7 @@ export default function BoardPage({ boardId }: { boardId: string }) {
                     createThread(
                         boardId,
                         data as { sub: string; com: string; name: string; img?: string },
-                        boardMeta?.gateMint ? { mint: boardMeta.gateMint, amount: boardMeta.gateAmount || 1, gateType: boardMeta.gateType || 0 } : undefined,
+                        officialMeta?.gateMint ? { mint: officialMeta.gateMint, amount: officialMeta.gateAmount || 1, gateType: officialMeta.gateType || 0 } : undefined,
                     )
                 }
                 loading={postLoading}

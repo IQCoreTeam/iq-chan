@@ -30,7 +30,7 @@ function useHomeData(boards: BoardMeta[]) {
         async function load() {
             try {
                 const feedResults = await Promise.all(
-                    boards.map((b) => fetchAllTableRows(getFeedPda(DB_ROOT_KEY, b.id).toBase58()).then((rows) => ({ boardId: b.id, rows }))),
+                    boards.map((b) => fetchAllTableRows(getFeedPda(DB_ROOT_KEY, b.seed).toBase58()).then((rows) => ({ boardId: b.id, rows }))),
                 );
                 if (cancelled) return;
 
