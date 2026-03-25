@@ -150,10 +150,9 @@ export default function Header() {
                     <div style={{ marginBottom: 4 }}>
                         <label>Fallbacks: </label>
                         {fallbacks.filter((f) => f !== getGatewayUrl()).map((f) => (
-                            <span key={f} style={{ marginRight: 6 }}>
+                            <span key={f} style={{ marginRight: 6, display: "inline-flex", alignItems: "center", whiteSpace: "nowrap" }}>
                                 <span style={{ color: "#707070", fontSize: 11 }}>{f}</span>
-                                {" "}
-                                <a href="#" onClick={(e) => { e.preventDefault(); removeFallback(f); }} style={{ color: "#d00", fontSize: 10, textDecoration: "none" }}>x</a>
+                                <a href="#" onClick={(e) => { e.preventDefault(); removeFallback(f); }} style={{ color: "#d00", fontSize: 10, textDecoration: "none", marginLeft: 3 }}>x</a>
                             </span>
                         ))}
                         {fallbacks.filter((f) => f !== getGatewayUrl()).length === 0 && <span style={{ color: "#707070", fontSize: 11 }}>none</span>}
