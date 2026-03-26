@@ -5,7 +5,7 @@ import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { PublicKey, Transaction, SystemProgram } from "@solana/web3.js";
 import iqlabs from "iqlabs-sdk";
 import { FooterNav } from "../board-nav";
-import { DB_ROOT_ID, DB_ROOT_ID_BYTES, DB_ROOT_KEY } from "../../lib/constants";
+import { DB_ROOT_ID, DB_ROOT_ID_BYTES, DB_ROOT_KEY, BOARD_COLUMNS } from "../../lib/constants";
 import { SEED_TO_BOARD_ID } from "../../lib/board";
 
 const idl = require("iqlabs-sdk/idl/code_in.json");
@@ -23,8 +23,6 @@ export default function AdminPage() {
     const [creatorList, setCreatorList] = useState<string[]>([]);
     const [updateSeed, setUpdateSeed] = useState("");
     const [updateName, setUpdateName] = useState("");
-
-    const BOARD_COLUMNS = ["sub", "com", "name", "time", "img", "threadPda", "threadSeed"];
 
     const isAdmin = wallet.publicKey?.toBase58() === creator;
 

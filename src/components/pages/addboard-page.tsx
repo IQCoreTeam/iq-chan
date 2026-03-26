@@ -49,7 +49,8 @@ export default function AddBoardPage() {
             } : null;
 
             // Step 1: Create board table (seed: boardId) — goes into global_table_seeds
-            const boardSeed = crypto.randomUUID().replace(/-/g, ""); const boardSeedBytes = Buffer.from(iqlabs.utils.toSeedBytes(boardSeed));
+            const boardSeed = crypto.randomUUID().replace(/-/g, "");
+            const boardSeedBytes = Buffer.from(iqlabs.utils.toSeedBytes(boardSeed));
             const boardTablePda = new PublicKey(deriveTablePda(boardSeed));
             const boardInstrPda = new PublicKey(deriveInstructionTablePda(boardSeed));
 
