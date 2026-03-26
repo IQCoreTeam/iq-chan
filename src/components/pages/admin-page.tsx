@@ -102,7 +102,7 @@ export default function AdminPage() {
                     db_root: DB_ROOT_KEY,
                 }, {
                     db_root_id: DB_ROOT_ID_BYTES,
-                    table_seed: iqlabs.utils.toSeedBytes(onboardInput),
+                    table_seed: Buffer.from(iqlabs.utils.toSeedBytes(onboardInput)),
                 }),
             );
             setStatus(`/${onboardInput}/ onboarded`);
@@ -265,14 +265,7 @@ export default function AdminPage() {
                                                 value="Name Only"
                                                 title={!isOwner ? "Only the DbRoot owner can update tables" : ""}
                                             />
-                                            {" "}
-                                            <input
-                                                type="submit"
-                                                onClick={(e) => { e.preventDefault(); handleUpdateTable(true); }}
-                                                disabled={!isOwner || !updateSeed || !updateName}
-                                                value="Name + Columns"
-                                                title={!isOwner ? "Only the DbRoot owner can update tables" : "Sets columns to: sub, com, name, time, img, threadPda, threadSeed"}
-                                            />
+                                            {/* Name + Columns button hidden — columns should not be modified */}
                                             {!isOwner && (
                                                 <div style={{ fontSize: "10px", color: "#c33", marginTop: "4px" }}>
                                                     Only the DbRoot owner can update tables.
