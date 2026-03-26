@@ -17,12 +17,17 @@ import {
     deriveTablePda,
     deriveInstructionTablePda,
     DB_ROOT_KEY,
+    BOARD_COLUMNS,
     resolveBoardSeed,
 } from "../lib/constants";
 import { getFeedPda } from "../lib/board";
 import { notifyPost } from "../lib/gateway";
 
-const THREAD_COLUMNS = ["sub", "com", "name", "time", "img", "threadPda", "threadSeed"];
+function gateError(e: unknown): string {
+    const raw = e instanceof Error ? e.message : String(e);
+    return raw.toLowerCase().includes("ata") || raw.toLowerCase().includes("token account")
+        ? "You are not a holder" : raw;
+}
 
 export function usePost() {
     const { connection } = useConnection();
@@ -121,7 +126,7 @@ export function usePost() {
                             db_root_id: dbRootIdBytes,
                             table_seed: threadSeedBytes,
                             table_name: Buffer.from(seed),
-                            column_names: THREAD_COLUMNS.map((c) => Buffer.from(c)),
+                            column_names: BOARD_COLUMNS.map((c) => Buffer.from(c)),
                             id_col: Buffer.from("time"),
                             ext_keys: [],
                             gate_opt: gate ? {
@@ -185,10 +190,7 @@ export function usePost() {
                 await notifyPost(threadPda, txSig, row);
                 return { ...row, __txSignature: txSig };
             } catch (e) {
-                const raw = e instanceof Error ? e.message : String(e);
-                const msg = raw.toLowerCase().includes("ata") || raw.toLowerCase().includes("token account")
-                    ? "You are not a holder"
-                    : raw;
+                const msg = gateError(e);
                 const err = new Error(msg);
                 setError(err);
                 setStatus(`Error: ${msg}`);
@@ -258,10 +260,7 @@ export function usePost() {
                 await notifyPost(threadPda, txSig, row);
                 return { ...row, __txSignature: txSig };
             } catch (e) {
-                const raw = e instanceof Error ? e.message : String(e);
-                const msg = raw.toLowerCase().includes("ata") || raw.toLowerCase().includes("token account")
-                    ? "You are not a holder"
-                    : raw;
+                const msg = gateError(e);
                 const err = new Error(msg);
                 setError(err);
                 setStatus(`Error: ${msg}`);

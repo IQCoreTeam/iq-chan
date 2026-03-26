@@ -22,6 +22,8 @@ export const DEFAULT_BOARDS: Record<string, { seed: string; title: string; descr
 };
 export { DEFAULT_BOARDS as OFFICIAL_BOARDS };
 
+export const BOARD_COLUMNS = ["sub", "com", "name", "time", "img", "threadPda", "threadSeed"];
+
 export const ESTIMATED_SOL_COST = {
     thread: "0.023",
     reply: "0.003",
