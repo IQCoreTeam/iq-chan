@@ -24,7 +24,10 @@ export default function AdminPage() {
     const [updateSeed, setUpdateSeed] = useState("");
     const [updateName, setUpdateName] = useState("");
 
-    const isAdmin = wallet.publicKey?.toBase58() === creator;
+    const pubkey = wallet.publicKey?.toBase58();
+    const isOwner = pubkey === creator;
+    const isTableCreator = creatorList.includes(pubkey ?? "");
+    const isAdmin = isOwner || isTableCreator;
 
     useEffect(() => {
         iqlabs.reader.getTablelistFromRoot(connection, DB_ROOT_ID)
@@ -228,8 +231,8 @@ export default function AdminPage() {
                             </div>
                         </div>
 
-                        {/* Update table name */}
-                        <div className="postForm" style={{ marginBottom: "16px" }}>
+                        {/* Update table name — owner only */}
+                        <div className="postForm" style={{ marginBottom: "16px", opacity: isOwner ? 1 : 0.5 }}>
                             <table>
                                 <tbody>
                                     <tr>
@@ -239,6 +242,7 @@ export default function AdminPage() {
                                             <input
                                                 type="text"
                                                 value={updateSeed}
+                                                disabled={!isOwner}
                                                 onChange={(e) => setUpdateSeed(e.target.value.toLowerCase().replace(/[^a-z0-9]/g, ""))}
                                                 placeholder="boardid"
                                                 style={{ width: "100px" }}
@@ -248,6 +252,7 @@ export default function AdminPage() {
                                             <input
                                                 type="text"
                                                 value={updateName}
+                                                disabled={!isOwner}
                                                 onChange={(e) => setUpdateName(e.target.value)}
                                                 placeholder="Board Title"
                                                 style={{ width: "160px" }}
@@ -256,17 +261,23 @@ export default function AdminPage() {
                                             <input
                                                 type="submit"
                                                 onClick={(e) => { e.preventDefault(); handleUpdateTable(false); }}
-                                                disabled={!updateSeed || !updateName}
+                                                disabled={!isOwner || !updateSeed || !updateName}
                                                 value="Name Only"
+                                                title={!isOwner ? "Only the DbRoot owner can update tables" : ""}
                                             />
                                             {" "}
                                             <input
                                                 type="submit"
                                                 onClick={(e) => { e.preventDefault(); handleUpdateTable(true); }}
-                                                disabled={!updateSeed || !updateName}
+                                                disabled={!isOwner || !updateSeed || !updateName}
                                                 value="Name + Columns"
-                                                title="Sets columns to: sub, com, name, time, img, threadPda, threadSeed"
+                                                title={!isOwner ? "Only the DbRoot owner can update tables" : "Sets columns to: sub, com, name, time, img, threadPda, threadSeed"}
                                             />
+                                            {!isOwner && (
+                                                <div style={{ fontSize: "10px", color: "#c33", marginTop: "4px" }}>
+                                                    Only the DbRoot owner can update tables.
+                                                </div>
+                                            )}
                                         </td>
                                     </tr>
                                 </tbody>
@@ -305,8 +316,8 @@ export default function AdminPage() {
                             </table>
                         </div>
 
-                        {/* Manage table creators */}
-                        <div className="postForm">
+                        {/* Manage table creators — owner only */}
+                        <div className="postForm" style={{ opacity: isOwner ? 1 : 0.5 }}>
                             <table>
                                 <tbody>
                                     <tr>
@@ -317,6 +328,7 @@ export default function AdminPage() {
                                                     <input
                                                         type="text"
                                                         value={pk}
+                                                        disabled={!isOwner}
                                                         onChange={(e) => {
                                                             const next = [...creatorList];
                                                             next[i] = e.target.value.trim();
@@ -327,8 +339,10 @@ export default function AdminPage() {
                                                     <input
                                                         type="submit"
                                                         value="×"
+                                                        disabled={!isOwner}
+                                                        title={!isOwner ? "Only the DbRoot owner can manage admins" : ""}
                                                         onClick={(e) => { e.preventDefault(); setCreatorList(creatorList.filter((_, j) => j !== i)); }}
-                                                        style={{ color: "#c33", cursor: "pointer" }}
+                                                        style={{ color: "#c33", cursor: isOwner ? "pointer" : "not-allowed" }}
                                                     />
                                                 </div>
                                             ))}
@@ -336,15 +350,23 @@ export default function AdminPage() {
                                                 <input
                                                     type="submit"
                                                     value="+ Add"
+                                                    disabled={!isOwner}
+                                                    title={!isOwner ? "Only the DbRoot owner can manage admins" : ""}
                                                     onClick={(e) => { e.preventDefault(); setCreatorList([...creatorList, ""]); }}
                                                 />
                                                 <input
                                                     type="submit"
                                                     value="Save Admins"
+                                                    disabled={!isOwner || creatorList.filter((s) => s.trim()).length === 0}
+                                                    title={!isOwner ? "Only the DbRoot owner can manage admins" : ""}
                                                     onClick={(e) => { e.preventDefault(); handleManageCreators(); }}
-                                                    disabled={creatorList.filter((s) => s.trim()).length === 0}
                                                 />
                                             </div>
+                                            {!isOwner && (
+                                                <div style={{ fontSize: "10px", color: "#c33", marginTop: "4px" }}>
+                                                    Only the DbRoot owner can manage admins.
+                                                </div>
+                                            )}
                                         </td>
                                     </tr>
                                 </tbody>
