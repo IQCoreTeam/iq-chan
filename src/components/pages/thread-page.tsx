@@ -31,7 +31,7 @@ export default function ThreadPage({ boardId, threadId: threadPda, scrollTo }: {
         error,
         refresh,
         addOptimisticRow,
-    } = usePaginatedReplies(threadPda);
+    } = usePaginatedReplies(threadPda, boardId);
 
     const { postReply, loading: postLoading, status: postStatus, step: postStep, totalSteps: postTotalSteps, clearStatus } = usePost();
 

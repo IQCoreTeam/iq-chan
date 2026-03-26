@@ -45,15 +45,15 @@ export async function fetchFeedThreads(
 
         const time = post.time ?? 0;
         const existing = threads.get(post.threadPda);
-        const isOp = !!post.threadSeed;
 
         if (existing) {
-            if (isOp) existing.opData = post;
+            // OP = earliest post for this thread (both OP and replies have threadSeed)
+            if (!existing.opData || time < existing.opData.time) existing.opData = post;
             existing.lastActivityTime = Math.max(existing.lastActivityTime, time);
         } else {
             threads.set(post.threadPda, {
                 threadPda: post.threadPda,
-                opData: isOp ? post : null,
+                opData: post,
                 lastActivityTime: time,
                 replyCount: 0,
                 lastReplies: [],
@@ -65,11 +65,16 @@ export async function fetchFeedThreads(
     await Promise.all(
         [...threads.values()].map(async (entry) => {
             const rows = await fetchAllTableRows(entry.threadPda, 50);
-            const op = rows.find((r) => !!r.threadSeed) as Post | undefined;
-            if (op && !entry.opData) entry.opData = op;
 
+            // OP = earliest post with threadSeed (may already be in entry.opData from feed)
+            const opFromRows = rows.filter((r) => !!r.threadSeed)
+                .reduce<Post | undefined>((a, b) => !a || (b as Post).time < a.time ? b as Post : a, undefined);
+            if (opFromRows && !entry.opData) entry.opData = opFromRows;
+
+            // Everything except the OP is a reply
+            const opSig = entry.opData?.__txSignature ?? opFromRows?.__txSignature;
             const replies = rows
-                .filter((r) => !r.threadSeed)
+                .filter((r) => r.__txSignature !== opSig)
                 .sort((a, b) => (a.time as number) - (b.time as number));
 
             entry.replyCount = replies.length;

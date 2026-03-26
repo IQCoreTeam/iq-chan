@@ -20,16 +20,7 @@ function QuoteLink({ sig, display }: { sig: string; display: string }) {
     }, [sig]);
 
     if (!fullId) {
-        return (
-            <a
-                href={`https://solscan.io/tx/${sig}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="quotelink"
-            >
-                {display} →
-            </a>
-        );
+        return <span className="quotelink deadlink">{display}</span>;
     }
 
     return (
