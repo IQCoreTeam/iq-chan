@@ -71,7 +71,7 @@ export default function BoardPage({ boardId }: { boardId: string }) {
             <div className="boardBanner">
                 {boardMeta?.image && (
                     <div className="title" style={{ textAlign: "center" }}>
-                        <img alt={boardId} src={boardMeta.image} style={{ maxHeight: 100, display: "block", margin: "0 auto" }} />
+                        <img alt={boardId} src={boardMeta.image} style={{ maxHeight: 150, display: "block", margin: "0 auto" }} />
                     </div>
                 )}
                 <div className="boardTitle">{boardTitle}</div>

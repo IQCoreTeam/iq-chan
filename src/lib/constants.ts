@@ -14,7 +14,7 @@ export const BUMP_LIMIT = 300;
 export const FEED_SEED_PREFIX = "feedmY}AGBJiqLabs";
 // Fallback board metadata for known boards (used until on-chain metadata is loaded) //this board is not onboarded yet
 export const DEFAULT_BOARDS: Record<string, { seed: string; title: string; description: string; image: string }> = {
-    iq:  { seed: "iq",  title: "IQ Labs Community", description: "IQ token holders only", image: "/boards/iq.svg" },
+    iq:  { seed: "iq",  title: "IQ Labs Community", description: "IQ token holders only", image: "/boards/iqbanner.webp" },
     po:  { seed: "po",  title: "Politically Incorrect", description: "Political discussion", image: "/boards/po.webp" },
     biz: { seed: "biz", title: "Business & Finance", description: "Business and finance discussion", image: "/boards/biz.webp" },
     a: { seed: "a", title: "Anime & Manga", description: "Anime and manga discussion", image: "/boards/a.webp" },
