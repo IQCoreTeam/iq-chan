@@ -33,6 +33,7 @@ export default function AddBoardPage() {
 
     async function handleCreate() {
         if (!wallet.publicKey || !wallet.signTransaction) return;
+        if (!slug) { setError("Board ID required"); return; }
         if (!title) { setError("Title required"); return; }
 
         setLoading(true);
@@ -48,8 +49,8 @@ export default function AddBoardPage() {
                 gate_type: gateType,
             } : null;
 
-            // Step 1: Create board table (seed: boardId) — goes into global_table_seeds
-            const boardSeed = crypto.randomUUID().replace(/-/g, "");
+            // Step 1: Create board table (seed: slug) — goes into global_table_seeds
+            const boardSeed = slug;
             const boardSeedBytes = Buffer.from(iqlabs.utils.toSeedBytes(boardSeed));
             const boardTablePda = new PublicKey(deriveTablePda(boardSeed));
             const boardInstrPda = new PublicKey(deriveInstructionTablePda(boardSeed));
@@ -156,7 +157,7 @@ export default function AddBoardPage() {
                                     <input
                                         type="submit"
                                         onClick={(e) => { e.preventDefault(); handleCreate(); }}
-                                        disabled={loading || !title}
+                                        disabled={loading || !slug || !title}
                                         value={loading ? "Creating..." : "Create Board"}
                                     />
                                 </td>
