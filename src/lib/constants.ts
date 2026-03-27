@@ -13,21 +13,18 @@ export const THREADS_PER_PAGE = 20;
 export const BUMP_LIMIT = 300;
 export const FEED_SEED_PREFIX = "feedmY}AGBJiqLabs";
 // Fallback board metadata for known boards (used until on-chain metadata is loaded) //this board is not onboarded yet
-export const DEFAULT_BOARDS: Record<string, { seed: string; title: string; description: string; image: string }> = {
+export const BOARD_METADATA: Record<string, { seed: string; title: string; description: string; image: string }> = {
     iq:  { seed: "iq",  title: "IQ Labs Community", description: "IQ token holders only", image: "/boards/iqbanner.webp" },
     po:  { seed: "po",  title: "Politically Incorrect", description: "Political discussion", image: "/boards/po.webp" },
     biz: { seed: "biz", title: "Business & Finance", description: "Business and finance discussion", image: "/boards/biz.webp" },
-    a: { seed: "a", title: "Anime & Manga", description: "Anime and manga discussion", image: "/boards/a.webp" },
-    g:    { seed: "g",    title: "Technology",  description: "Technology discussion",  image: "/boards/g.webp" },
+    a:   { seed: "a",   title: "Anime & Manga", description: "Anime and manga discussion", image: "/boards/a.webp" },
+    g:   { seed: "g",   title: "Technology",  description: "Technology discussion",  image: "/boards/g.webp" },
+    nub:   { seed: "nub",   title: "Nub Cat Community",  description: "Technology discussion",  image: "/boards/g.webp" },
 };
-export { DEFAULT_BOARDS as OFFICIAL_BOARDS };
+
+export const OFFICIAL_BOARDS: string[] = ["iq", "po", "biz", "a", "g"];
 
 export const BOARD_COLUMNS = ["sub", "com", "name", "time", "img", "threadPda", "threadSeed"];
-
-export const ESTIMATED_SOL_COST = {
-    thread: "0.023",
-    reply: "0.003",
-} as const;
 
 export const DB_ROOT_ID_BYTES = Buffer.from(iqlabs.utils.toSeedBytes(DB_ROOT_ID));
 export const DB_ROOT_KEY = iqlabs.contract.getDbRootPda(DB_ROOT_ID_BYTES);
@@ -41,7 +38,7 @@ export function deriveInstructionTablePda(seed: string): string {
 }
 
 export function resolveBoardSeed(slug: string): string {
-    return DEFAULT_BOARDS[slug]?.seed ?? slug;
+    return BOARD_METADATA[slug]?.seed ?? slug;
 }
 
 export function threadTableSeed(boardId: string, randomId: string): string {

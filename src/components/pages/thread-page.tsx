@@ -37,8 +37,8 @@ export default function ThreadPage({ boardId, threadId: threadPda, scrollTo }: {
 
     const { threads: boardThreads } = useThreads(boardId);
 
-    const { boards } = useBoards();
-    const boardMeta = boards.find((b) => b.id === boardId);
+    const { resolveMeta } = useBoards();
+    const boardMeta = resolveMeta(boardId);
     const gate = useBoardGate(boardId);
     const displayName = boardMeta?.title ?? gate.tableName ?? "";
     const displaySlug = boardMeta?.id ?? (gate.tableName || boardId);
