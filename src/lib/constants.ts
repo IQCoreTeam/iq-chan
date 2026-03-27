@@ -19,7 +19,7 @@ export const BOARD_METADATA: Record<string, { seed: string; title: string; descr
     biz: { seed: "biz", title: "Business & Finance", description: "Business and finance discussion", image: "/boards/biz.webp" },
     a:   { seed: "a",   title: "Anime & Manga", description: "Anime and manga discussion", image: "/boards/a.webp" },
     g:   { seed: "g",   title: "Technology",  description: "Technology discussion",  image: "/boards/g.webp" },
-   // nub:   { seed: "nub",   title: "Nub Cat Community",  description: "Technology discussion",  image: "nub image here " }, we need to create the nub board first before we make the metadata 
+    nub:   { seed: "nub",   title: "Nub Cat Community",  description: "Technology discussion",  image: "/boards/nubcat.webp" },
 };
 
 export const OFFICIAL_BOARDS: string[] = ["iq", "po", "biz", "a", "g"];
