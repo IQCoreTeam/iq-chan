@@ -1,6 +1,6 @@
 import { Connection, PublicKey } from "@solana/web3.js";
 import iqlabs from "iqlabs-sdk";
-import { FEED_SEED_PREFIX, THREADS_PER_PAGE, DB_ROOT_ID, DEFAULT_BOARDS } from "./constants";
+import { FEED_SEED_PREFIX, THREADS_PER_PAGE, DB_ROOT_ID, BOARD_METADATA } from "./constants";
 import { fetchAllTableRows } from "./gateway";
 import type { Post, Reply, BoardMeta } from "./types";
 
@@ -90,8 +90,8 @@ export async function fetchFeedThreads(
 }
 
 // Build seedHex → boardId lookup from known boards (exported for admin page)
-// Includes boards not in DEFAULT_BOARDS (e.g. gated boards like "iq")
-const KNOWN_BOARD_IDS = [...Object.keys(DEFAULT_BOARDS), "iq"];
+// Includes boards not in BOARD_METADATA (e.g. gated boards like "iq")
+const KNOWN_BOARD_IDS = Object.keys(BOARD_METADATA);
 export const SEED_TO_BOARD_ID = new Map<string, string>();
 for (const id of KNOWN_BOARD_IDS) {
     SEED_TO_BOARD_ID.set(Buffer.from(iqlabs.utils.toSeedBytes(id)).toString("hex"), id);
@@ -120,12 +120,12 @@ export async function fetchBoards(connection: Connection): Promise<{
         );
 
         const knownSeeds = new Set(
-            Object.keys(DEFAULT_BOARDS).map((id) =>
+            Object.keys(BOARD_METADATA).map((id) =>
                 Buffer.from(iqlabs.utils.toSeedBytes(id)).toString("hex"),
             ),
         );
 
-        const boards: BoardMeta[] = Object.entries(DEFAULT_BOARDS).map(([id, m]) => ({
+        const boards: BoardMeta[] = Object.entries(BOARD_METADATA).map(([id, m]) => ({
             id, seed: m.seed ?? id, title: m.title, description: m.description, image: m.image,
         }));
 
@@ -151,7 +151,7 @@ export async function fetchBoards(connection: Connection): Promise<{
         return { boards, creator };
     } catch {
         // Fallback to hardcoded without gate info
-        const boards: BoardMeta[] = Object.entries(DEFAULT_BOARDS).map(([id, m]) => ({
+        const boards: BoardMeta[] = Object.entries(BOARD_METADATA).map(([id, m]) => ({
             id, seed: m.seed ?? id, title: m.title, description: m.description, image: m.image,
         }));
         return { boards, creator: null };
