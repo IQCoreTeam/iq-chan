@@ -19,7 +19,10 @@ export const BOARD_METADATA: Record<string, { seed: string; title: string; descr
     biz: { seed: "biz", title: "Business & Finance", description: "Business and finance discussion", image: "/boards/biz.webp" },
     a:   { seed: "a",   title: "Anime & Manga", description: "Anime and manga discussion", image: "/boards/a.webp" },
     g:   { seed: "g",   title: "Technology",  description: "Technology discussion",  image: "/boards/g.webp" },
-    nub:   { seed: "nub",   title: "Nub Cat Community",  description: "Technology discussion",  image: "/boards/nubcat.webp" },
+    nub:   { seed: "nub",   title: "Nub Cat Community",  description: "Nub Cat Community",  image: "/boards/nubcat.webp" },
+    mlg:   { seed: "mlg",   title: "Community For MLG",  description: "Community For MLG",  image: "/boards/mlg.webp" },
+    y2k:   { seed: "y2k",   title: "Community For Y2kDotCom",  description: "Community For Y2kDotCom",  image: "/boards/y2k.webp" },
+
 };
 
 export const OFFICIAL_BOARDS: string[] = ["iq", "po", "biz", "a", "g"];
