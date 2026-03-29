@@ -1,7 +1,7 @@
-import { Connection, PublicKey } from "@solana/web3.js";
+import { PublicKey } from "@solana/web3.js";
 import iqlabs from "iqlabs-sdk";
-import { FEED_SEED_PREFIX, THREADS_PER_PAGE, DB_ROOT_ID, BOARD_METADATA } from "./constants";
-import { fetchAllTableRows } from "./gateway";
+import { FEED_SEED_PREFIX, THREADS_PER_PAGE, BOARD_METADATA } from "./constants";
+import { fetchAllTableRows, fetchDbRoot } from "./gateway";
 import type { Post, Reply, BoardMeta } from "./types";
 
 const PROGRAM_ID = iqlabs.contract.PROGRAM_ID;
@@ -97,27 +97,12 @@ for (const id of KNOWN_BOARD_IDS) {
     SEED_TO_BOARD_ID.set(Buffer.from(iqlabs.utils.toSeedBytes(id)).toString("hex"), id);
 }
 
-/** Read the on-chain board list from dbRoot table_seeds. */
-export function gateFromMeta(meta: Awaited<ReturnType<typeof iqlabs.reader.fetchTableMeta>>): Pick<BoardMeta, "gateMint" | "gateAmount" | "gateType"> {
-    const mint: string = meta.gate?.mint?.toBase58?.() ?? "";
-    const isGated = mint && mint !== "11111111111111111111111111111111";
-    if (!isGated) return {};
-    return {
-        gateMint: mint,
-        gateAmount: typeof meta.gate?.amount === "number" ? meta.gate.amount : (meta.gate?.amount?.toNumber?.() ?? 0),
-        gateType: (meta.gate as any)?.gate_type ?? meta.gate?.gateType ?? 0,
-    };
-}
-
-export async function fetchBoards(connection: Connection): Promise<{
+export async function fetchBoards(): Promise<{
     boards: BoardMeta[];
     creator: string | null;
 }> {
     try {
-        const { creator, tableSeeds } = await iqlabs.reader.getTablelistFromRoot(
-            connection,
-            DB_ROOT_ID,
-        );
+        const { creator, tableSeeds, tableNames } = await fetchDbRoot();
 
         const knownSeeds = new Set(
             Object.keys(BOARD_METADATA).map((id) =>
@@ -130,27 +115,21 @@ export async function fetchBoards(connection: Connection): Promise<{
         }));
 
         // Append any onboarded boards not in the hardcoded list
-        for (const seedHex of tableSeeds as string[]) {
+        for (const seedHex of tableSeeds) {
             if (knownSeeds.has(seedHex)) continue;
             const boardId = SEED_TO_BOARD_ID.get(seedHex) ?? seedHex;
-            try {
-                const seedArg = SEED_TO_BOARD_ID.has(seedHex) ? boardId : Buffer.from(seedHex, "hex");
-                const meta = await iqlabs.reader.fetchTableMeta(
-                    connection, iqlabs.contract.PROGRAM_ID, DB_ROOT_ID, seedArg,
-                );
-                boards.push({
-                    id: boardId,
-                    seed: boardId,
-                    title: meta.name || boardId,
-                    description: "",
-                    image: "",
-                });
-            } catch { /* skip boards with no table account */ }
+            const name = tableNames[seedHex] || boardId;
+            boards.push({
+                id: boardId,
+                seed: boardId,
+                title: name,
+                description: "",
+                image: "",
+            });
         }
 
         return { boards, creator };
     } catch {
-        // Fallback to hardcoded without gate info
         const boards: BoardMeta[] = Object.entries(BOARD_METADATA).map(([id, m]) => ({
             id, seed: m.seed ?? id, title: m.title, description: m.description, image: m.image,
         }));

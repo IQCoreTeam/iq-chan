@@ -22,6 +22,7 @@ import {
 } from "../lib/constants";
 import { getFeedPda } from "../lib/board";
 import { notifyPost } from "../lib/gateway";
+import { useWalletModal } from "../lib/wallet-modal";
 
 function gateError(e: unknown): string {
     const raw = e instanceof Error ? e.message : String(e);
@@ -32,6 +33,7 @@ function gateError(e: unknown): string {
 export function usePost() {
     const { connection } = useConnection();
     const wallet = useWallet();
+    const { openWalletModal } = useWalletModal();
     const [loading, setLoading] = useState(false);
     const [status, setStatus] = useState("");
     const [step, setStep] = useState(0);
@@ -39,7 +41,7 @@ export function usePost() {
     const [error, setError] = useState<Error | null>(null);
 
     const checkGate = useCallback(async (gate?: { mint: string; amount: number; gateType: number }) => {
-        if (!wallet.publicKey) throw new Error("Wallet not connected");
+        if (!wallet.publicKey) { openWalletModal(); throw new Error("Wallet not connected"); }
 
         const sol = await connection.getBalance(wallet.publicKey);
         if (sol < 0.005 * LAMPORTS_PER_SOL) throw new Error("Insufficient SOL balance");
@@ -64,8 +66,9 @@ export function usePost() {
             data: { sub: string; com: string; name: string; img?: string },
             gate?: { mint: string; amount: number; gateType: number },
         ) => {
-            if (!wallet.publicKey || !wallet.signTransaction)
-                throw new Error("Wallet not connected");
+            if (!wallet.publicKey || !wallet.signTransaction) {
+                openWalletModal(); return;
+            }
             setLoading(true);
             setTotalSteps(2);
             setStep(1);
@@ -215,7 +218,7 @@ export function usePost() {
             replyCount = 0,
             gate?: { mint: string; amount: number; gateType: number },
         ) => {
-            if (!wallet.publicKey) throw new Error("Wallet not connected");
+            if (!wallet.publicKey) { openWalletModal(); return; }
             setLoading(true);
             setTotalSteps(1);
             setStep(1);
@@ -278,7 +281,7 @@ export function usePost() {
 
     const editPost = useCallback(
         async (threadSeed: string, targetTxSig: string, newCom: string) => {
-            if (!wallet.publicKey) throw new Error("Wallet not connected");
+            if (!wallet.publicKey) { openWalletModal(); return; }
             setLoading(true);
             setError(null);
 
@@ -313,7 +316,7 @@ export function usePost() {
 
     const deletePost = useCallback(
         async (threadSeed: string, targetTxSig: string) => {
-            if (!wallet.publicKey) throw new Error("Wallet not connected");
+            if (!wallet.publicKey) { openWalletModal(); return; }
             setLoading(true);
             setError(null);
 

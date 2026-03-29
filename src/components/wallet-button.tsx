@@ -2,10 +2,11 @@
 
 import { useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
+import { useWalletModal } from "../lib/wallet-modal";
 
 export default function WalletButton() {
     const { publicKey, disconnect, wallets, select, connect, connecting } = useWallet();
-    const [open, setOpen] = useState(false);
+    const { open, openWalletModal, closeWalletModal } = useWalletModal();
     const [error, setError] = useState("");
 
     if (publicKey) {
@@ -34,7 +35,7 @@ export default function WalletButton() {
             // Wait for wallet adapter to process selection before connecting
             await new Promise((r) => setTimeout(r, 100));
             await connect();
-            setOpen(false);
+            closeWalletModal();
         } catch (e) {
             setError(e instanceof Error ? e.message : "Connection failed");
         }
@@ -44,7 +45,7 @@ export default function WalletButton() {
         <>
             <a
                 href="#"
-                onClick={(e) => { e.preventDefault(); setOpen(true); }}
+                onClick={(e) => { e.preventDefault(); openWalletModal(); }}
                 style={{ color: "#34345c", textDecoration: "none", fontSize: 12 }}
             >
                 [Connect Wallet]
@@ -64,7 +65,7 @@ export default function WalletButton() {
                         alignItems: "center",
                         justifyContent: "center",
                     }}
-                    onClick={() => setOpen(false)}
+                    onClick={() => closeWalletModal()}
                 >
                     {/* Win95-style raised panel */}
                     <div
@@ -92,7 +93,7 @@ export default function WalletButton() {
                                 Connect Wallet
                             </span>
                             <button
-                                onClick={() => setOpen(false)}
+                                onClick={() => closeWalletModal()}
                                 style={{
                                     background: "#d6daf0",
                                     border: "2px outset #eef2ff",

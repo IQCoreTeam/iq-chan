@@ -79,6 +79,31 @@ export async function notifyPost(tablePda: string, txSignature: string, row?: Re
     }
 }
 
+/** Fetch DbRoot data (tableSeeds, globalTableSeeds, creator, tableCreators, tableNames) from gateway. */
+export async function fetchDbRoot(): Promise<{
+    creator: string | null;
+    tableSeeds: string[];
+    globalTableSeeds: string[];
+    tableCreators: string[];
+    tableNames: Record<string, string>;
+}> {
+    const res = await gwFetch("/table/dbroot");
+    if (!res.ok) throw new Error(`fetchDbRoot failed: ${res.status}`);
+    return res.json();
+}
+
+/** Fetch on-chain Table metadata (name, columns, gate) from gateway. */
+export async function fetchTableMeta(pda: string): Promise<{
+    name: string;
+    columns: string[];
+    idCol: string;
+    gate: { mint: string; amount: number; gateType: number } | null;
+} | null> {
+    const res = await gwFetch(`/table/${pda}/meta`);
+    if (!res.ok) return null;
+    return res.json();
+}
+
 export async function fetchTableSlice(
     tablePda: string,
     sigs: string[],

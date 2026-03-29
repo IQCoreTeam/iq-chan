@@ -5,14 +5,18 @@ import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { PublicKey, Transaction, SystemProgram } from "@solana/web3.js";
 import iqlabs from "iqlabs-sdk";
 import { FooterNav } from "../board-nav";
-import { DB_ROOT_ID, DB_ROOT_ID_BYTES, DB_ROOT_KEY, BOARD_COLUMNS } from "../../lib/constants";
+import { DB_ROOT_ID_BYTES, DB_ROOT_KEY, BOARD_COLUMNS, deriveTablePda, resolveBoardSeed } from "../../lib/constants";
 import { SEED_TO_BOARD_ID } from "../../lib/board";
+import { useWalletModal } from "../../lib/wallet-modal";
+import { fetchDbRoot, fetchTableMeta } from "../../lib/gateway";
 
 const idl = require("iqlabs-sdk/idl/code_in.json");
 
 export default function AdminPage() {
     const { connection } = useConnection();
     const wallet = useWallet();
+    const { openWalletModal } = useWalletModal();
+    const [copiedSeed, setCopiedSeed] = useState<string | null>(null);
     const [creator, setCreator] = useState<string | null>(null);
     const [status, setStatus] = useState("");
     const [tableSeeds, setTableSeeds] = useState<string[]>([]);
@@ -27,50 +31,26 @@ export default function AdminPage() {
     const pubkey = wallet.publicKey?.toBase58();
     const isOwner = pubkey === creator;
     const isTableCreator = creatorList.includes(pubkey ?? "");
-    const isAdmin = isOwner || isTableCreator;
+    // Hardcoded admins until Zo calls manageTableCreators on-chain
+    const HARDCODED_ADMINS = ["B8d355pft6DfrQNetCqXNumRk8WoEs21waqeuPP3HUJC"];
+    const isAdmin = isOwner || isTableCreator || HARDCODED_ADMINS.includes(pubkey ?? "");
 
     useEffect(() => {
-        iqlabs.reader.getTablelistFromRoot(connection, DB_ROOT_ID)
-            .then(async (result: any) => {
-                const { tableSeeds: ts, globalTableSeeds: gs, creator: c } = result;
-                setTableSeeds(ts as string[]);
-                setGlobalTableSeeds(gs as string[]);
-                if (c) setCreator(c);
-
-                // Load existing table_creators by decoding DbRoot account directly
-                try {
-                    const { BorshAccountsCoder } = await import("@coral-xyz/anchor");
-                    const idl = require("iqlabs-sdk/idl/code_in.json");
-                    const coder = new BorshAccountsCoder(idl);
-                    const info = await connection.getAccountInfo(DB_ROOT_KEY);
-                    if (info) {
-                        const decoded = coder.decode("DbRoot", info.data) as any;
-                        const creators: PublicKey[] = decoded.table_creators ?? [];
-                        if (creators.length > 0) {
-                            setCreatorList(creators.map((pk: PublicKey) => pk.toBase58()));
-                        }
-                    }
-                } catch { /* ignore */ }
-
-                // Fetch on-chain Table.name for each seed — only board Tables will have one.
-                // Thread/metadata tables (e.g. "po/thread/...", "po/metadata") won't match a
-                // top-level Table PDA and fetchTableMeta will throw — we just skip those.
+        fetchDbRoot()
+            .then((result) => {
+                setTableSeeds(result.tableSeeds);
+                setGlobalTableSeeds(result.globalTableSeeds);
+                if (result.creator) setCreator(result.creator);
+                if (result.tableCreators.length > 0) setCreatorList(result.tableCreators);
+                // Table names come pre-resolved from the gateway
                 const names = new Map<string, string>();
-                await Promise.allSettled(
-                    (gs as string[]).map(async (hex) => {
-                        try {
-                            const meta = await iqlabs.reader.fetchTableMeta(
-                                connection, iqlabs.contract.PROGRAM_ID, DB_ROOT_ID,
-                                Buffer.from(hex, "hex"),
-                            );
-                            if (meta.name) names.set(hex, meta.name);
-                        } catch { /* not a named board table */ }
-                    }),
-                );
+                for (const [hex, name] of Object.entries(result.tableNames)) {
+                    names.set(hex, name);
+                }
                 setTableNames(names);
             })
             .catch(() => {});
-    }, [connection]);
+    }, []);
 
     const tableSeedSet = new Set(tableSeeds);
 
@@ -83,7 +63,7 @@ export default function AdminPage() {
     }
 
     async function sendInstruction(ix: ReturnType<typeof iqlabs.contract.onboardTableInstruction>) {
-        if (!wallet.publicKey || !wallet.signTransaction) return;
+        if (!wallet.publicKey || !wallet.signTransaction) { openWalletModal(); return; }
         const tx = new Transaction().add(ix);
         tx.feePayer = wallet.publicKey;
         tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
@@ -120,11 +100,14 @@ export default function AdminPage() {
             const seedBytes = iqlabs.utils.toSeedBytes(updateSeed);
             const tablePda = iqlabs.contract.getTablePda(DB_ROOT_KEY, seedBytes);
 
-            const columns = updateColumns
-                ? BOARD_COLUMNS.map((c) => Buffer.from(c))
-                : (await iqlabs.reader.fetchTableMeta(
-                    connection, iqlabs.contract.PROGRAM_ID, DB_ROOT_ID, updateSeed,
-                )).columns.map((c: string) => Buffer.from(c));
+            let columns: Buffer[];
+            if (updateColumns) {
+                columns = BOARD_COLUMNS.map((c) => Buffer.from(c));
+            } else {
+                const pda = deriveTablePda(updateSeed);
+                const meta = await fetchTableMeta(pda);
+                columns = (meta?.columns ?? BOARD_COLUMNS).map((c: string) => Buffer.from(c));
+            }
 
             await sendInstruction(
                 iqlabs.contract.updateTableInstruction(builder, {
@@ -188,42 +171,40 @@ export default function AdminPage() {
                     </p>
                 ) : (
                     <>
-                        {/* Board seeds — Public vs Private */}
                         <div style={{ fontSize: "12px", marginBottom: "16px" }}>
-                            <b>Public boards</b> (in table_seeds — shown on homepage):
-                            <div style={{ fontFamily: "monospace", fontSize: "11px", padding: "4px 0" }}>
-                                {tableSeeds.length === 0
-                                    ? <span style={{ color: "#89a" }}>None onboarded yet</span>
-                                    : tableSeeds.map((s) => {
-                                        const { id, name } = seedInfo(s);
-                                        return (
-                                            <span key={s} style={{ color: "#789922", marginRight: "12px" }}>
-                                                {id}{name && name !== id ? ` (${name})` : ""}
-                                            </span>
-                                        );
-                                    })}
+                            <b>Public tables</b> ({tableSeeds.length}):
+                            <div style={{ fontFamily: "monospace", fontSize: "10px", padding: "4px 0" }}>
+                                {tableSeeds.map((s) => {
+                                    const { id, name } = seedInfo(s);
+                                    return (
+                                        <div key={s} style={{ display: "flex", gap: "6px", alignItems: "baseline" }}>
+                                            <span style={{ color: "#556", fontSize: "9px", flexShrink: 0 }}>ID:</span>
+                                            <span style={{ color: copiedSeed === s ? "#0f0" : "#789922", minWidth: "100px", cursor: "pointer" }} title={s} onClick={() => { navigator.clipboard.writeText(s); setCopiedSeed(s); setTimeout(() => setCopiedSeed(null), 1200); }}>{copiedSeed === s ? "copied!" : id}</span>
+                                            {name && <>
+                                                <span style={{ color: "#556", fontSize: "9px", flexShrink: 0 }}>Name:</span>
+                                                <span style={{ color: "#789922" }}>{name}</span>
+                                            </>}
+                                        </div>
+                                    );
+                                })}
                             </div>
                         </div>
 
                         <div style={{ fontSize: "12px", marginBottom: "16px" }}>
-                            <b>All tables</b> (global_table_seeds — {globalTableSeeds.length} total. Not all are boards — some are threads or metadata. Make sure to onboard only actual boards.):
+                            <b>Private tables</b> ({globalTableSeeds.filter((s) => !tableSeedSet.has(s)).length}):
                             <div style={{ fontFamily: "monospace", fontSize: "10px", padding: "4px 0", maxHeight: "180px", overflow: "auto" }}>
                                 {tableNames.size === 0 && globalTableSeeds.length > 0 && (
                                     <div style={{ color: "#89a" }}>Loading names...</div>
                                 )}
-                                {globalTableSeeds.map((s) => {
+                                {globalTableSeeds.filter((s) => !tableSeedSet.has(s)).map((s) => {
                                     const { id, name } = seedInfo(s);
-                                    const isPublic = tableSeedSet.has(s);
                                     return (
                                         <div key={s} style={{ display: "flex", gap: "6px", alignItems: "baseline" }}>
-                                            <span style={{ width: "58px", flexShrink: 0, color: isPublic ? "#789922" : "#89a" }}>
-                                                {isPublic ? "[Public]" : "[Private]"}
-                                            </span>
                                             <span style={{ color: "#556", fontSize: "9px", flexShrink: 0 }}>ID:</span>
-                                            <span style={{ color: "#aaa", minWidth: "100px" }}>{id}</span>
+                                            <span style={{ color: copiedSeed === s ? "#0f0" : "#aaa", minWidth: "100px", cursor: "pointer" }} title={s} onClick={() => { navigator.clipboard.writeText(s); setCopiedSeed(s); setTimeout(() => setCopiedSeed(null), 1200); }}>{copiedSeed === s ? "copied!" : id}</span>
                                             {name && <>
                                                 <span style={{ color: "#556", fontSize: "9px", flexShrink: 0 }}>Name:</span>
-                                                <span style={{ color: isPublic ? "#789922" : "#c96" }}>{name}</span>
+                                                <span style={{ color: "#c96" }}>{name}</span>
                                             </>}
                                         </div>
                                     );
