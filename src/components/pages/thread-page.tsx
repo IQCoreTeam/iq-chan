@@ -7,8 +7,10 @@ import { usePost } from "../../hooks/use-post";
 import { useThreads } from "../../hooks/use-threads";
 import { scrollToPost } from "../../lib/highlight";
 import { THREADS_PER_PAGE } from "../../lib/constants";
+import { useWallet } from "@solana/wallet-adapter-react";
 import { useBoards } from "../../hooks/use-boards";
 import { useBoardGate } from "../../hooks/use-board-gate";
+import { useWalletModal } from "../../lib/wallet-modal";
 import ThreadDetail from "../thread-detail";
 import PostForm from "../post-form";
 import QuickReply from "../quick-reply";
@@ -17,6 +19,8 @@ import { FooterNav } from "../board-nav";
 const BACKOFF = [10, 15, 20, 30, 60, 90, 120];
 
 export default function ThreadPage({ boardId, threadId: threadPda, scrollTo }: { boardId: string; threadId: string; scrollTo?: string | null }) {
+    const { publicKey } = useWallet();
+    const { openWalletModal } = useWalletModal();
     const [qrOpen, setQrOpen] = useState(false);
     const [qrQuote, setQrQuote] = useState<string | undefined>();
     const [autoUpdate, setAutoUpdate] = useState(false);
@@ -108,9 +112,10 @@ export default function ThreadPage({ boardId, threadId: threadPda, scrollTo }: {
     }, [postReply, threadSeed, threadPda, boardId, totalReplies, addOptimisticRow, refresh]);
 
     const onQuote = useCallback((sig: string) => {
+        if (!publicKey) { openWalletModal(); return; }
         setQrQuote(sig);
         setQrOpen(true);
-    }, []);
+    }, [publicKey, openWalletModal]);
 
     return (
         <>
@@ -153,7 +158,7 @@ export default function ThreadPage({ boardId, threadId: threadPda, scrollTo }: {
             {threadSeed && (
                 <>
                     <div id="togglePostFormLink" className="mobile" style={{ textAlign: "center", margin: "10px 0" }}>
-                        [<a href="#" onClick={(e) => { e.preventDefault(); setQrOpen(true); setQrQuote(undefined); }}>Post a Reply</a>]
+                        [<a href="#" onClick={(e) => { e.preventDefault(); if (!publicKey) { openWalletModal(); return; } setQrOpen(true); setQrQuote(undefined); }}>Post a Reply</a>]
                     </div>
                     <div className="desktopPostForm">
                         <PostForm
@@ -227,7 +232,7 @@ export default function ThreadPage({ boardId, threadId: threadPda, scrollTo }: {
                     {countdown > 0 && <span style={{ marginLeft: 3 }}>{countdown}</span>}
                 </div>
                 <div style={{ position: "absolute", left: "50%", transform: "translateX(-50%)", fontSize: "110%" }}>
-                    [<a href="#" onClick={(e) => { e.preventDefault(); setQrOpen(true); }} style={{ color: "#34345c", textDecoration: "none" }}>Post a Reply</a>]
+                    [<a href="#" onClick={(e) => { e.preventDefault(); if (!publicKey) { openWalletModal(); return; } setQrOpen(true); }} style={{ color: "#34345c", textDecoration: "none" }}>Post a Reply</a>]
                 </div>
                 <div className="thread-stats" style={{ marginLeft: "auto" }}>
                     <span className="ts-replies" title="Replies">{totalReplies}</span>
@@ -241,7 +246,7 @@ export default function ThreadPage({ boardId, threadId: threadPda, scrollTo }: {
             {/* Mobile footer */}
             <div className="mobileThreadFooter mobile">
                 <div className="mobile center">
-                    <a className="mobilePostFormToggle button" href="#" onClick={(e) => { e.preventDefault(); setQrOpen(true); }}>Post a Reply</a>
+                    <a className="mobilePostFormToggle button" href="#" onClick={(e) => { e.preventDefault(); if (!publicKey) { openWalletModal(); return; } setQrOpen(true); }}>Post a Reply</a>
                 </div>
 
                 <div className="navLinks mobile">

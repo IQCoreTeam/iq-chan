@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
+import { useWalletModal } from "../../lib/wallet-modal";
 import { PublicKey, SystemProgram, Transaction } from "@solana/web3.js";
 import iqlabs from "iqlabs-sdk";
 // @ts-ignore — bn.js lacks type declarations
@@ -20,6 +21,7 @@ const idl = require("iqlabs-sdk/idl/code_in.json");
 export default function AddBoardPage() {
     const { connection } = useConnection();
     const wallet = useWallet();
+    const { openWalletModal } = useWalletModal();
     const [slug, setSlug] = useState("");
     const [title, setTitle] = useState("");
     const [gateEnabled, setGateEnabled] = useState(false);
@@ -32,7 +34,7 @@ export default function AddBoardPage() {
 
 
     async function handleCreate() {
-        if (!wallet.publicKey || !wallet.signTransaction) return;
+        if (!wallet.publicKey || !wallet.signTransaction) { openWalletModal(); return; }
         if (!slug) { setError("Board ID required"); return; }
         if (!title) { setError("Title required"); return; }
 
