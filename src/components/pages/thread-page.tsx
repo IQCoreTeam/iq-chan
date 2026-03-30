@@ -45,7 +45,7 @@ export default function ThreadPage({ boardId, threadId: threadPda, scrollTo }: {
     const boardMeta = resolveMeta(boardId);
     const gate = useBoardGate(boardId);
     const displayName = boardMeta?.title ?? gate.tableName ?? "";
-    const displaySlug = boardMeta?.id ?? (gate.tableName || boardId);
+    const displaySlug = boardMeta?.id ?? boardId;
     const boardTitle = displayName ? `/${displaySlug}/ - ${displayName}` : `/${boardId.slice(0, 12)}${boardId.length > 12 ? "..." : ""}/`;
     const threadSeed = op?.threadSeed ?? "";
 

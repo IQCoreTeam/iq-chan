@@ -55,7 +55,7 @@ export default function BoardPage({ boardId }: { boardId: string }) {
     const boardMeta = resolveMeta(boardId);
     const gate = useBoardGate(boardId);
     const displayName = boardMeta?.title ?? gate.tableName ?? "";
-    const displaySlug = boardMeta?.id ?? (gate.tableName || boardId);
+    const displaySlug = boardMeta?.id ?? boardId;
     const boardTitle = displayName ? `/${displaySlug}/ - ${displayName}` : `/${boardId.slice(0, 12)}${boardId.length > 12 ? "..." : ""}/`;
 
     const totalPages = Math.max(1, Math.ceil(threads.length / THREADS_PER_PAGE));
