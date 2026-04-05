@@ -5,7 +5,7 @@
  * ["sub", "com", "name", "time", "img", "threadPda", "threadSeed"]
  *
  * Usage: npx tsx scripts/update-board-columns.ts
- * Requires: ~/Desktop/deploy.json
+ * Requires: SOLANA_KEYPAIR_PATH env var (or ~/.config/solana/id.json)
  */
 
 import fs from "fs";
@@ -42,7 +42,7 @@ async function sendTx(connection: Connection, payer: Keypair, ix: any) {
 }
 
 async function main() {
-    const keypairPath = path.join(os.homedir(), "Desktop", "deploy.json");
+    const keypairPath = process.env.SOLANA_KEYPAIR_PATH || path.join(os.homedir(), ".config/solana/id.json");
     const payer = Keypair.fromSecretKey(Uint8Array.from(JSON.parse(fs.readFileSync(keypairPath, "utf8"))));
     console.log("Payer:", payer.publicKey.toBase58());
 

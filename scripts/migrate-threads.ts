@@ -6,7 +6,7 @@
  * then writes the OP row into the board table so they appear in the new board-table-based feed.
  *
  * Usage: npx tsx scripts/migrate-threads.ts
- * Requires: ~/Desktop/deploy.json
+ * Requires: SOLANA_KEYPAIR_PATH env var (or ~/.config/solana/id.json)
  */
 
 import fs from "fs";
@@ -32,7 +32,7 @@ async function fetchRows(pda: string, limit = 200): Promise<any[]> {
 }
 
 async function main() {
-    const keypairPath = path.join(os.homedir(), "Desktop", "deploy.json");
+    const keypairPath = process.env.SOLANA_KEYPAIR_PATH || path.join(os.homedir(), ".config/solana/id.json");
     const payer = Keypair.fromSecretKey(Uint8Array.from(JSON.parse(fs.readFileSync(keypairPath, "utf8"))));
     console.log("Payer:", payer.publicKey.toBase58());
 

@@ -7,7 +7,7 @@
  * Usage: npx ts-node --esm scripts/setup-boards.ts
  * (or: npx tsx scripts/setup-boards.ts)
  *
- * Requires: ~/Desktop/deploy.json (keypair file)
+ * Requires: SOLANA_KEYPAIR_PATH env var (or ~/.config/solana/id.json)
  */
 
 import fs from "fs";
@@ -56,7 +56,7 @@ async function sendTx(
 
 async function main() {
     // Load keypair
-    const keypairPath = path.join(os.homedir(), "Desktop", "deploy.json");
+    const keypairPath = process.env.SOLANA_KEYPAIR_PATH || path.join(os.homedir(), ".config/solana/id.json");
     const keypairData = JSON.parse(fs.readFileSync(keypairPath, "utf8"));
     const payer = Keypair.fromSecretKey(Uint8Array.from(keypairData));
     console.log("Payer:", payer.publicKey.toBase58());
