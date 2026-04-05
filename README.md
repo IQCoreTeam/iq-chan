@@ -145,7 +145,6 @@ Browser (Next.js static app)
 - Next.js 15 / React 19 / TypeScript
 - [IQ Labs SDK](https://github.com/IQCoreTeam/iqlabs-solana-sdk)
 - Solana Wallet Adapter
-- Tailwind CSS
 
 ## Links
 
