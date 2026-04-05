@@ -168,7 +168,7 @@ export default function HomePage() {
                                 <div key={t.threadPda} className="c-thread">
                                     <div className="c-board">{t.boardTitle}</div>
                                     <HashLink href={`/${t.boardId}/${t.threadPda}`} className="boardlink">
-                                        <img alt="" className="c-thumb" src={t.img} width="150" height="150" style={{ objectFit: "cover" }} onError={(e) => { (e.target as HTMLImageElement).src = "/404.webp"; }} />
+                                        <img alt="" className="c-thumb" src={t.img} width="150" height="150" style={{ objectFit: "cover" }} onError={(e) => { const img = e.target as HTMLImageElement; img.src = "/404.webp"; img.style.objectFit = "contain"; }} />
                                     </HashLink>
                                     <div className="c-teaser">
                                         {t.name && t.name !== "Anonymous" && <><b className="name">{t.name}</b>: </>}
