@@ -5,7 +5,7 @@ import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { PublicKey, Transaction, SystemProgram } from "@solana/web3.js";
 import iqlabs from "iqlabs-sdk";
 import { FooterNav } from "../board-nav";
-import { DB_ROOT_ID_BYTES, DB_ROOT_KEY, BOARD_COLUMNS, deriveTablePda, resolveBoardSeed } from "../../lib/constants";
+import { DB_ROOT_ID_BYTES, DB_ROOT_KEY, BOARD_COLUMNS, deriveTablePda, resolveBoardSeed, ADMIN_WALLETS } from "../../lib/constants";
 import { SEED_TO_BOARD_ID } from "../../lib/board";
 import { useWalletModal } from "../../lib/wallet-modal";
 import { fetchDbRoot, fetchTableMeta } from "../../lib/gateway";
@@ -31,9 +31,7 @@ export default function AdminPage() {
     const pubkey = wallet.publicKey?.toBase58();
     const isOwner = pubkey === creator;
     const isTableCreator = creatorList.includes(pubkey ?? "");
-    // Hardcoded admins until Zo calls manageTableCreators on-chain
-    const HARDCODED_ADMINS = ["B8d355pft6DfrQNetCqXNumRk8WoEs21waqeuPP3HUJC"];
-    const isAdmin = isOwner || isTableCreator || HARDCODED_ADMINS.includes(pubkey ?? "");
+    const isAdmin = isOwner || isTableCreator || ADMIN_WALLETS.includes(pubkey ?? "");
 
     useEffect(() => {
         fetchDbRoot()

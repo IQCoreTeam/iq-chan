@@ -5,10 +5,8 @@ import { resolveBoardSeed, deriveTablePda } from "../lib/constants";
 import { getGatewayUrl } from "../lib/config";
 import type { BoardMeta } from "../lib/types";
 
-type GateInfo = Pick<BoardMeta, "gateMint" | "gateAmount" | "gateType"> & { tableName?: string };
-
-export function useBoardGate(boardId: string): GateInfo {
-    const [gate, setGate] = useState<GateInfo>({});
+export function useBoardGate(boardId: string): Pick<BoardMeta, "gateMint" | "gateAmount" | "gateType"> & { tableName?: string } {
+    const [gate, setGate] = useState<Pick<BoardMeta, "gateMint" | "gateAmount" | "gateType"> & { tableName?: string }>({});
 
     useEffect(() => {
         if (!boardId) return;

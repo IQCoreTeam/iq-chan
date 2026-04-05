@@ -29,9 +29,5 @@ export function useThreads(boardId: string) {
         load();
     }, [load]);
 
-    const refresh = useCallback(() => {
-        load();
-    }, [load]);
-
-    return { threads, loading, error, hasMore, loadMore: refresh, refresh };
+    return { threads, loading, error, hasMore, loadMore: load, refresh: load };
 }

@@ -6,17 +6,13 @@ import { deriveInstructionTablePda, resolveBoardSeed, DB_ROOT_KEY } from "../lib
 import { getFeedPda } from "../lib/board";
 import type { Post, Reply } from "../lib/types";
 
-const PAGE_SIZE_DEFAULT = 500;
-
 export function usePaginatedReplies(
     threadPda: string,
     boardId?: string,
-    pageSize: number = PAGE_SIZE_DEFAULT,
 ) {
     const [allRows, setAllRows] = useState<Post[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<Error | null>(null);
-    const [page, setPage] = useState(0);
     const [refreshKey, setRefreshKey] = useState(0);
 
     // Fetch all rows + instructions via /rows (real-time), apply edits/deletes
@@ -86,33 +82,14 @@ export function usePaginatedReplies(
         [allRows],
     );
 
-    const allReplies = useMemo(
+    const replies: Reply[] = useMemo(
         () => allRows
             .filter((r) => r.__txSignature !== op?.__txSignature)
             .sort((a, b) => a.time - b.time),
         [allRows, op],
     );
 
-    // Client-side pagination
-    const totalReplies = allReplies.length;
-    const totalPages = Math.max(1, Math.ceil(totalReplies / pageSize));
-
-    const replies: Reply[] = useMemo(() => {
-        const start = page * pageSize;
-        return allReplies.slice(start, start + pageSize);
-    }, [allReplies, page, pageSize]);
-
-    const goToPage = useCallback((n: number) => {
-        setPage(Math.max(0, Math.min(n, totalPages - 1)));
-    }, [totalPages]);
-
-    const nextPage = useCallback(() => {
-        setPage((p) => Math.min(p + 1, totalPages - 1));
-    }, [totalPages]);
-
-    const prevPage = useCallback(() => {
-        setPage((p) => Math.max(p - 1, 0));
-    }, []);
+    const totalReplies = replies.length;
 
     const refresh = useCallback(() => {
         setRefreshKey((k) => k + 1);
@@ -128,14 +105,9 @@ export function usePaginatedReplies(
     return {
         op,
         replies,
-        page,
-        totalPages,
         totalReplies,
         loading,
         error,
-        goToPage,
-        nextPage,
-        prevPage,
         refresh,
         addOptimisticRow,
     };

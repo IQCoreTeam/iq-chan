@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { formatPostMessage } from "../lib/format";
 import { scrollToPost, highlightPost, showPostPreview, hidePostPreview } from "../lib/highlight";
 import { formatDate, timeAgo } from "../lib/time";
+import { EXPLORER_TX_URL } from "../lib/config";
 
 export default function Post({
     txSig,
@@ -87,7 +88,7 @@ export default function Post({
         ? <a href="#" title="Reply to this post" onClick={(e) => { e.preventDefault(); onQuote(txSig); }}>{display}</a>
         : replyLink
             ? <a href={replyLink} title="Reply to this post">{display}</a>
-            : <a href={`https://solscan.io/tx/${txSig}`} target="_blank" rel="noopener noreferrer" title="View on Solscan">{display}</a>;
+            : <a href={`${EXPLORER_TX_URL}${txSig}`} target="_blank" rel="noopener noreferrer" title="View on Solscan">{display}</a>;
 
     const menuDropdown = menuOpen ? (
         <div className="dd-menu" style={{ position: "absolute", top: "100%", left: 0, background: "#d6daf0", border: "1px solid #b7c5d9", zIndex: 9999, boxShadow: "1px 1px 2px rgba(0,0,0,0.15)", whiteSpace: "nowrap" }}>
@@ -104,7 +105,7 @@ export default function Post({
                         Open original file
                     </li>
                 )}
-                <li style={{ padding: "3px 10px", cursor: "pointer" }} onClick={() => { window.open(`https://solscan.io/tx/${txSig}`, "_blank"); setMenuOpen(false); }}>
+                <li style={{ padding: "3px 10px", cursor: "pointer" }} onClick={() => { window.open(`${EXPLORER_TX_URL}${txSig}`, "_blank"); setMenuOpen(false); }}>
                     View on Solscan
                 </li>
                 <li style={{ padding: "3px 10px", cursor: "pointer" }} onClick={() => { navigator.clipboard.writeText(txSig); setMenuOpen(false); }}>

@@ -4,7 +4,7 @@ import { useState, useMemo } from "react";
 import HashLink from "../hash-link";
 import { useThreads } from "../../hooks/use-threads";
 import { usePost } from "../../hooks/use-post";
-import { THREADS_PER_PAGE } from "../../lib/constants";
+import { THREADS_PER_PAGE, formatBoardTitle } from "../../lib/constants";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useBoards } from "../../hooks/use-boards";
 import { useBoardGate } from "../../hooks/use-board-gate";
@@ -13,6 +13,7 @@ import ThreadList from "../thread-list";
 import PostForm from "../post-form";
 import QuickReply from "../quick-reply";
 import { FooterNav } from "../board-nav";
+import GateNotice from "../gate-notice";
 
 function PageList({ page, totalPages, onPage }: { page: number; totalPages: number; onPage: (n: number) => void }) {
     return (
@@ -56,7 +57,7 @@ export default function BoardPage({ boardId }: { boardId: string }) {
     const gate = useBoardGate(boardId);
     const displayName = boardMeta?.title ?? gate.tableName ?? "";
     const displaySlug = boardMeta?.id ?? boardId;
-    const boardTitle = displayName ? `/${displaySlug}/ - ${displayName}` : `/${boardId.slice(0, 12)}${boardId.length > 12 ? "..." : ""}/`;
+    const boardTitle = formatBoardTitle(boardId, displaySlug, displayName);
 
     const totalPages = Math.max(1, Math.ceil(threads.length / THREADS_PER_PAGE));
     const pageThreads = useMemo(() => {
@@ -81,14 +82,7 @@ export default function BoardPage({ boardId }: { boardId: string }) {
                 <div className="boardTitle">{boardTitle}</div>
             </div>
 
-            {gate.gateMint && (
-                <div style={{ textAlign: "center", padding: "4px 8px", fontSize: "11px", color: "#789922", background: "#f0e0d6", border: "1px solid #d9bfb7", margin: "4px 0" }}>
-                    <div>Token-gated: hold {gate.gateAmount || 1} {gate.gateType === 1 ? "NFT from collection" : "token"} to post</div>
-                    <div style={{ fontFamily: "monospace", fontSize: "10px", color: "#707070", marginTop: "2px", wordBreak: "break-all" }}>
-                        CA: {gate.gateMint}
-                    </div>
-                </div>
-            )}
+            {gate.gateMint && <GateNotice gate={gate} />}
 
             <hr style={{ border: "none", borderTop: "1px solid #b7c5d9" }} />
 

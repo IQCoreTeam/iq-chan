@@ -28,10 +28,7 @@ export function getFeedPda(dbRootKey: PublicKey, boardId: string): PublicKey {
     )[0];
 }
 
-// TODO: filter feed rows to only show threads written via board table (new structure)
-// i.e. rows where threadPda === board table PDA. Old threads (threadPda = thread table PDA)
-// will appear until the board gets enough new activity to push them off.
-// Do this migration once the site is active and old threads are no longer prominent.
+// TODO: filter to threadPda === board table PDA once old thread-table threads age out
 export async function fetchFeedThreads(
     feedPda: PublicKey,
 ): Promise<{ threads: ThreadEntry[]; nextCursor?: string }> {
@@ -97,6 +94,12 @@ for (const id of KNOWN_BOARD_IDS) {
     SEED_TO_BOARD_ID.set(Buffer.from(iqlabs.utils.toSeedBytes(id)).toString("hex"), id);
 }
 
+function defaultBoards(): BoardMeta[] {
+    return Object.entries(BOARD_METADATA).map(([id, m]) => ({
+        id, seed: m.seed ?? id, title: m.title, description: m.description, image: m.image,
+    }));
+}
+
 export async function fetchBoards(): Promise<{
     boards: BoardMeta[];
     creator: string | null;
@@ -110,9 +113,7 @@ export async function fetchBoards(): Promise<{
             ),
         );
 
-        const boards: BoardMeta[] = Object.entries(BOARD_METADATA).map(([id, m]) => ({
-            id, seed: m.seed ?? id, title: m.title, description: m.description, image: m.image,
-        }));
+        const boards = defaultBoards();
 
         // Append any onboarded boards not in the hardcoded list
         for (const seedHex of tableSeeds) {
@@ -130,9 +131,6 @@ export async function fetchBoards(): Promise<{
 
         return { boards, creator };
     } catch {
-        const boards: BoardMeta[] = Object.entries(BOARD_METADATA).map(([id, m]) => ({
-            id, seed: m.seed ?? id, title: m.title, description: m.description, image: m.image,
-        }));
-        return { boards, creator: null };
+        return { boards: defaultBoards(), creator: null };
     }
 }

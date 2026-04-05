@@ -28,6 +28,11 @@ export const BOARD_METADATA: Record<string, { seed: string; title: string; descr
 
 export const OFFICIAL_BOARDS: string[] = ["iq", "po", "biz", "a", "g"];
 
+/** Wallets with admin access (create/update boards) */
+export const ADMIN_WALLETS: string[] = [
+    "B8d355pft6DfrQNetCqXNumRk8WoEs21waqeuPP3HUJC",
+];
+
 export const BOARD_COLUMNS = ["sub", "com", "name", "time", "img", "threadPda", "threadSeed"];
 
 export const DB_ROOT_ID_BYTES = Buffer.from(iqlabs.utils.toSeedBytes(DB_ROOT_ID));
@@ -47,4 +52,8 @@ export function resolveBoardSeed(slug: string): string {
 
 export function threadTableSeed(boardId: string, randomId: string): string {
     return `${boardId}/thread/${randomId}`;
+}
+
+export function formatBoardTitle(boardId: string, displaySlug: string, displayName: string): string {
+    return displayName ? `/${displaySlug}/ - ${displayName}` : `/${boardId.slice(0, 12)}${boardId.length > 12 ? "..." : ""}/`;
 }

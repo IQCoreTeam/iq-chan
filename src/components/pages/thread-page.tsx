@@ -6,7 +6,7 @@ import { usePaginatedReplies } from "../../hooks/use-paginated-replies";
 import { usePost } from "../../hooks/use-post";
 import { useThreads } from "../../hooks/use-threads";
 import { scrollToPost } from "../../lib/highlight";
-import { THREADS_PER_PAGE } from "../../lib/constants";
+import { THREADS_PER_PAGE, formatBoardTitle } from "../../lib/constants";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useBoards } from "../../hooks/use-boards";
 import { useBoardGate } from "../../hooks/use-board-gate";
@@ -15,6 +15,7 @@ import ThreadDetail from "../thread-detail";
 import PostForm from "../post-form";
 import QuickReply from "../quick-reply";
 import { FooterNav } from "../board-nav";
+import GateNotice from "../gate-notice";
 
 const BACKOFF = [10, 15, 20, 30, 60, 90, 120];
 
@@ -46,8 +47,9 @@ export default function ThreadPage({ boardId, threadId: threadPda, scrollTo }: {
     const gate = useBoardGate(boardId);
     const displayName = boardMeta?.title ?? gate.tableName ?? "";
     const displaySlug = boardMeta?.id ?? boardId;
-    const boardTitle = displayName ? `/${displaySlug}/ - ${displayName}` : `/${boardId.slice(0, 12)}${boardId.length > 12 ? "..." : ""}/`;
+    const boardTitle = formatBoardTitle(boardId, displaySlug, displayName);
     const threadSeed = op?.threadSeed ?? "";
+    const imageCount = (op?.img ? 1 : 0) + replies.filter((r) => r.img).length;
 
     // Scroll to a specific post when navigating from board page
     const scrolledRef = useRef(false);
@@ -128,14 +130,7 @@ export default function ThreadPage({ boardId, threadId: threadPda, scrollTo }: {
                 <div className="boardTitle">{boardTitle}</div>
             </div>
 
-            {gate.gateMint && (
-                <div style={{ textAlign: "center", padding: "4px 8px", fontSize: "11px", color: "#789922", background: "#f0e0d6", border: "1px solid #d9bfb7", margin: "4px 0" }}>
-                    <div>Token-gated: hold {gate.gateAmount || 1} {gate.gateType === 1 ? "NFT from collection" : "token"} to post</div>
-                    <div style={{ fontFamily: "monospace", fontSize: "10px", color: "#707070", marginTop: "2px", wordBreak: "break-all" }}>
-                        CA: {gate.gateMint}
-                    </div>
-                </div>
-            )}
+            {gate.gateMint && <GateNotice gate={gate} />}
 
             <div className="navLinks mobile" style={{ textAlign: "center", padding: "5px 0" }}>
                 <span className="mobileib button">
@@ -193,7 +188,7 @@ export default function ThreadPage({ boardId, threadId: threadPda, scrollTo }: {
                 <div className="thread-stats" style={{ marginLeft: "auto" }}>
                     <span className="ts-replies" title="Replies">{totalReplies}</span>
                     {" / "}
-                    <span className="ts-images" title="Images">{(op?.img ? 1 : 0) + replies.filter((r) => r.img).length}</span>
+                    <span className="ts-images" title="Images">{imageCount}</span>
                     {" / "}
                     <span className="ts-page" title="Page">{boardPage}</span>
                 </div>
@@ -237,7 +232,7 @@ export default function ThreadPage({ boardId, threadId: threadPda, scrollTo }: {
                 <div className="thread-stats" style={{ marginLeft: "auto" }}>
                     <span className="ts-replies" title="Replies">{totalReplies}</span>
                     {" / "}
-                    <span className="ts-images" title="Images">{(op?.img ? 1 : 0) + replies.filter((r) => r.img).length}</span>
+                    <span className="ts-images" title="Images">{imageCount}</span>
                     {" / "}
                     <span className="ts-page" title="Page">{boardPage}</span>
                 </div>
@@ -272,7 +267,7 @@ export default function ThreadPage({ boardId, threadId: threadPda, scrollTo }: {
                 <div className="thread-stats mobile">
                     <span className="ts-replies" title="Replies">{totalReplies}</span>
                     {" / "}
-                    <span className="ts-images" title="Images">{(op?.img ? 1 : 0) + replies.filter((r) => r.img).length}</span>
+                    <span className="ts-images" title="Images">{imageCount}</span>
                     {" / "}
                     <span className="ts-page" title="Page">{boardPage}</span>
                 </div>

@@ -8,6 +8,8 @@ const AKASH_DIRECT = "https://fem4pe7sthdm5f9fkhc1fnmpos.ingress.akashprovid.com
 
 export const GATEWAY_FALLBACKS = [PRIMARY_GATEWAY, AKASH_DIRECT, BACKUP_GATEWAY];
 
+export const EXPLORER_TX_URL = "https://solscan.io/tx/";
+
 /** Gateway URL - user can override via localStorage "blockchan_gateway" */
 export function getGatewayUrl(): string {
     if (typeof window !== "undefined") {
