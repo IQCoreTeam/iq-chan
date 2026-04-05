@@ -2,7 +2,8 @@ const { Connection, PublicKey } = require("@solana/web3.js");
 const iqlabs = require("iqlabs-sdk").default;
 
 async function main() {
-    const connection = new Connection("https://mainnet.helius-rpc.com/?api-key=f27e768e-586d-4e00-a35e-ef4d504101f5", "confirmed");
+    const rpc = process.env.NEXT_PUBLIC_RPC_ENDPOINT || "https://api.mainnet-beta.solana.com";
+    const connection = new Connection(rpc, "confirmed");
     const DB_ROOT_ID_BYTES = Buffer.from(iqlabs.utils.toSeedBytes("iqchan"));
     const DB_ROOT_KEY = iqlabs.contract.getDbRootPda(DB_ROOT_ID_BYTES);
     console.log("DB_ROOT_KEY:", DB_ROOT_KEY.toBase58());
