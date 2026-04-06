@@ -193,7 +193,7 @@ export default function HomePage() {
                         <div id="c-threads">
                             {popular.length === 0 ? (
                                 <div style={{ textAlign: "center", padding: "10px", color: "#89a", fontSize: "12px" }}>
-                                    No threads yet
+                                    {totalPosts === null ? "Loading threads..." : "No threads yet"}
                                 </div>
                             ) : popular.map((t) => (
                                 <div key={t.threadPda} className="c-thread">

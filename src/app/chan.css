@@ -85,11 +85,9 @@
 /* Board banner */
 .boardBanner {
     text-align: center;
-    padding: 20px 10px 10px;
+    padding: 25px 10px 10px;
     background: linear-gradient(to bottom, #d6daf0 0%, #eef2ff 100%);
-    margin-left: calc(-50vw + 50%);
-    margin-right: calc(-50vw + 50%);
-    margin-bottom: 5px;
+    margin: -5px calc(-50vw + 50%) 5px;
 }
 
 .boardBanner .title img {
