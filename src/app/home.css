@@ -159,6 +159,16 @@ br.clear-bug {
 }
 
 /* Popular boards / threads */
+.c-divider {
+    width: 100%;
+    text-align: center;
+    font-size: 11px;
+    color: #89a;
+    margin: 8px 0 4px;
+    border-top: 1px solid #d9e1f2;
+    padding-top: 6px;
+}
+
 #c-threads {
     text-align: center;
 }

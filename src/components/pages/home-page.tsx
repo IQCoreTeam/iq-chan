@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import HashLink from "../hash-link";
-import { DB_ROOT_KEY, getRandomBanner } from "../../lib/constants";
+import { DB_ROOT_KEY, getRandomBanner, NO_IMAGE_PLACEHOLDERS } from "../../lib/constants";
 import { useBoards } from "../../hooks/use-boards";
 import { getFeedPda } from "../../lib/board";
 import { fetchAllTableRows } from "../../lib/gateway";
@@ -17,12 +17,28 @@ interface PopularThread {
     com: string;
     name: string;
     img?: string;
+    fallbackImg: string;
+}
+
+function toDisplayThread(pda: string, t: { boardId: string; op: Post; count: number }, boards: BoardMeta[], fallbackImg: string): PopularThread {
+    const board = boards.find((b) => b.id === t.boardId);
+    return {
+        boardId: t.boardId,
+        boardTitle: board?.title ?? t.boardId,
+        threadPda: pda,
+        sub: t.op.sub || "",
+        com: t.op.com || "",
+        name: t.op.name || "",
+        img: t.op.img || fallbackImg,
+        fallbackImg,
+    };
 }
 
 function useHomeData(boards: BoardMeta[]) {
     const [totalPosts, setTotalPosts] = useState<number | null>(null);
     const [totalThreads, setTotalThreads] = useState<number | null>(null);
     const [popular, setPopular] = useState<PopularThread[]>([]);
+    const [trendingCount, setTrendingCount] = useState(0);
     const [allThreads, setAllThreads] = useState<{ boardId: string; threadPda: string }[]>([]);
 
     useEffect(() => {
@@ -31,14 +47,15 @@ function useHomeData(boards: BoardMeta[]) {
         async function load() {
             try {
                 const feedResults = await Promise.all(
-                    boards.map((b) => fetchAllTableRows(getFeedPda(DB_ROOT_KEY, b.seed).toBase58()).then((rows) => ({ boardId: b.id, rows }))),
+                    boards.map((b) => fetchAllTableRows(getFeedPda(DB_ROOT_KEY, b.seed).toBase58(), 50).then((rows) => ({ boardId: b.id, rows }))),
                 );
                 if (cancelled) return;
 
-                const allRows = feedResults.flatMap((r) => r.rows);
                 const threadMap = new Map<string, { boardId: string; op: Post | null; count: number; lastActivity: number }>();
+                let totalPostCount = 0;
 
                 for (const { boardId, rows } of feedResults) {
+                    totalPostCount += rows.length;
                     for (const row of rows) {
                         const post = row as Post;
                         if (!post.threadPda) continue;
@@ -59,38 +76,52 @@ function useHomeData(boards: BoardMeta[]) {
                     }
                 }
 
-                setTotalPosts(allRows.length);
+                setTotalPosts(totalPostCount);
                 setTotalThreads(threadMap.size);
 
-                // All threads with OPs for "I'm Feeling Lucky"
-                const allEntries = [...threadMap.entries()]
-                    .filter(([, t]) => t.op)
-                    .map(([pda, t]) => ({ boardId: t.boardId, threadPda: pda }));
-                setAllThreads(allEntries);
+                const withOp = [...threadMap.entries()]
+                    .filter(([, t]) => t.op) as [string, { boardId: string; op: Post; count: number; lastActivity: number }][];
 
+                setAllThreads(withOp.map(([pda, t]) => ({ boardId: t.boardId, threadPda: pda })));
+
+                // Top 4 trending: image threads first, then by hot score
                 const now = Date.now();
-                const sorted = [...threadMap.entries()]
-                    .filter(([, t]) => t.op?.img)
+                const hotScore = (t: { count: number; lastActivity: number }) =>
+                    t.count / ((now - t.lastActivity) / 60000 + 5);
+                const trending = [...withOp]
                     .sort(([, a], [, b]) => {
-                        const ageA = (now - a.lastActivity) / 60000 + 5;
-                        const ageB = (now - b.lastActivity) / 60000 + 5;
-                        return (b.count / ageB) - (a.count / ageA);
+                        const aImg = a.op.img ? 1 : 0;
+                        const bImg = b.op.img ? 1 : 0;
+                        if (aImg !== bImg) return bImg - aImg;
+                        return hotScore(b) - hotScore(a);
                     })
-                    .slice(0, 8)
-                    .map(([pda, t]) => {
-                        const board = boards.find((b) => b.id === t.boardId);
-                        return {
-                            boardId: t.boardId,
-                            boardTitle: board?.title ?? t.boardId,
-                            threadPda: pda,
-                            sub: t.op!.sub || "",
-                            com: t.op!.com || "",
-                            name: t.op!.name || "",
-                            img: t.op!.img,
-                        };
-                    });
+                    .slice(0, 4);
 
-                setPopular(sorted);
+                // Fill remaining slots (up to 8) with recent, image-first then by time
+                const trendingPdas = new Set(trending.map(([pda]) => pda));
+                const recentArr = [...withOp]
+                    .filter(([pda]) => !trendingPdas.has(pda))
+                    .sort(([, a], [, b]) => {
+                        const aImg = a.op.img ? 1 : 0;
+                        const bImg = b.op.img ? 1 : 0;
+                        if (aImg !== bImg) return bImg - aImg;
+                        return b.lastActivity - a.lastActivity;
+                    })
+                    .slice(0, 8 - trending.length);
+
+                // Assign unique placeholders to no-image threads first
+                const all = [...trending, ...recentArr];
+                const shuffled = [...NO_IMAGE_PLACEHOLDERS].sort(() => Math.random() - 0.5);
+                const noImgIndices = all.map(([, t], i) => t.op.img ? -1 : i).filter((i) => i >= 0);
+                const fallbacks: string[] = new Array(all.length).fill(shuffled[0]);
+                noImgIndices.forEach((idx, i) => { fallbacks[idx] = shuffled[i % shuffled.length]; });
+                // Fill image threads with whatever's left (only used if their URL breaks)
+                let fi = noImgIndices.length;
+                all.forEach(([, t], i) => { if (t.op.img) fallbacks[i] = shuffled[fi++ % shuffled.length]; });
+                const combined = all.map(([pda, t], i) => toDisplayThread(pda, t, boards, fallbacks[i]));
+
+                setTrendingCount(trending.length);
+                setPopular(combined);
             } catch {}
         }
 
@@ -98,12 +129,12 @@ function useHomeData(boards: BoardMeta[]) {
         return () => { cancelled = true; };
     }, [boards]);
 
-    return { totalPosts, totalThreads, popular, allThreads };
+    return { totalPosts, totalThreads, popular, trendingCount, allThreads };
 }
 
 export default function HomePage() {
     const { boards } = useBoards();
-    const { totalPosts, totalThreads, popular, allThreads } = useHomeData(boards);
+    const { totalPosts, totalThreads, popular, trendingCount, allThreads } = useHomeData(boards);
     const [bannerSrc, setBannerSrc] = useState("");
     useEffect(() => { setBannerSrc(getRandomBanner()); }, []);
     const [luckyHref, setLuckyHref] = useState(`/${boards[0]?.id ?? "po"}`);
@@ -196,19 +227,22 @@ export default function HomePage() {
                                 <div style={{ textAlign: "center", padding: "10px", color: "#89a", fontSize: "12px" }}>
                                     {totalPosts === null ? "Loading threads..." : "No threads yet"}
                                 </div>
-                            ) : popular.map((t) => (
+                            ) : popular.flatMap((t, i) => [
+                                ...(i === trendingCount && trendingCount > 0 && trendingCount < popular.length
+                                    ? [<div key="divider" className="c-divider">— Recent —</div>]
+                                    : []),
                                 <div key={t.threadPda} className="c-thread">
                                     <div className="c-board">{t.boardTitle}</div>
                                     <HashLink href={`/${t.boardId}/${t.threadPda}`} className="boardlink">
-                                        <img alt="" className="c-thumb" src={t.img} width="150" height="150" style={{ objectFit: "cover" }} onError={(e) => { const img = e.target as HTMLImageElement; img.src = "/404.webp"; img.style.objectFit = "contain"; }} />
+                                        <img alt="" className="c-thumb" src={t.img} width="150" height="150" style={{ objectFit: "cover" }} onError={(e) => { const img = e.target as HTMLImageElement; img.src = t.fallbackImg; img.style.objectFit = "contain"; }} />
                                     </HashLink>
                                     <div className="c-teaser">
                                         {t.name && t.name !== "Anonymous" && <><b className="name">{t.name}</b>: </>}
                                         {t.sub && <b>{t.sub} </b>}
                                         {t.com.slice(0, 120)}{t.com.length > 120 ? "..." : ""}
                                     </div>
-                                </div>
-                            ))}
+                                </div>,
+                            ])}
                         </div>
                     </div>
                 </div>
