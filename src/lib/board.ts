@@ -29,9 +29,11 @@ export function getFeedPda(dbRootKey: PublicKey, boardId: string): PublicKey {
 }
 
 // TODO: filter to threadPda === board table PDA once old thread-table threads age out
-export async function fetchFeedThreads(
+
+/** Phase 1: Fetch feed rows only — returns threads with OPs but no reply previews. Fast. */
+export async function fetchFeedThreadsQuick(
     feedPda: PublicKey,
-): Promise<{ threads: ThreadEntry[]; nextCursor?: string }> {
+): Promise<ThreadEntry[]> {
     const threads = new Map<string, ThreadEntry>();
 
     const feedRows = await fetchAllTableRows(feedPda.toBase58(), THREADS_PER_PAGE * 3);
@@ -44,7 +46,6 @@ export async function fetchFeedThreads(
         const existing = threads.get(post.threadPda);
 
         if (existing) {
-            // OP = earliest post for this thread (both OP and replies have threadSeed)
             if (!existing.opData || time < existing.opData.time) existing.opData = post;
             existing.lastActivityTime = Math.max(existing.lastActivityTime, time);
         } else {
@@ -58,32 +59,29 @@ export async function fetchFeedThreads(
         }
     }
 
-    // Fetch OP + reply previews for each thread
-    await Promise.all(
-        [...threads.values()].map(async (entry) => {
-            const rows = await fetchAllTableRows(entry.threadPda, 50);
-
-            // OP = earliest post with threadSeed (may already be in entry.opData from feed)
-            const opFromRows = rows.filter((r) => !!r.threadSeed)
-                .reduce<Post | undefined>((a, b) => !a || (b as Post).time < a.time ? b as Post : a, undefined);
-            if (opFromRows && !entry.opData) entry.opData = opFromRows;
-
-            // Everything except the OP is a reply
-            const opSig = entry.opData?.__txSignature ?? opFromRows?.__txSignature;
-            const replies = rows
-                .filter((r) => r.__txSignature !== opSig)
-                .sort((a, b) => (a.time as number) - (b.time as number));
-
-            entry.replyCount = replies.length;
-            entry.lastReplies = replies.slice(-REPLY_PREVIEW_COUNT) as Reply[];
-        }),
-    );
-
-    const sorted = [...threads.values()]
+    return [...threads.values()]
         .filter((t) => t.opData !== null)
         .sort((a, b) => b.lastActivityTime - a.lastActivityTime);
+}
 
-    return { threads: sorted, nextCursor: undefined };
+/** Phase 2: Fetch reply previews for a single thread. Called lazily after initial render. */
+export async function fetchThreadPreviews(entry: ThreadEntry): Promise<ThreadEntry> {
+    const rows = await fetchAllTableRows(entry.threadPda, 50);
+
+    const opFromRows = rows.filter((r) => !!r.threadSeed)
+        .reduce<Post | undefined>((a, b) => !a || (b as Post).time < a.time ? b as Post : a, undefined);
+    if (opFromRows && !entry.opData) entry.opData = opFromRows;
+
+    const opSig = entry.opData?.__txSignature ?? opFromRows?.__txSignature;
+    const replies = rows
+        .filter((r) => r.__txSignature !== opSig)
+        .sort((a, b) => (a.time as number) - (b.time as number));
+
+    return {
+        ...entry,
+        replyCount: replies.length,
+        lastReplies: replies.slice(-REPLY_PREVIEW_COUNT) as Reply[],
+    };
 }
 
 // Build seedHex → boardId lookup from known boards (exported for admin page)
