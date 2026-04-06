@@ -23,6 +23,7 @@ function useHomeData(boards: BoardMeta[]) {
     const [totalPosts, setTotalPosts] = useState<number | null>(null);
     const [totalThreads, setTotalThreads] = useState<number | null>(null);
     const [popular, setPopular] = useState<PopularThread[]>([]);
+    const [allThreads, setAllThreads] = useState<{ boardId: string; threadPda: string }[]>([]);
 
     useEffect(() => {
         let cancelled = false;
@@ -61,6 +62,12 @@ function useHomeData(boards: BoardMeta[]) {
                 setTotalPosts(allRows.length);
                 setTotalThreads(threadMap.size);
 
+                // All threads with OPs for "I'm Feeling Lucky"
+                const allEntries = [...threadMap.entries()]
+                    .filter(([, t]) => t.op)
+                    .map(([pda, t]) => ({ boardId: t.boardId, threadPda: pda }));
+                setAllThreads(allEntries);
+
                 const now = Date.now();
                 const sorted = [...threadMap.entries()]
                     .filter(([, t]) => t.op?.img)
@@ -91,20 +98,20 @@ function useHomeData(boards: BoardMeta[]) {
         return () => { cancelled = true; };
     }, [boards]);
 
-    return { totalPosts, totalThreads, popular };
+    return { totalPosts, totalThreads, popular, allThreads };
 }
 
 export default function HomePage() {
     const { boards } = useBoards();
-    const { totalPosts, totalThreads, popular } = useHomeData(boards);
+    const { totalPosts, totalThreads, popular, allThreads } = useHomeData(boards);
     const [bannerSrc] = useState(() => getRandomBanner());
     const [luckyHref, setLuckyHref] = useState(`/${boards[0]?.id ?? "po"}`);
     useEffect(() => {
-        if (popular.length > 0) {
-            const t = popular[Math.floor(Math.random() * popular.length)];
+        if (allThreads.length > 0) {
+            const t = allThreads[Math.floor(Math.random() * allThreads.length)];
             setLuckyHref(`/${t.boardId}/${t.threadPda}`);
         }
-    }, [popular]);
+    }, [allThreads]);
 
     return (
         <div className="fp-wrap">

@@ -92,6 +92,12 @@
     margin-bottom: 5px;
 }
 
+.boardBanner .title img {
+    background: #000;
+    padding: 2px;
+    border: 1px solid #000;
+}
+
 .boardTitle {
     font-family: Tahoma, sans-serif;
     font-size: 28px;
