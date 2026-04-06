@@ -89,6 +89,7 @@ async function main() {
                 }, {
                     db_root_id: Buffer.from(iqlabs.utils.toSeedBytes(DB_ROOT_ID)),
                     table_seed: Buffer.from(iqlabs.utils.toSeedBytes(board.id)),
+                    table_hint: Buffer.from(board.id),
                     table_name: Buffer.from(board.title),
                     column_names: ["title", "description", "image", "time"].map((c) => Buffer.from(c)),
                     id_col: Buffer.from("time"),

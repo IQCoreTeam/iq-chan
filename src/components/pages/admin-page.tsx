@@ -9,7 +9,6 @@ import { DB_ROOT_ID_BYTES, DB_ROOT_KEY, BOARD_COLUMNS, BOARD_METADATA, deriveTab
 import { useWalletModal } from "../../lib/wallet-modal";
 import { fetchDbRoot, fetchTableMeta } from "../../lib/gateway";
 
-const idl = require("iqlabs-sdk/idl/code_in.json");
 
 export default function AdminPage() {
     const { connection } = useConnection();
@@ -72,7 +71,7 @@ export default function AdminPage() {
         if (!onboardInput) return;
         setStatus(`Onboarding /${onboardInput}/...`);
         try {
-            const builder = iqlabs.contract.createInstructionBuilder(idl, iqlabs.contract.PROGRAM_ID);
+            const builder = iqlabs.contract.createInstructionBuilder();
             await sendInstruction(
                 iqlabs.contract.onboardTableInstruction(builder, {
                     signer: wallet.publicKey!,
@@ -93,7 +92,7 @@ export default function AdminPage() {
         if (!updateSeed || !updateName) return;
         setStatus(`Updating /${updateSeed}/...`);
         try {
-            const builder = iqlabs.contract.createInstructionBuilder(idl, iqlabs.contract.PROGRAM_ID);
+            const builder = iqlabs.contract.createInstructionBuilder();
             const seedBytes = iqlabs.utils.toSeedBytes(updateSeed);
             const tablePda = iqlabs.contract.getTablePda(DB_ROOT_KEY, seedBytes);
 
@@ -135,7 +134,7 @@ export default function AdminPage() {
         if (valid.length === 0) return;
         setStatus("Updating table creators...");
         try {
-            const builder = iqlabs.contract.createInstructionBuilder(idl, iqlabs.contract.PROGRAM_ID);
+            const builder = iqlabs.contract.createInstructionBuilder();
             await sendInstruction(
                 iqlabs.contract.manageTableCreatorsInstruction(builder, {
                     signer: wallet.publicKey!,

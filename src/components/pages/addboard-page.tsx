@@ -16,7 +16,6 @@ import {
     deriveInstructionTablePda,
 } from "../../lib/constants";
 
-const idl = require("iqlabs-sdk/idl/code_in.json");
 
 export default function AddBoardPage() {
     const { connection } = useConnection();
@@ -42,7 +41,7 @@ export default function AddBoardPage() {
         setError("");
 
         try {
-            const builder = iqlabs.contract.createInstructionBuilder(idl, iqlabs.contract.PROGRAM_ID);
+            const builder = iqlabs.contract.createInstructionBuilder();
             const dbRootIdBytes = DB_ROOT_ID_BYTES;
 
             const gate = gateEnabled && gateMint ? {
@@ -66,6 +65,7 @@ export default function AddBoardPage() {
             }, {
                 db_root_id: dbRootIdBytes,
                 table_seed: boardSeedBytes,
+                table_hint: Buffer.from(boardSeed),
                 table_name: Buffer.from(title),
                 column_names: ["sub", "com", "name", "time", "img", "threadPda", "threadSeed"].map((c) => Buffer.from(c)),
                 id_col: Buffer.from("time"),

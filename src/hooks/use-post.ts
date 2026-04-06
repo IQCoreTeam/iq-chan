@@ -8,8 +8,6 @@ import { getAssociatedTokenAddress, getAccount } from "@solana/spl-token";
 import BN from "bn.js";
 import iqlabs from "iqlabs-sdk";
 // TODO: remove `as any` wallet casts once SDK publishes SignerInput support
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const idl = require("iqlabs-sdk/idl/code_in.json");
 import {
     DB_ROOT_ID_BYTES,
     BUMP_LIMIT,
@@ -87,10 +85,7 @@ export function usePost() {
                 const tablePda = new PublicKey(threadPda);
                 const instrPda = new PublicKey(deriveInstructionTablePda(seed));
 
-                const builder = iqlabs.contract.createInstructionBuilder(
-                    idl,
-                    iqlabs.contract.PROGRAM_ID,
-                );
+                const builder = iqlabs.contract.createInstructionBuilder();
                 const dbRootIdBytes = DB_ROOT_ID_BYTES;
                 const threadSeedBytes = Buffer.from(iqlabs.utils.toSeedBytes(seed));
                 const boardSeedBytes = Buffer.from(iqlabs.utils.toSeedBytes(boardId));
@@ -128,6 +123,7 @@ export function usePost() {
                         {
                             db_root_id: dbRootIdBytes,
                             table_seed: threadSeedBytes,
+                            table_hint: Buffer.from(seed),
                             table_name: Buffer.from(seed),
                             column_names: BOARD_COLUMNS.map((c) => Buffer.from(c)),
                             id_col: Buffer.from("time"),
