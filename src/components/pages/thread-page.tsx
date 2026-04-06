@@ -48,8 +48,7 @@ export default function ThreadPage({ boardId, threadId: threadPda, scrollTo }: {
     const displayName = boardMeta?.title ?? gate.tableName ?? "";
     const displaySlug = boardMeta?.id ?? boardId;
     const boardTitle = formatBoardTitle(boardId, displaySlug, displayName);
-    const [bannerSrc, setBannerSrc] = useState("");
-    useEffect(() => { setBannerSrc(getRandomBanner()); }, []);
+    const [bannerSrc] = useState(() => getRandomBanner());
     const threadSeed = op?.threadSeed ?? "";
     const imageCount = (op?.img ? 1 : 0) + replies.filter((r) => r.img).length;
 

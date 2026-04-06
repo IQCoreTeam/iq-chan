@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import HashLink from "../hash-link";
 import { useThreads } from "../../hooks/use-threads";
 import { usePost } from "../../hooks/use-post";
@@ -57,8 +57,7 @@ export default function BoardPage({ boardId }: { boardId: string }) {
     const gate = useBoardGate(boardId);
     const displayName = boardMeta?.title ?? gate.tableName ?? "";
     const displaySlug = boardMeta?.id ?? boardId;
-    const [bannerSrc, setBannerSrc] = useState("");
-    useEffect(() => { setBannerSrc(getRandomBanner()); }, []);
+    const [bannerSrc] = useState(() => getRandomBanner());
     const boardTitle = formatBoardTitle(boardId, displaySlug, displayName);
 
     const totalPages = Math.max(1, Math.ceil(threads.length / THREADS_PER_PAGE));
