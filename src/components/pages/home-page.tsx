@@ -98,10 +98,13 @@ export default function HomePage() {
     const { boards } = useBoards();
     const { totalPosts, totalThreads, popular } = useHomeData(boards);
     const [bannerSrc, setBannerSrc] = useState("");
-    const [randomThread, setRandomThread] = useState<PopularThread | null>(null);
+    const [luckyHref, setLuckyHref] = useState(`/${boards[0]?.id ?? "po"}`);
     useEffect(() => { setBannerSrc(getRandomBanner()); }, []);
     useEffect(() => {
-        if (popular.length > 0) setRandomThread(popular[Math.floor(Math.random() * popular.length)]);
+        if (popular.length > 0) {
+            const t = popular[Math.floor(Math.random() * popular.length)];
+            setLuckyHref(`/${t.boardId}/${t.threadPda}`);
+        }
     }, [popular]);
 
     return (
@@ -166,7 +169,7 @@ export default function HomePage() {
                             <h2>Want to go to a random thread?</h2>
                         </div>
                         <div className="boxcontent fp-banner">
-                            <HashLink href={randomThread ? `/${randomThread.boardId}/${randomThread.threadPda}` : `/${boards[0]?.id ?? ""}`}>
+                            <HashLink href={luckyHref}>
                                 <img alt="banner" src={bannerSrc} />
                                 <div className="fp-lucky">I&apos;m Feeling Lucky</div>
                             </HashLink>
