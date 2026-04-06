@@ -5,8 +5,7 @@ import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { PublicKey, Transaction, SystemProgram } from "@solana/web3.js";
 import iqlabs from "iqlabs-sdk";
 import { FooterNav } from "../board-nav";
-import { DB_ROOT_ID_BYTES, DB_ROOT_KEY, BOARD_COLUMNS, deriveTablePda, resolveBoardSeed, ADMIN_WALLETS } from "../../lib/constants";
-import { SEED_TO_BOARD_ID } from "../../lib/board";
+import { DB_ROOT_ID_BYTES, DB_ROOT_KEY, BOARD_COLUMNS, BOARD_METADATA, deriveTablePda, ADMIN_WALLETS } from "../../lib/constants";
 import { useWalletModal } from "../../lib/wallet-modal";
 import { fetchDbRoot, fetchTableMeta } from "../../lib/gateway";
 
@@ -52,11 +51,11 @@ export default function AdminPage() {
 
     const tableSeedSet = new Set(tableSeeds);
 
-    // Returns { id, name } for display. id = short hex or known boardId, name = on-chain Table.name if any.
-    function seedInfo(hex: string): { id: string; name: string | null } {
-        const known = SEED_TO_BOARD_ID.get(hex);
-        const id = known ? known : hex.slice(0, 12) + "...";
-        const name = tableNames.get(hex) ?? null;
+    // Seeds are now readable slugs ("po", "biz", etc.)
+    function seedInfo(seed: string): { id: string; name: string | null } {
+        const meta = BOARD_METADATA[seed];
+        const id = meta ? seed : seed.length > 16 ? seed.slice(0, 12) + "..." : seed;
+        const name = meta?.title ?? tableNames.get(seed) ?? null;
         return { id, name };
     }
 
@@ -80,7 +79,7 @@ export default function AdminPage() {
                     db_root: DB_ROOT_KEY,
                 }, {
                     db_root_id: DB_ROOT_ID_BYTES,
-                    table_seed: Buffer.from(iqlabs.utils.toSeedBytes(onboardInput)),
+                    table_seed: Buffer.from(onboardInput),
                 }),
             );
             setStatus(`/${onboardInput}/ onboarded`);

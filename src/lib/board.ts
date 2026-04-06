@@ -84,13 +84,8 @@ export async function fetchThreadPreviews(entry: ThreadEntry): Promise<ThreadEnt
     };
 }
 
-// Build seedHex → boardId lookup from known boards (exported for admin page)
-// Includes boards not in BOARD_METADATA (e.g. gated boards like "iq")
-const KNOWN_BOARD_IDS = Object.keys(BOARD_METADATA);
-export const SEED_TO_BOARD_ID = new Map<string, string>();
-for (const id of KNOWN_BOARD_IDS) {
-    SEED_TO_BOARD_ID.set(Buffer.from(iqlabs.utils.toSeedBytes(id)).toString("hex"), id);
-}
+// Seeds in DbRoot are now human-readable slugs ("po", "biz", etc.)
+const KNOWN_BOARD_IDS = new Set(Object.keys(BOARD_METADATA));
 
 function defaultBoards(): BoardMeta[] {
     return Object.entries(BOARD_METADATA).map(([id, m]) => ({
@@ -105,22 +100,16 @@ export async function fetchBoards(): Promise<{
     try {
         const { creator, tableSeeds, tableNames } = await fetchDbRoot();
 
-        const knownSeeds = new Set(
-            Object.keys(BOARD_METADATA).map((id) =>
-                Buffer.from(iqlabs.utils.toSeedBytes(id)).toString("hex"),
-            ),
-        );
-
         const boards = defaultBoards();
 
         // Append any onboarded boards not in the hardcoded list
-        for (const seedHex of tableSeeds) {
-            if (knownSeeds.has(seedHex)) continue;
-            const boardId = SEED_TO_BOARD_ID.get(seedHex) ?? seedHex;
-            const name = tableNames[seedHex] || boardId;
+        // DbRoot.table_seeds now contains readable slugs ("po", "biz", etc.)
+        for (const seed of tableSeeds) {
+            if (KNOWN_BOARD_IDS.has(seed)) continue;
+            const name = tableNames[seed] || seed;
             boards.push({
-                id: boardId,
-                seed: boardId,
+                id: seed,
+                seed: seed,
                 title: name,
                 description: "",
                 image: "",
