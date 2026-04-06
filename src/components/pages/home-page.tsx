@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import HashLink from "../hash-link";
-import { DB_ROOT_KEY } from "../../lib/constants";
+import { DB_ROOT_KEY, getRandomBanner } from "../../lib/constants";
 import { useBoards } from "../../hooks/use-boards";
 import { getFeedPda } from "../../lib/board";
 import { fetchAllTableRows } from "../../lib/gateway";
@@ -97,6 +97,12 @@ function useHomeData(boards: BoardMeta[]) {
 export default function HomePage() {
     const { boards } = useBoards();
     const { totalPosts, totalThreads, popular } = useHomeData(boards);
+    const [bannerSrc, setBannerSrc] = useState("");
+    const [randomThread, setRandomThread] = useState<PopularThread | null>(null);
+    useEffect(() => { setBannerSrc(getRandomBanner()); }, []);
+    useEffect(() => {
+        if (popular.length > 0) setRandomThread(popular[Math.floor(Math.random() * popular.length)]);
+    }, [popular]);
 
     return (
         <div className="fp-wrap">
@@ -152,6 +158,22 @@ export default function HomePage() {
                     </div>
                 </div>
             </div>
+
+            {bannerSrc && (
+                <div className="box-outer top-box">
+                    <div className="box-inner">
+                        <div className="boxbar">
+                            <h2>Want to go to a random thread?</h2>
+                        </div>
+                        <div className="boxcontent fp-banner">
+                            <HashLink href={randomThread ? `/${randomThread.boardId}/${randomThread.threadPda}` : `/${boards[0]?.id ?? ""}`}>
+                                <img alt="banner" src={bannerSrc} />
+                                <div className="fp-lucky">I&apos;m Feeling Lucky</div>
+                            </HashLink>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             <div className="box-outer top-box" id="popular-threads">
                 <div className="box-inner">

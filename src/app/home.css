@@ -82,6 +82,42 @@
     color: #d00;
 }
 
+/* Banner */
+.fp-banner {
+    text-align: center;
+    padding: 10px 0 5px;
+}
+
+.fp-banner a {
+    text-decoration: none;
+    display: inline-block;
+}
+
+.fp-banner a:hover img {
+    border-color: #34345c;
+}
+
+.fp-banner img {
+    max-width: 100%;
+    max-height: 200px;
+    border: 2px solid #34345c;
+    border-radius: 4px;
+    box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.15);
+    padding: 2px;
+    background: #d6daf0;
+}
+
+.fp-lucky {
+    margin-top: 4px;
+    font-size: 11px;
+    color: #34345c;
+    font-style: italic;
+}
+
+.fp-banner a:hover .fp-lucky {
+    color: #d00;
+}
+
 /* Boards */
 #boards .column {
     float: left;

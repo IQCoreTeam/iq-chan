@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import HashLink from "../hash-link";
 import { useThreads } from "../../hooks/use-threads";
 import { usePost } from "../../hooks/use-post";
-import { THREADS_PER_PAGE, formatBoardTitle } from "../../lib/constants";
+import { THREADS_PER_PAGE, formatBoardTitle, getRandomBanner } from "../../lib/constants";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useBoards } from "../../hooks/use-boards";
 import { useBoardGate } from "../../hooks/use-board-gate";
@@ -57,6 +57,8 @@ export default function BoardPage({ boardId }: { boardId: string }) {
     const gate = useBoardGate(boardId);
     const displayName = boardMeta?.title ?? gate.tableName ?? "";
     const displaySlug = boardMeta?.id ?? boardId;
+    const [bannerSrc, setBannerSrc] = useState("");
+    useEffect(() => { setBannerSrc(getRandomBanner()); }, []);
     const boardTitle = formatBoardTitle(boardId, displaySlug, displayName);
 
     const totalPages = Math.max(1, Math.ceil(threads.length / THREADS_PER_PAGE));
@@ -74,9 +76,9 @@ export default function BoardPage({ boardId }: { boardId: string }) {
     return (
         <>
             <div className="boardBanner">
-                {boardMeta?.image && (
+                {(boardMeta?.image || bannerSrc) && (
                     <div className="title" style={{ textAlign: "center" }}>
-                        <img alt={boardId} src={boardMeta.image} style={{ maxHeight: 150, display: "block", margin: "0 auto" }} />
+                        <img alt={boardId} src={boardMeta?.image || bannerSrc} style={{ maxHeight: 150, display: "block", margin: "0 auto" }} />
                     </div>
                 )}
                 <div className="boardTitle">{boardTitle}</div>

@@ -6,7 +6,7 @@ import { usePaginatedReplies } from "../../hooks/use-paginated-replies";
 import { usePost } from "../../hooks/use-post";
 import { useThreads } from "../../hooks/use-threads";
 import { scrollToPost } from "../../lib/highlight";
-import { THREADS_PER_PAGE, formatBoardTitle } from "../../lib/constants";
+import { THREADS_PER_PAGE, formatBoardTitle, getRandomBanner } from "../../lib/constants";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useBoards } from "../../hooks/use-boards";
 import { useBoardGate } from "../../hooks/use-board-gate";
@@ -48,6 +48,8 @@ export default function ThreadPage({ boardId, threadId: threadPda, scrollTo }: {
     const displayName = boardMeta?.title ?? gate.tableName ?? "";
     const displaySlug = boardMeta?.id ?? boardId;
     const boardTitle = formatBoardTitle(boardId, displaySlug, displayName);
+    const [bannerSrc, setBannerSrc] = useState("");
+    useEffect(() => { setBannerSrc(getRandomBanner()); }, []);
     const threadSeed = op?.threadSeed ?? "";
     const imageCount = (op?.img ? 1 : 0) + replies.filter((r) => r.img).length;
 
@@ -122,9 +124,9 @@ export default function ThreadPage({ boardId, threadId: threadPda, scrollTo }: {
     return (
         <>
             <div className="boardBanner">
-                {boardMeta && (
+                {(boardMeta?.image || bannerSrc) && (
                     <div className="title" style={{ textAlign: "center" }}>
-                        <img alt={boardId} src={boardMeta.image} style={{ maxHeight: 150, display: "block", margin: "0 auto" }} />
+                        <img alt={boardId} src={boardMeta?.image || bannerSrc} style={{ maxHeight: 150, display: "block", margin: "0 auto" }} />
                     </div>
                 )}
                 <div className="boardTitle">{boardTitle}</div>
