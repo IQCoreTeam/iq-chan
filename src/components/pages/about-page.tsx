@@ -31,7 +31,8 @@ export default function AboutPage() {
                 <h3 style={{ borderBottom: "1px solid #b7c5d9", paddingBottom: 3 }}>Run Your Own</h3>
                 <p>
                     BlockChan is fully open source. Run your own frontend, your own gateway, or both.
-                    No single server controls the data — anyone can serve it.
+                    No single server controls the data.
+                    anyone can serve it.
                 </p>
                 <br />
                 <p>
