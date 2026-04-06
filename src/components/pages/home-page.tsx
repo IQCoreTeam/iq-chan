@@ -104,7 +104,8 @@ function useHomeData(boards: BoardMeta[]) {
 export default function HomePage() {
     const { boards } = useBoards();
     const { totalPosts, totalThreads, popular, allThreads } = useHomeData(boards);
-    const [bannerSrc] = useState(() => getRandomBanner());
+    const [bannerSrc, setBannerSrc] = useState("");
+    useEffect(() => { setBannerSrc(getRandomBanner()); }, []);
     const [luckyHref, setLuckyHref] = useState(`/${boards[0]?.id ?? "po"}`);
     useEffect(() => {
         if (allThreads.length > 0) {
