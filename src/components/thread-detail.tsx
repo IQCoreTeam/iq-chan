@@ -9,11 +9,15 @@ export default function ThreadDetail({
     thread,
     replies,
     loading,
+    boardId,
+    threadPda,
     onQuote,
 }: {
     thread?: PostType;
     replies: Reply[];
     loading: boolean;
+    boardId?: string;
+    threadPda?: string;
     onQuote?: (sig: string) => void;
 }) {
     const [hiddenPosts, setHiddenPosts] = useState<Set<string>>(new Set());
@@ -61,6 +65,8 @@ export default function ThreadDetail({
                         time={thread.time}
                         img={thread.img}
                         isOp
+                        boardId={boardId}
+                        threadPda={threadPda}
                         backlinks={backlinkMap[thread.__txSignature ?? ""]}
                         onQuote={onQuote}
                     />
@@ -78,6 +84,8 @@ export default function ThreadDetail({
                                 name={reply.name}
                                 time={reply.time}
                                 img={reply.img}
+                                boardId={boardId}
+                                threadPda={threadPda}
                                 backlinks={backlinkMap[sig]}
                                 onQuote={onQuote}
                                 onHide={() => togglePost(sig)}

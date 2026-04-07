@@ -206,6 +206,8 @@ export default function ThreadPage({ boardId, threadId: threadPda, scrollTo }: {
                     thread={op ?? undefined}
                     replies={replies}
                     loading={loading}
+                    boardId={boardId}
+                    threadPda={threadPda}
                     onQuote={onQuote}
                 />
             )}

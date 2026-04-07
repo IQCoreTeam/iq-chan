@@ -11,8 +11,8 @@
 /* Logo - full width gradient behind centered content */
 .fp-logo {
     text-align: center;
-    padding: 30px 10px 20px;
-    background: linear-gradient(to bottom, #d6daf0 0%, #eef2ff 100%);
+    padding: 40px 10px 30px;
+    background: linear-gradient(to bottom, #b7c5d9 0%, #d6daf0 60%, #eef2ff 100%);
     margin-left: calc(-50vw + 50%);
     margin-right: calc(-50vw + 50%);
     margin-bottom: 10px;
@@ -67,6 +67,33 @@
     margin: 0;
 }
 
+#announce .boxbar {
+    position: relative;
+}
+
+#announce .closebutton {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 16px;
+    height: 16px;
+    margin-top: 4px;
+    margin-right: 4px;
+    cursor: pointer;
+    background: #98b0d7;
+    color: #fff;
+    text-decoration: none;
+    font-size: 11px;
+    font-weight: bold;
+    line-height: 16px;
+    text-align: center;
+    border-radius: 2px;
+}
+
+#announce .closebutton:hover {
+    background: #98b0d7;
+}
+
 .boxcontent {
     padding: .5em;
     padding-top: .25em;
@@ -109,7 +136,7 @@
 
 .fp-lucky {
     margin-top: 4px;
-    font-size: 11px;
+    font-size: 13px;
     color: #34345c;
     font-style: italic;
 }
@@ -296,7 +323,14 @@ br.clear-bug {
     }
 
     .fp-logo {
-        padding: 15px 5px 10px;
+        margin-top: -8px;
+        margin-left: calc(-50vw + 50% - 8px);
+        margin-right: calc(-50vw + 50% - 8px);
+        padding: 30px 5px 25px;
+    }
+
+    .fp-banner img {
+        max-height: 120px;
     }
 
     .fp-logo img {

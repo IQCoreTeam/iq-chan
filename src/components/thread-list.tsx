@@ -75,6 +75,8 @@ export default function ThreadList({
                                 img={op.img}
                                 isOp
                                 replyLink={threadHref}
+                                boardId={boardId}
+                                threadPda={thread.threadPda}
                                 onQuote={handleQuoteOnBoard(thread.threadPda, op.threadSeed ?? "", op.__txSignature ?? thread.threadPda)}
                                 onHide={() => toggleThread(thread.threadPda)}
                                 isHidden={isThreadHidden}
@@ -112,6 +114,8 @@ export default function ThreadList({
                                                 time={reply.time}
                                                 img={reply.img}
                                                 replyLink={`${threadHref}:p${sig}`}
+                                                boardId={boardId}
+                                                threadPda={thread.threadPda}
                                                 onQuote={handleQuoteOnBoard(thread.threadPda, op.threadSeed ?? "", op.__txSignature ?? thread.threadPda)}
                                                 onHide={() => togglePost(sig)}
                                                 isHidden={hiddenPosts.has(sig)}

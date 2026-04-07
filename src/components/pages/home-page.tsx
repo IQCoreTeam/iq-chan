@@ -137,6 +137,8 @@ export default function HomePage() {
     const { totalPosts, totalThreads, popular, trendingCount, allThreads } = useHomeData(boards);
     const [bannerSrc, setBannerSrc] = useState("");
     useEffect(() => { setBannerSrc(getRandomBanner()); }, []);
+    const [aboutClosed, setAboutClosed] = useState(false);
+    useEffect(() => { if (sessionStorage.getItem("blockchan_about_closed") === "1") setAboutClosed(true); }, []);
     const [luckyHref, setLuckyHref] = useState(`/${boards[0]?.id ?? "po"}`);
     useEffect(() => {
         if (allThreads.length > 0) {
@@ -153,10 +155,11 @@ export default function HomePage() {
                 </HashLink>
             </div>
 
-            <div className="box-outer" id="announce">
+            {!aboutClosed && <div className="box-outer" id="announce">
                 <div className="box-inner">
                     <div className="boxbar">
                         <h2>What is BlockChan?</h2>
+                        <a href="#" className="closebutton" onClick={(e) => { e.preventDefault(); sessionStorage.setItem("blockchan_about_closed", "1"); setAboutClosed(true); }}>X</a>
                     </div>
                     <div className="boxcontent">
                         <p>
@@ -167,15 +170,16 @@ export default function HomePage() {
                             participating in the community. Just connect a Solana wallet and
                             jump right in!
                         </p>
-                        <br />
-                        <p>
+                        <p style={{ marginTop: 8 }}>
                             Every post is a Solana transaction. Every thread is an on-chain
                             table. Nothing can be taken down. Feel free to click on a board
-                            below that interests you and start posting!
+                            below that interests you and start posting! Check out the{" "}
+                            <HashLink href="/about">About</HashLink> page to learn more, or leave{" "}
+                            <HashLink href="/feedback">Feedback</HashLink>.
                         </p>
                     </div>
                 </div>
-            </div>
+            </div>}
 
             <div className="box-outer top-box" id="boards">
                 <div className="box-inner">

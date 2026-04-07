@@ -15,6 +15,8 @@ export default function Post({
     img,
     isOp,
     replyLink,
+    boardId,
+    threadPda,
     backlinks,
     onQuote,
     onHide,
@@ -28,6 +30,8 @@ export default function Post({
     img?: string;
     isOp?: boolean;
     replyLink?: string;
+    boardId?: string;
+    threadPda?: string;
     backlinks?: string[];
     onQuote?: (sig: string) => void;
     onHide?: () => void;
@@ -108,9 +112,15 @@ export default function Post({
                 <li style={{ padding: "3px 10px", cursor: "pointer" }} onClick={() => { window.open(`${EXPLORER_TX_URL}${txSig}`, "_blank"); setMenuOpen(false); }}>
                     View on Solscan
                 </li>
-                <li style={{ padding: "3px 10px", cursor: "pointer" }} onClick={() => { navigator.clipboard.writeText(txSig); setMenuOpen(false); }}>
-                    Copy TX signature
-                </li>
+                {boardId && threadPda && (
+                    <li style={{ padding: "3px 10px", cursor: "pointer" }} onClick={() => {
+                        const path = `${window.location.origin}${window.location.pathname}#/${boardId}/${threadPda}:p${txSig}`;
+                        navigator.clipboard.writeText(path);
+                        setMenuOpen(false);
+                    }}>
+                        Copy link to post
+                    </li>
+                )}
             </ul>
         </div>
     ) : null;
