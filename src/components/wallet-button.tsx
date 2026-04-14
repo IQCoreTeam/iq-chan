@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
-import iqlabs from "iqlabs-sdk";
 import { useWalletModal } from "../lib/wallet-modal";
 
 export default function WalletButton() {
@@ -11,10 +10,11 @@ export default function WalletButton() {
     const [error, setError] = useState("");
 
     if (publicKey) {
+        const addr = publicKey.toBase58();
         return (
             <span style={{ fontSize: 12 }}>
                 <span className="wallet-addr" style={{ fontFamily: "monospace" }}>
-                    {iqlabs.utils.shortenSig(publicKey.toBase58())}
+                    {addr.slice(0, 4)}...{addr.slice(-4)}
                 </span>
                 {" "}
                 <a
