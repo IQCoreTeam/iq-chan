@@ -2,19 +2,19 @@
 
 import { useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
+import iqlabs from "iqlabs-sdk";
 import { useWalletModal } from "../lib/wallet-modal";
 
 export default function WalletButton() {
-    const { publicKey, disconnect, wallets, select, connect, connecting } = useWallet();
+    const { publicKey, disconnect, wallets, select, connecting } = useWallet();
     const { open, openWalletModal, closeWalletModal } = useWalletModal();
     const [error, setError] = useState("");
 
     if (publicKey) {
-        const addr = publicKey.toBase58();
         return (
             <span style={{ fontSize: 12 }}>
                 <span className="wallet-addr" style={{ fontFamily: "monospace" }}>
-                    {addr.slice(0, 4)}...{addr.slice(-4)}
+                    {iqlabs.utils.shortenSig(publicKey.toBase58())}
                 </span>
                 {" "}
                 <a
@@ -32,9 +32,10 @@ export default function WalletButton() {
         setError("");
         try {
             select(wallet.adapter.name);
-            // Wait for wallet adapter to process selection before connecting
-            await new Promise((r) => setTimeout(r, 100));
-            await connect();
+            // Connect directly on the adapter — bypasses the react state race
+            // that causes WalletNotSelectedError when calling the hook's connect()
+            // before useWallet's selected state has propagated.
+            await wallet.adapter.connect();
             closeWalletModal();
         } catch (e) {
             setError(e instanceof Error ? e.message : "Connection failed");

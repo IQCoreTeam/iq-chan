@@ -29,15 +29,27 @@ export function usePaginatedReplies(
                 if (cancelled) return;
 
                 // OP is written to the board table (Zo's gate flow), not the thread table.
-                // Always fetch from feed to find it reliably.
+                // Feed contains both OPs and bumped replies — pick the earliest match.
                 let opRow: Row | undefined;
                 if (boardId) {
                     const feedPda = getFeedPda(DB_ROOT_KEY, resolveBoardSeed(boardId));
                     const feedRows = await fetchAllTableRows(feedPda.toBase58(), 100);
                     if (cancelled) return;
-                    opRow = feedRows.find((r) => r.threadPda === threadPda && !!r.threadSeed);
+                    opRow = feedRows
+                        .filter((r) => r.threadPda === threadPda && !!r.threadSeed)
+                        .reduce<Row | undefined>(
+                            (a, b) => !a || (b.time as number) < (a.time as number) ? b : a,
+                            undefined,
+                        );
                 }
-                if (!opRow) opRow = rows.find((r) => !!r.threadSeed);
+                if (!opRow) {
+                    opRow = rows
+                        .filter((r) => !!r.threadSeed)
+                        .reduce<Row | undefined>(
+                            (a, b) => !a || (b.time as number) < (a.time as number) ? b : a,
+                            undefined,
+                        );
+                }
                 if (opRow && !rows.some((r) => r.__txSignature === opRow!.__txSignature)) {
                     rows.unshift(opRow);
                 }
