@@ -35,7 +35,6 @@ export default function ThreadPage({ boardId, threadId: threadPda, scrollTo }: {
         loading,
         error,
         refresh,
-        addOptimisticRow,
     } = usePaginatedReplies(threadPda, boardId);
 
     const { postReply, loading: postLoading, status: postStatus, step: postStep, totalSteps: postTotalSteps, clearStatus } = usePost();
@@ -107,12 +106,13 @@ export default function ThreadPage({ boardId, threadId: threadPda, scrollTo }: {
         }
     }, [refresh, autoUpdate]);
 
-    // Add row to UI instantly, then refresh from gateway in background
+    // postReply awaits the writeRow tx and the /notify POST to the thread
+    // (always) and to the feed (if the reply bumps the thread) before returning,
+    // so by the time we refresh the gateway cache already has the row.
     const handlePostReply = useCallback(async (data: { com: string; name: string; img?: string; options?: string }) => {
-        const row = await postReply(threadSeed, threadPda, boardId, data, totalReplies, gate.gateMint ? { mint: gate.gateMint, amount: gate.gateAmount || 1, gateType: gate.gateType || 0 } : undefined);
-        if (row) addOptimisticRow(row);
+        await postReply(threadSeed, threadPda, boardId, data, totalReplies, gate.gateMint ? { mint: gate.gateMint, amount: gate.gateAmount || 1, gateType: gate.gateType || 0 } : undefined);
         refresh();
-    }, [postReply, threadSeed, threadPda, boardId, totalReplies, addOptimisticRow, refresh]);
+    }, [postReply, threadSeed, threadPda, boardId, totalReplies, gate.gateMint, gate.gateAmount, gate.gateType, refresh]);
 
     const onQuote = useCallback((sig: string) => {
         if (!publicKey) { openWalletModal(); return; }

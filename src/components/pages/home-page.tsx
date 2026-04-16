@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import HashLink from "../hash-link";
 import { DB_ROOT_KEY, getRandomBanner, NO_IMAGE_PLACEHOLDERS } from "../../lib/constants";
 import { useBoards } from "../../hooks/use-boards";
-import { getFeedPda } from "../../lib/board";
+import { getFeedPda, isMoreLikelyOp } from "../../lib/board";
 import { fetchAllTableRows } from "../../lib/gateway";
 import type { BoardMeta, Post } from "../../lib/types";
 import "../../app/home.css";
@@ -83,20 +83,8 @@ function useHomeData(boards: BoardMeta[]) {
                         if (existing) {
                             existing.count++;
                             existing.lastActivity = Math.max(existing.lastActivity, time);
-                            // Pick the canonical OP: replies also carry threadSeed (bump rows),
-                            // so prefer a candidate with a non-empty sub; if tied, prefer the
-                            // earliest time (OP posted before replies).
-                            if (post.threadSeed) {
-                                const cur = existing.op;
-                                const newHasSub = !!post.sub;
-                                const curHasSub = !!cur?.sub;
-                                if (!cur) {
-                                    existing.op = post;
-                                } else if (newHasSub && !curHasSub) {
-                                    existing.op = post;
-                                } else if (newHasSub === curHasSub && post.time < cur.time) {
-                                    existing.op = post;
-                                }
+                            if (post.threadSeed && isMoreLikelyOp(existing.op ?? undefined, post)) {
+                                existing.op = post;
                             }
                         } else {
                             threadMap.set(post.threadPda, {

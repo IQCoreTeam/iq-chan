@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { fetchAllTableRows, type Row } from "../lib/gateway";
 import { mergeInstructions } from "../lib/parse";
 import { deriveInstructionTablePda, resolveBoardSeed, DB_ROOT_KEY } from "../lib/constants";
-import { getFeedPda } from "../lib/board";
+import { getFeedPda, isMoreLikelyOp } from "../lib/board";
 import type { Post, Reply } from "../lib/types";
 
 export function usePaginatedReplies(
@@ -29,22 +29,22 @@ export function usePaginatedReplies(
                 if (cancelled) return;
 
                 // OP is written to the board table (Zo's gate flow), not the thread table.
-                // Replies in the feed also carry threadSeed (bump rows). Prefer rows with
-                // !!sub (OPs hardcode a subject; replies hardcode "" per use-post.ts).
-                // Fall back to earliest-by-time in case an OP ever has empty sub.
-                const pickOp = (candidates: Row[]): Row | undefined =>
-                    candidates.find((r) => !!r.sub) ?? candidates.reduce<Row | undefined>(
-                        (a, b) => !a || (b.time as number) < (a.time as number) ? b : a,
-                        undefined,
-                    );
+                // Check the feed first (which contains the OP and bump rows), then fall
+                // back to scanning this thread's own table for legacy threads.
                 let opRow: Row | undefined;
                 if (boardId) {
                     const feedPda = getFeedPda(DB_ROOT_KEY, resolveBoardSeed(boardId));
                     const feedRows = await fetchAllTableRows(feedPda.toBase58(), 100);
                     if (cancelled) return;
-                    opRow = pickOp(feedRows.filter((r) => r.threadPda === threadPda && !!r.threadSeed));
+                    opRow = feedRows
+                        .filter((r) => r.threadPda === threadPda && !!r.threadSeed)
+                        .reduce<Row | undefined>((best, r) => isMoreLikelyOp(best, r) ? r : best, undefined);
                 }
-                if (!opRow) opRow = pickOp(rows.filter((r) => !!r.threadSeed));
+                if (!opRow) {
+                    opRow = rows
+                        .filter((r) => !!r.threadSeed)
+                        .reduce<Row | undefined>((best, r) => isMoreLikelyOp(best, r) ? r : best, undefined);
+                }
                 if (opRow && !rows.some((r) => r.__txSignature === opRow!.__txSignature)) {
                     rows.unshift(opRow);
                 }
@@ -60,14 +60,7 @@ export function usePaginatedReplies(
                     }
                 }
 
-                if (!cancelled) {
-                    // Preserve optimistic rows not yet in gateway response
-                    setAllRows((prev) => {
-                        const sigs = new Set(merged.map((r) => (r as Post).__txSignature));
-                        const optimistic = prev.filter((r) => r.__txSignature && !sigs.has(r.__txSignature));
-                        return [...(merged as Post[]), ...optimistic];
-                    });
-                }
+                if (!cancelled) setAllRows(merged as Post[]);
             } catch (e) {
                 if (!cancelled) setError(e instanceof Error ? e : new Error(String(e)));
             } finally {
@@ -77,15 +70,13 @@ export function usePaginatedReplies(
 
         load();
         return () => { cancelled = true; };
-    }, [threadPda, refreshKey]);
+    }, [threadPda, boardId, refreshKey]);
 
-    // OP = earliest post with threadSeed; everything else is a reply
-    const op = useMemo(
-        () => {
-            const withSeed = allRows.filter((r) => !!r.threadSeed);
-            if (withSeed.length === 0) return null;
-            return withSeed.reduce((a, b) => a.time <= b.time ? a : b);
-        },
+    const op = useMemo<Post | null>(
+        () => allRows
+            .filter((r) => !!r.threadSeed)
+            .reduce<Post | undefined>((best, r) => isMoreLikelyOp(best, r) ? r : best, undefined)
+            ?? null,
         [allRows],
     );
 
@@ -102,13 +93,6 @@ export function usePaginatedReplies(
         setRefreshKey((k) => k + 1);
     }, []);
 
-    const addOptimisticRow = useCallback((row: Post) => {
-        setAllRows((prev) => {
-            if (prev.some((r) => r.__txSignature === row.__txSignature)) return prev;
-            return [...prev, row];
-        });
-    }, []);
-
     return {
         op,
         replies,
@@ -116,6 +100,5 @@ export function usePaginatedReplies(
         loading,
         error,
         refresh,
-        addOptimisticRow,
     };
 }

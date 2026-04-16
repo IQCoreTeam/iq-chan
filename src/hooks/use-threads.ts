@@ -8,10 +8,9 @@ export function useThreads(boardId: string) {
     const [threads, setThreads] = useState<ThreadEntry[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<Error | null>(null);
-    const [hasMore, setHasMore] = useState(false);
     const cancelRef = useRef(false);
 
-    const load = useCallback(async () => {
+    const refresh = useCallback(async () => {
         setLoading(true);
         setError(null);
         cancelRef.current = false;
@@ -19,15 +18,10 @@ export function useThreads(boardId: string) {
         try {
             const feedPda = getFeedPda(DB_ROOT_KEY, resolveBoardSeed(boardId));
 
-            // Phase 1: show threads immediately. Merge so optimistic threads
-            // added by addOptimisticThread survive until the gateway catches up.
+            // Phase 1: show threads immediately.
             const quick = await fetchFeedThreadsQuick(feedPda);
             if (cancelRef.current) return;
-            setThreads((prev) => {
-                const gatewayPdas = new Set(quick.map((t) => t.threadPda));
-                const optimistic = prev.filter((t) => !gatewayPdas.has(t.threadPda));
-                return [...optimistic, ...quick];
-            });
+            setThreads(quick);
             setLoading(false);
 
             // Phase 2: Lazy-load reply previews in background (N requests, non-blocking)
@@ -49,17 +43,9 @@ export function useThreads(boardId: string) {
 
     useEffect(() => {
         cancelRef.current = false;
-        load();
+        refresh();
         return () => { cancelRef.current = true; };
-    }, [load]);
+    }, [refresh]);
 
-    /** Inject a freshly-created thread so it renders before the gateway catches up. */
-    const addOptimisticThread = useCallback((entry: ThreadEntry) => {
-        setThreads((prev) => {
-            if (prev.some((t) => t.threadPda === entry.threadPda)) return prev;
-            return [entry, ...prev];
-        });
-    }, []);
-
-    return { threads, loading, error, hasMore, loadMore: load, refresh: load, addOptimisticThread };
+    return { threads, loading, error, refresh };
 }

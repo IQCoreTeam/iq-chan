@@ -4,7 +4,6 @@ import { useState, useMemo, useCallback } from "react";
 import HashLink from "../hash-link";
 import { useThreads } from "../../hooks/use-threads";
 import { usePost } from "../../hooks/use-post";
-import type { Post } from "../../lib/types";
 import { THREADS_PER_PAGE, formatBoardTitle, getRandomBanner } from "../../lib/constants";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useBoards } from "../../hooks/use-boards";
@@ -48,7 +47,7 @@ function PageList({ page, totalPages, onPage }: { page: number; totalPages: numb
 export default function BoardPage({ boardId }: { boardId: string }) {
     const { publicKey } = useWallet();
     const { openWalletModal } = useWalletModal();
-    const { threads, loading, error, hasMore, loadMore, refresh, addOptimisticThread } = useThreads(boardId);
+    const { threads, loading, error, refresh } = useThreads(boardId);
     const { createThread, loading: postLoading, status: postStatus, step: postStep, totalSteps: postTotalSteps, clearStatus } = usePost();
     const [page, setPage] = useState(0);
     const [qrOpen, setQrOpen] = useState(false);
@@ -61,28 +60,19 @@ export default function BoardPage({ boardId }: { boardId: string }) {
     const [bannerSrc] = useState(() => getRandomBanner());
     const boardTitle = formatBoardTitle(boardId, displaySlug, displayName);
 
-    // Optimistic-inject the new OP so the thread shows up before the gateway
-    // catches up on the notify. load()'s merge (not replace) in useThreads
-    // tolerates a slow gateway — the optimistic entry survives until the real
-    // row lands. setTimeout just kicks a reconcile soon after.
+    // createThread awaits the writeRow tx and the /notify POST to every relevant
+    // PDA (board, feed, thread) before returning. So by the time we refresh,
+    // the gateway has the row in cache — no optimistic state needed.
     const handleCreateThread = useCallback(async (
         data: { sub: string; com: string; name: string; img?: string },
     ) => {
-        const row = await createThread(
+        await createThread(
             boardId,
             data,
             gate.gateMint ? { mint: gate.gateMint, amount: gate.gateAmount || 1, gateType: gate.gateType || 0 } : undefined,
         );
-        if (!row) return;
-        addOptimisticThread({
-            threadPda: row.threadPda!,
-            opData: row as Post,
-            lastActivityTime: row.time,
-            replyCount: 0,
-            lastReplies: [],
-        });
-        setTimeout(refresh, 500);
-    }, [createThread, boardId, gate.gateMint, gate.gateAmount, gate.gateType, addOptimisticThread, refresh]);
+        refresh();
+    }, [createThread, boardId, gate.gateMint, gate.gateAmount, gate.gateType, refresh]);
 
     const totalPages = Math.max(1, Math.ceil(threads.length / THREADS_PER_PAGE));
     const pageThreads = useMemo(() => {
@@ -92,7 +82,6 @@ export default function BoardPage({ boardId }: { boardId: string }) {
 
     function handlePage(n: number) {
         setPage(n);
-        if (n >= totalPages - 1 && hasMore) loadMore();
         window.scrollTo(0, 0);
     }
 

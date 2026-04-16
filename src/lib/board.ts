@@ -28,6 +28,23 @@ export function getFeedPda(dbRootKey: PublicKey, boardId: string): PublicKey {
     )[0];
 }
 
+/**
+ * Decide whether `candidate` is a more-likely OP than `current`.
+ * Primary signal: OPs hardcode a non-empty `sub`; replies hardcode `sub: ""`
+ * (see use-post.ts). Tiebreaker: earlier time (OP is posted before its replies).
+ * Used anywhere we pick the OP out of a mix of OP + bump rows in the feed.
+ */
+export function isMoreLikelyOp(
+    current: { sub?: string; time?: number } | undefined,
+    candidate: { sub?: string; time?: number },
+): boolean {
+    if (!current) return true;
+    const curHasSub = !!current.sub;
+    const candHasSub = !!candidate.sub;
+    if (candHasSub !== curHasSub) return candHasSub;
+    return (candidate.time ?? 0) < (current.time ?? 0);
+}
+
 // TODO: filter to threadPda === board table PDA once old thread-table threads age out
 
 /** Phase 1: Fetch feed rows only — returns threads with OPs but no reply previews. Fast. */
@@ -46,12 +63,14 @@ export async function fetchFeedThreadsQuick(
         const existing = threads.get(post.threadPda);
 
         if (existing) {
-            if (!existing.opData || time < existing.opData.time) existing.opData = post;
+            if (post.threadSeed && isMoreLikelyOp(existing.opData ?? undefined, post)) {
+                existing.opData = post;
+            }
             existing.lastActivityTime = Math.max(existing.lastActivityTime, time);
         } else {
             threads.set(post.threadPda, {
                 threadPda: post.threadPda,
-                opData: post,
+                opData: post.threadSeed ? post : null,
                 lastActivityTime: time,
                 replyCount: 0,
                 lastReplies: [],
@@ -68,8 +87,12 @@ export async function fetchFeedThreadsQuick(
 export async function fetchThreadPreviews(entry: ThreadEntry): Promise<ThreadEntry> {
     const rows = await fetchAllTableRows(entry.threadPda, 50);
 
-    const opFromRows = rows.filter((r) => !!r.threadSeed)
-        .reduce<Post | undefined>((a, b) => !a || (b as Post).time < a.time ? b as Post : a, undefined);
+    const opFromRows = rows
+        .filter((r) => !!r.threadSeed)
+        .reduce<Post | undefined>(
+            (best, r) => isMoreLikelyOp(best, r as Post) ? r as Post : best,
+            undefined,
+        );
     if (opFromRows && !entry.opData) entry.opData = opFromRows;
 
     const opSig = entry.opData?.__txSignature ?? opFromRows?.__txSignature;
