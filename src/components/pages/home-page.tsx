@@ -64,7 +64,21 @@ function useHomeData(boards: BoardMeta[]) {
                         if (existing) {
                             existing.count++;
                             existing.lastActivity = Math.max(existing.lastActivity, time);
-                            if (post.threadSeed && !existing.op) existing.op = post;
+                            // Pick the canonical OP: replies also carry threadSeed (bump rows),
+                            // so prefer a candidate with a non-empty sub; if tied, prefer the
+                            // earliest time (OP posted before replies).
+                            if (post.threadSeed) {
+                                const cur = existing.op;
+                                const newHasSub = !!post.sub;
+                                const curHasSub = !!cur?.sub;
+                                if (!cur) {
+                                    existing.op = post;
+                                } else if (newHasSub && !curHasSub) {
+                                    existing.op = post;
+                                } else if (newHasSub === curHasSub && post.time < cur.time) {
+                                    existing.op = post;
+                                }
+                            }
                         } else {
                             threadMap.set(post.threadPda, {
                                 boardId,
@@ -84,10 +98,19 @@ function useHomeData(boards: BoardMeta[]) {
 
                 setAllThreads(withOp.map(([pda, t]) => ({ boardId: t.boardId, threadPda: pda })));
 
-                // Top 4 trending: image threads first, then by hot score
+                // Top 4 trending: image threads first, then by hot score.
+                // Hot score: gentle age decay + recency boost. post.time / lastActivity
+                // are stored as unix seconds, so convert to hours vs Date.now() (ms).
+                //   count / (ageHours + 2)   → linear reply rate, old threads decay
+                //   0.5 / (idleHours + 1)    → mild boost for actively-bumped threads
+                // Not super aggressive: a popular 3-day-old thread with recent activity
+                // still competes with a fresh low-reply thread.
                 const now = Date.now();
-                const hotScore = (t: { count: number; lastActivity: number }) =>
-                    t.count / ((now - t.lastActivity) / 60000 + 5);
+                const hotScore = (t: { op: Post; count: number; lastActivity: number }) => {
+                    const ageHours = Math.max(0, (now - (t.op.time ?? 0) * 1000) / 3600000);
+                    const idleHours = Math.max(0, (now - t.lastActivity * 1000) / 3600000);
+                    return t.count / (ageHours + 2) + 0.5 / (idleHours + 1);
+                };
                 const trending = [...withOp]
                     .sort(([, a], [, b]) => {
                         const aImg = a.op.img ? 1 : 0;
