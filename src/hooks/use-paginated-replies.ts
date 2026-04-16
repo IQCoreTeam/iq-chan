@@ -29,27 +29,22 @@ export function usePaginatedReplies(
                 if (cancelled) return;
 
                 // OP is written to the board table (Zo's gate flow), not the thread table.
-                // Feed contains both OPs and bumped replies — pick the earliest match.
+                // Replies in the feed also carry threadSeed (bump rows). Prefer rows with
+                // !!sub (OPs hardcode a subject; replies hardcode "" per use-post.ts).
+                // Fall back to earliest-by-time in case an OP ever has empty sub.
+                const pickOp = (candidates: Row[]): Row | undefined =>
+                    candidates.find((r) => !!r.sub) ?? candidates.reduce<Row | undefined>(
+                        (a, b) => !a || (b.time as number) < (a.time as number) ? b : a,
+                        undefined,
+                    );
                 let opRow: Row | undefined;
                 if (boardId) {
                     const feedPda = getFeedPda(DB_ROOT_KEY, resolveBoardSeed(boardId));
                     const feedRows = await fetchAllTableRows(feedPda.toBase58(), 100);
                     if (cancelled) return;
-                    opRow = feedRows
-                        .filter((r) => r.threadPda === threadPda && !!r.threadSeed)
-                        .reduce<Row | undefined>(
-                            (a, b) => !a || (b.time as number) < (a.time as number) ? b : a,
-                            undefined,
-                        );
+                    opRow = pickOp(feedRows.filter((r) => r.threadPda === threadPda && !!r.threadSeed));
                 }
-                if (!opRow) {
-                    opRow = rows
-                        .filter((r) => !!r.threadSeed)
-                        .reduce<Row | undefined>(
-                            (a, b) => !a || (b.time as number) < (a.time as number) ? b : a,
-                            undefined,
-                        );
-                }
+                if (!opRow) opRow = pickOp(rows.filter((r) => !!r.threadSeed));
                 if (opRow && !rows.some((r) => r.__txSignature === opRow!.__txSignature)) {
                     rows.unshift(opRow);
                 }

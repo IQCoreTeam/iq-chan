@@ -311,6 +311,26 @@ blockquote.postMessage {
     text-decoration: line-through;
 }
 
+.magnet-link {
+    color: #d00;
+    text-decoration: underline;
+    word-break: break-all;
+}
+
+.magnet-link:hover {
+    color: #ff0000;
+}
+
+.external-link {
+    color: #34345c;
+    text-decoration: underline;
+    word-break: break-all;
+}
+
+.external-link:hover {
+    color: #d00;
+}
+
 /* File / thumbnail */
 .file {
     margin: 3px 20px 5px;
