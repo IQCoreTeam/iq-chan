@@ -7,6 +7,7 @@ export interface Post {
     threadPda?: string;
     threadSeed?: string;
     __txSignature?: string;
+    __signer?: string;
 }
 
 export interface Reply {
@@ -15,6 +16,7 @@ export interface Reply {
     time: number;
     img?: string;
     __txSignature?: string;
+    __signer?: string;
 }
 
 export interface BoardMeta {

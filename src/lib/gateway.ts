@@ -66,13 +66,20 @@ export async function fetchAllTableRows(
     return allRows;
 }
 
-/** Notify gateway about a new tx so it caches it and invalidates stale rows. */
-export async function notifyPost(tablePda: string, txSignature: string, row?: Record<string, unknown>): Promise<void> {
+/** Notify gateway about a new tx so it caches it and invalidates stale rows.
+ * `signer` lets the gateway stamp __signer onto the injected row, so clients
+ * that render the cache immediately have the fee payer's wallet available. */
+export async function notifyPost(
+    tablePda: string,
+    txSignature: string,
+    row?: Record<string, unknown>,
+    signer?: string,
+): Promise<void> {
     try {
         await fetch(`${getGatewayUrl()}/table/${tablePda}/notify`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ txSignature, row }),
+            body: JSON.stringify({ txSignature, row, signer }),
         });
     } catch {
         // Non-critical — gateway will pick it up on next poll

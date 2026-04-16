@@ -78,6 +78,7 @@ export default function ThreadList({
                                 name={op.name}
                                 time={op.time}
                                 img={op.img}
+                                signer={op.__signer}
                                 isOp
                                 replyLink={threadHref}
                                 boardId={boardId}
@@ -118,6 +119,7 @@ export default function ThreadList({
                                                 name={reply.name}
                                                 time={reply.time}
                                                 img={reply.img}
+                                                signer={reply.__signer}
                                                 replyLink={`${threadHref}:p${sig}`}
                                                 boardId={boardId}
                                                 threadPda={thread.threadPda}

@@ -64,6 +64,7 @@ export default function ThreadDetail({
                         name={thread.name}
                         time={thread.time}
                         img={thread.img}
+                        signer={thread.__signer}
                         isOp
                         boardId={boardId}
                         threadPda={threadPda}
@@ -84,6 +85,7 @@ export default function ThreadDetail({
                                 name={reply.name}
                                 time={reply.time}
                                 img={reply.img}
+                                signer={reply.__signer}
                                 boardId={boardId}
                                 threadPda={threadPda}
                                 backlinks={backlinkMap[sig]}

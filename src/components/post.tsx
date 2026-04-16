@@ -13,6 +13,7 @@ export default function Post({
     time,
     sub,
     img,
+    signer,
     isOp,
     replyLink,
     boardId,
@@ -28,6 +29,7 @@ export default function Post({
     time: number;
     sub?: string;
     img?: string;
+    signer?: string;
     isOp?: boolean;
     replyLink?: string;
     boardId?: string;
@@ -94,6 +96,8 @@ export default function Post({
             ? <a href={replyLink} title="Reply to this post">{display}</a>
             : <a href={`${EXPLORER_TX_URL}${txSig}`} target="_blank" rel="noopener noreferrer" title="View on Solscan">{display}</a>;
 
+    const postUrl = () => `${window.location.origin}${window.location.pathname}#/${boardId}/${threadPda}:p${txSig}`;
+
     const menuDropdown = menuOpen ? (
         <div className="dd-menu" style={{ position: "absolute", top: "100%", left: 0, background: "#d6daf0", border: "1px solid #b7c5d9", zIndex: 9999, boxShadow: "1px 1px 2px rgba(0,0,0,0.15)", whiteSpace: "nowrap" }}>
             <ul style={{ listStyle: "none", margin: 0, padding: 0, fontSize: 12 }}>
@@ -112,14 +116,30 @@ export default function Post({
                 <li style={{ padding: "3px 10px", cursor: "pointer" }} onClick={() => { window.open(`${EXPLORER_TX_URL}${txSig}`, "_blank"); setMenuOpen(false); }}>
                     View on Solscan
                 </li>
-                {boardId && threadPda && (
+                {signer && (
                     <li style={{ padding: "3px 10px", cursor: "pointer" }} onClick={() => {
-                        const path = `${window.location.origin}${window.location.pathname}#/${boardId}/${threadPda}:p${txSig}`;
-                        navigator.clipboard.writeText(path);
+                        navigator.clipboard.writeText(signer);
                         setMenuOpen(false);
                     }}>
-                        Copy link to post
+                        Copy wallet address
                     </li>
+                )}
+                {boardId && threadPda && (
+                    <>
+                        <li style={{ padding: "3px 10px", cursor: "pointer" }} onClick={() => {
+                            navigator.clipboard.writeText(postUrl());
+                            setMenuOpen(false);
+                        }}>
+                            Copy link to post
+                        </li>
+                        <li style={{ padding: "3px 10px", cursor: "pointer" }} onClick={() => {
+                            const tweet = `https://twitter.com/intent/tweet?text=${encodeURIComponent(sub || "Check out this post on blockchan")}&url=${encodeURIComponent(postUrl())}`;
+                            window.open(tweet, "_blank", "noopener,noreferrer");
+                            setMenuOpen(false);
+                        }}>
+                            Share on X
+                        </li>
+                    </>
                 )}
             </ul>
         </div>

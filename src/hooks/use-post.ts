@@ -190,12 +190,13 @@ export function usePost() {
                 // (home page + thread detail OP lookup), and the thread's own
                 // reply table. Otherwise the new thread stays invisible until
                 // the gateway's next poll (up to 60s).
+                const signer = wallet.publicKey.toBase58();
                 await Promise.all([
-                    notifyPost(deriveTablePda(resolveBoardSeed(boardId)), txSig, row),
-                    notifyPost(feedPda.toBase58(), txSig, row),
-                    notifyPost(threadPda, txSig, row),
+                    notifyPost(deriveTablePda(resolveBoardSeed(boardId)), txSig, row, signer),
+                    notifyPost(feedPda.toBase58(), txSig, row, signer),
+                    notifyPost(threadPda, txSig, row, signer),
                 ]);
-                return { ...row, __txSignature: txSig };
+                return { ...row, __txSignature: txSig, __signer: signer };
             } catch (e) {
                 const msg = gateError(e);
                 const err = new Error(msg);
@@ -266,13 +267,14 @@ export function usePost() {
 
                 // If the reply bumped the feed, notify feedPda too so the home
                 // page picks up the new activity without waiting for cache TTL.
-                const notifyTargets = [notifyPost(threadPda, txSig, row)];
+                const signer = wallet.publicKey.toBase58();
+                const notifyTargets = [notifyPost(threadPda, txSig, row, signer)];
                 if (shouldBump) {
                     const feedPda = getFeedPda(DB_ROOT_KEY, resolveBoardSeed(boardId));
-                    notifyTargets.push(notifyPost(feedPda.toBase58(), txSig, row));
+                    notifyTargets.push(notifyPost(feedPda.toBase58(), txSig, row, signer));
                 }
                 await Promise.all(notifyTargets);
-                return { ...row, __txSignature: txSig };
+                return { ...row, __txSignature: txSig, __signer: signer };
             } catch (e) {
                 const msg = gateError(e);
                 const err = new Error(msg);
