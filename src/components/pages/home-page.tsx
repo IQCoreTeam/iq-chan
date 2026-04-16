@@ -20,6 +20,25 @@ interface PopularThread {
     fallbackImg: string;
 }
 
+// Match the render-path onError check: an img counts as "has image" only if
+// the browser can actually decode it. Uses a detached Image() which hits the
+// same cache as the real <img> tag, so successful checks are near-free and
+// broken URLs (expired Discord CDN, gallery pages, 404s) resolve as false.
+const imageOk = new Map<string, Promise<boolean>>();
+function checkImageLoads(url: string): Promise<boolean> {
+    const cached = imageOk.get(url);
+    if (cached) return cached;
+    const p = new Promise<boolean>((resolve) => {
+        const img = new Image();
+        const t = setTimeout(() => { img.src = ""; resolve(false); }, 5000);
+        img.onload = () => { clearTimeout(t); resolve(true); };
+        img.onerror = () => { clearTimeout(t); resolve(false); };
+        img.src = url;
+    });
+    imageOk.set(url, p);
+    return p;
+}
+
 function toDisplayThread(pda: string, t: { boardId: string; op: Post; count: number }, boards: BoardMeta[], fallbackImg: string): PopularThread {
     const board = boards.find((b) => b.id === t.boardId);
     return {
@@ -98,35 +117,41 @@ function useHomeData(boards: BoardMeta[]) {
 
                 setAllThreads(withOp.map(([pda, t]) => ({ boardId: t.boardId, threadPda: pda })));
 
-                // Top 4 trending: image threads first, then by hot score.
-                // Hot score: gentle age decay + recency boost. post.time / lastActivity
-                // are stored as unix seconds, so convert to hours vs Date.now() (ms).
-                //   count / (ageHours + 2)   → linear reply rate, old threads decay
-                //   0.5 / (idleHours + 1)    → mild boost for actively-bumped threads
-                // Not super aggressive: a popular 3-day-old thread with recent activity
-                // still competes with a fresh low-reply thread.
+                // Verify each OP's image actually decodes before using it as a
+                // sort signal. Same check the render path uses (onError → 404.webp).
+                // This eliminates the "5 of 8 Popular slots held by dead Discord/ibb
+                // URLs" problem without maintaining a host denylist.
+                const liveImgPdas = new Set<string>(
+                    (await Promise.all(
+                        withOp.map(async ([pda, t]) => (t.op.img && await checkImageLoads(t.op.img) ? pda : null)),
+                    )).filter((p): p is string => p !== null),
+                );
+                if (cancelled) return;
+
+                // Hot score: linear reply rate decaying with thread age + mild
+                // recency boost. post.time/lastActivity are unix seconds.
                 const now = Date.now();
                 const hotScore = (t: { op: Post; count: number; lastActivity: number }) => {
-                    const ageHours = Math.max(0, (now - (t.op.time ?? 0) * 1000) / 3600000);
+                    const ageHours = Math.max(0, (now - t.op.time * 1000) / 3600000);
                     const idleHours = Math.max(0, (now - t.lastActivity * 1000) / 3600000);
                     return t.count / (ageHours + 2) + 0.5 / (idleHours + 1);
                 };
                 const trending = [...withOp]
-                    .sort(([, a], [, b]) => {
-                        const aImg = a.op.img ? 1 : 0;
-                        const bImg = b.op.img ? 1 : 0;
+                    .sort(([pdaA, a], [pdaB, b]) => {
+                        const aImg = liveImgPdas.has(pdaA) ? 1 : 0;
+                        const bImg = liveImgPdas.has(pdaB) ? 1 : 0;
                         if (aImg !== bImg) return bImg - aImg;
                         return hotScore(b) - hotScore(a);
                     })
                     .slice(0, 4);
 
-                // Fill remaining slots (up to 8) with recent, image-first then by time
+                // Fill remaining slots (up to 8) with recent, live-image-first then by time
                 const trendingPdas = new Set(trending.map(([pda]) => pda));
                 const recentArr = [...withOp]
                     .filter(([pda]) => !trendingPdas.has(pda))
-                    .sort(([, a], [, b]) => {
-                        const aImg = a.op.img ? 1 : 0;
-                        const bImg = b.op.img ? 1 : 0;
+                    .sort(([pdaA, a], [pdaB, b]) => {
+                        const aImg = liveImgPdas.has(pdaA) ? 1 : 0;
+                        const bImg = liveImgPdas.has(pdaB) ? 1 : 0;
                         if (aImg !== bImg) return bImg - aImg;
                         return b.lastActivity - a.lastActivity;
                     })
