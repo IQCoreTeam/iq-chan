@@ -19,10 +19,15 @@ export function useThreads(boardId: string) {
         try {
             const feedPda = getFeedPda(DB_ROOT_KEY, resolveBoardSeed(boardId));
 
-            // Phase 1: Show threads with OPs immediately (1 gateway request)
+            // Phase 1: show threads immediately. Merge so optimistic threads
+            // added by addOptimisticThread survive until the gateway catches up.
             const quick = await fetchFeedThreadsQuick(feedPda);
             if (cancelRef.current) return;
-            setThreads(quick);
+            setThreads((prev) => {
+                const gatewayPdas = new Set(quick.map((t) => t.threadPda));
+                const optimistic = prev.filter((t) => !gatewayPdas.has(t.threadPda));
+                return [...optimistic, ...quick];
+            });
             setLoading(false);
 
             // Phase 2: Lazy-load reply previews in background (N requests, non-blocking)
@@ -48,5 +53,13 @@ export function useThreads(boardId: string) {
         return () => { cancelRef.current = true; };
     }, [load]);
 
-    return { threads, loading, error, hasMore, loadMore: load, refresh: load };
+    /** Inject a freshly-created thread so it renders before the gateway catches up. */
+    const addOptimisticThread = useCallback((entry: ThreadEntry) => {
+        setThreads((prev) => {
+            if (prev.some((t) => t.threadPda === entry.threadPda)) return prev;
+            return [entry, ...prev];
+        });
+    }, []);
+
+    return { threads, loading, error, hasMore, loadMore: load, refresh: load, addOptimisticThread };
 }
