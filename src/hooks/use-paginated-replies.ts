@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 
-import { fetchAllTableRows, type Row } from "../lib/gateway";
+import { fetchAllTableRows, fetchThread, type Row } from "../lib/gateway";
 import { mergeInstructions } from "../lib/parse";
 import { deriveInstructionTablePda, resolveBoardSeed, DB_ROOT_KEY } from "../lib/constants";
 import { getFeedPda, isMoreLikelyOp } from "../lib/board";
@@ -15,7 +15,10 @@ export function usePaginatedReplies(
     const [error, setError] = useState<Error | null>(null);
     const [refreshKey, setRefreshKey] = useState(0);
 
-    // Fetch all rows + instructions via /rows (real-time), apply edits/deletes
+    // Fetch via gateway /thread compound endpoint when we have a boardId
+    // (gateway picks the OP server-side). Fall back to thread-table scan for
+    // legacy or detached contexts. In both cases, instruction table is merged
+    // separately to apply edits/deletes.
     useEffect(() => {
         if (!threadPda) return;
         let cancelled = false;
@@ -25,42 +28,36 @@ export function usePaginatedReplies(
             setError(null);
 
             try {
-                const rows = await fetchAllTableRows(threadPda);
-                if (cancelled) return;
+                let rows: Post[];
+                let op: Post | null = null;
 
-                // OP is written to the board table (Zo's gate flow), not the thread table.
-                // Check the feed first (which contains the OP and bump rows), then fall
-                // back to scanning this thread's own table for legacy threads.
-                let opRow: Row | undefined;
                 if (boardId) {
                     const feedPda = getFeedPda(DB_ROOT_KEY, resolveBoardSeed(boardId));
-                    const feedRows = await fetchAllTableRows(feedPda.toBase58(), 100);
+                    const thread = await fetchThread(feedPda.toBase58(), threadPda);
                     if (cancelled) return;
-                    opRow = feedRows
-                        .filter((r) => r.threadPda === threadPda && !!r.threadSeed)
-                        .reduce<Row | undefined>((best, r) => isMoreLikelyOp(best, r) ? r : best, undefined);
-                }
-                if (!opRow) {
-                    opRow = rows
+                    op = thread.op;
+                    rows = thread.op ? [thread.op, ...(thread.replies as Post[])] : (thread.replies as Post[]);
+                } else {
+                    const tableRows = await fetchAllTableRows(threadPda);
+                    if (cancelled) return;
+                    op = tableRows
                         .filter((r) => !!r.threadSeed)
-                        .reduce<Row | undefined>((best, r) => isMoreLikelyOp(best, r) ? r : best, undefined);
-                }
-                if (opRow && !rows.some((r) => r.__txSignature === opRow!.__txSignature)) {
-                    rows.unshift(opRow);
+                        .reduce<Post | undefined>((best, r) => isMoreLikelyOp(best, r) ? r : best, undefined)
+                        ?? null;
+                    rows = tableRows as Post[];
                 }
 
-                let merged = rows;
-                const threadSeedResolved = (opRow as Post)?.threadSeed;
-                if (threadSeedResolved) {
-                    const instrPda = deriveInstructionTablePda(threadSeedResolved);
+                let merged: Post[] = rows;
+                if (op?.threadSeed) {
+                    const instrPda = deriveInstructionTablePda(op.threadSeed);
                     const instrRows = await fetchAllTableRows(instrPda);
                     if (cancelled) return;
                     if (instrRows.length > 0) {
-                        merged = mergeInstructions(rows, instrRows);
+                        merged = mergeInstructions(rows as Row[], instrRows) as Post[];
                     }
                 }
 
-                if (!cancelled) setAllRows(merged as Post[]);
+                if (!cancelled) setAllRows(merged);
             } catch (e) {
                 if (!cancelled) setError(e instanceof Error ? e : new Error(String(e)));
             } finally {

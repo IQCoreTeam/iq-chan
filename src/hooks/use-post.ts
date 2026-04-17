@@ -2,8 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
-import { PublicKey, SystemProgram, Transaction, LAMPORTS_PER_SOL } from "@solana/web3.js";
-import { getAssociatedTokenAddress, getAccount } from "@solana/spl-token";
+import { PublicKey, SystemProgram, Transaction } from "@solana/web3.js";
 // @ts-ignore — bn.js lacks type declarations
 import BN from "bn.js";
 import iqlabs from "iqlabs-sdk";
@@ -19,13 +18,11 @@ import {
     resolveBoardSeed,
 } from "../lib/constants";
 import { getFeedPda } from "../lib/board";
-import { notifyPost } from "../lib/gateway";
+import { notifyPost, checkGateFor } from "../lib/gateway";
 import { useWalletModal } from "../lib/wallet-modal";
 
-function gateError(e: unknown): string {
-    const raw = e instanceof Error ? e.message : String(e);
-    return raw.toLowerCase().includes("ata") || raw.toLowerCase().includes("token account")
-        ? "You are not a holder" : raw;
+function errorMessage(e: unknown): string {
+    return e instanceof Error ? e.message : String(e);
 }
 
 export function usePost() {
@@ -38,23 +35,16 @@ export function usePost() {
     const [totalSteps, setTotalSteps] = useState(0);
     const [error, setError] = useState<Error | null>(null);
 
-    const checkGate = useCallback(async (gate?: { mint: string; amount: number; gateType: number }) => {
+    /** Delegates to gateway /gate/:pda/check/:wallet — one HTTP call instead of
+     *  the getBalance + getAccount client-RPC chain we used to do. Throws with
+     *  a human-readable reason so callers can surface it via `status`. */
+    const checkGate = useCallback(async (boardPda: string) => {
         if (!wallet.publicKey) { openWalletModal(); throw new Error("Wallet not connected"); }
-
-        const sol = await connection.getBalance(wallet.publicKey);
-        if (sol < 0.005 * LAMPORTS_PER_SOL) throw new Error("Insufficient SOL balance");
-
-        if (!gate?.mint) return;
-        try {
-            const ata = await getAssociatedTokenAddress(new PublicKey(gate.mint), wallet.publicKey);
-            const account = await getAccount(connection, ata);
-            const balance = Number(account.amount);
-            if (balance < gate.amount) throw new Error("You are not a holder");
-        } catch (e) {
-            if (e instanceof Error && e.message === "You are not a holder") throw e;
-            throw new Error("You are not a holder");
+        const result = await checkGateFor(boardPda, wallet.publicKey.toBase58());
+        if (!result.meetsGate) {
+            throw new Error(result.sol < result.minSol ? "Insufficient SOL balance" : "You are not a holder");
         }
-    }, [connection, wallet.publicKey]);
+    }, [wallet.publicKey, openWalletModal]);
 
     // ─── Create Thread (2 TXs: create thread ext table + write OP row to board table) ──
 
@@ -74,7 +64,8 @@ export function usePost() {
             setError(null);
 
             try {
-                await checkGate(gate);
+                const boardPda = deriveTablePda(resolveBoardSeed(boardId));
+                await checkGate(boardPda);
 
                 const randomId = crypto.randomUUID();
                 const seed = threadTableSeed(resolveBoardSeed(boardId), randomId);
@@ -192,13 +183,13 @@ export function usePost() {
                 // the gateway's next poll (up to 60s).
                 const signer = wallet.publicKey.toBase58();
                 await Promise.all([
-                    notifyPost(deriveTablePda(resolveBoardSeed(boardId)), txSig, row, signer),
+                    notifyPost(boardPda, txSig, row, signer),
                     notifyPost(feedPda.toBase58(), txSig, row, signer),
                     notifyPost(threadPda, txSig, row, signer),
                 ]);
                 return { ...row, __txSignature: txSig, __signer: signer };
             } catch (e) {
-                const msg = gateError(e);
+                const msg = errorMessage(e);
                 const err = new Error(msg);
                 setError(err);
                 setStatus(`Error: ${msg}`);
@@ -221,7 +212,6 @@ export function usePost() {
             boardId: string,
             data: { com: string; name: string; img?: string; options?: string },
             replyCount = 0,
-            gate?: { mint: string; amount: number; gateType: number },
         ) => {
             if (!wallet.publicKey) { openWalletModal(); return; }
             setLoading(true);
@@ -231,7 +221,7 @@ export function usePost() {
             setError(null);
 
             try {
-                await checkGate(gate);
+                await checkGate(deriveTablePda(resolveBoardSeed(boardId)));
 
                 const dbRootIdBytes = DB_ROOT_ID_BYTES;
                 const seedBytes = Buffer.from(iqlabs.utils.toSeedBytes(threadSeed));
@@ -276,7 +266,7 @@ export function usePost() {
                 await Promise.all(notifyTargets);
                 return { ...row, __txSignature: txSig, __signer: signer };
             } catch (e) {
-                const msg = gateError(e);
+                const msg = errorMessage(e);
                 const err = new Error(msg);
                 setError(err);
                 setStatus(`Error: ${msg}`);

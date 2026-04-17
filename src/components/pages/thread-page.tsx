@@ -110,9 +110,9 @@ export default function ThreadPage({ boardId, threadId: threadPda, scrollTo }: {
     // (always) and to the feed (if the reply bumps the thread) before returning,
     // so by the time we refresh the gateway cache already has the row.
     const handlePostReply = useCallback(async (data: { com: string; name: string; img?: string; options?: string }) => {
-        await postReply(threadSeed, threadPda, boardId, data, totalReplies, gate.gateMint ? { mint: gate.gateMint, amount: gate.gateAmount || 1, gateType: gate.gateType || 0 } : undefined);
+        await postReply(threadSeed, threadPda, boardId, data, totalReplies);
         refresh();
-    }, [postReply, threadSeed, threadPda, boardId, totalReplies, gate.gateMint, gate.gateAmount, gate.gateType, refresh]);
+    }, [postReply, threadSeed, threadPda, boardId, totalReplies, refresh]);
 
     const onQuote = useCallback((sig: string) => {
         if (!publicKey) { openWalletModal(); return; }
