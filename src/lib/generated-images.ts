@@ -125,10 +125,10 @@ export const RANDOM_BANNERS: string[] = [
 ];
 
 export const NO_IMAGE_PLACEHOLDERS: string[] = [
-    "/noimage/13-q-milady-yotsuba.png",
-    "/noimage/14-op-lazy-blue.png",
-    "/noimage/15-void-blue.png",
-    "/noimage/6-q-no-image.png",
-    "/noimage/7-yotsuba-no-image.png",
-    "/noimage/8-q-yotsuba-together.png"
+    "/noimage/13-q-milady-yotsuba.webp",
+    "/noimage/14-op-lazy-blue.webp",
+    "/noimage/15-void-blue.webp",
+    "/noimage/6-q-no-image.webp",
+    "/noimage/7-yotsuba-no-image.webp",
+    "/noimage/8-q-yotsuba-together.webp"
 ];

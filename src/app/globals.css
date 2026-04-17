@@ -2,6 +2,16 @@
     box-sizing: border-box;
 }
 
+/* Prevent horizontal scroll from the `calc(-50vw + 50%)` full-bleed trick
+ * used on .boardBanner and .fp-logo. 100vw includes the vertical scrollbar's
+ * width, so without this clip the banner overshoots the document's right
+ * edge by a few pixels and a horizontal scrollbar appears. `clip` is
+ * preferred over `hidden` because it doesn't create a new scroll container
+ * (keeps position: sticky working in descendants). */
+html, body {
+    overflow-x: clip;
+}
+
 body {
     margin: 0;
 }

@@ -18,29 +18,47 @@ interface PopularThread {
     name: string;
     img?: string;
     fallbackImg: string;
+    thumbW: number;
+    thumbH: number;
 }
 
-// Match the render-path onError check: an img counts as "has image" only if
-// the browser can actually decode it. Uses a detached Image() which hits the
-// same cache as the real <img> tag, so successful checks are near-free and
-// broken URLs (expired Discord CDN, gallery pages, 404s) resolve as false.
-const imageOk = new Map<string, Promise<boolean>>();
-function checkImageLoads(url: string): Promise<boolean> {
-    const cached = imageOk.get(url);
+// Decode the image via a detached Image() and report its natural dimensions.
+// Null on failure (timeout, network error, non-image response). One fetch per
+// URL — result cached so the later <img> render uses the browser's hot cache.
+const imageDims = new Map<string, Promise<{ w: number; h: number } | null>>();
+function checkImageDims(url: string): Promise<{ w: number; h: number } | null> {
+    const cached = imageDims.get(url);
     if (cached) return cached;
-    const p = new Promise<boolean>((resolve) => {
+    const p = new Promise<{ w: number; h: number } | null>((resolve) => {
         const img = new Image();
-        const t = setTimeout(() => { img.src = ""; resolve(false); }, 5000);
-        img.onload = () => { clearTimeout(t); resolve(true); };
-        img.onerror = () => { clearTimeout(t); resolve(false); };
+        const t = setTimeout(() => { img.src = ""; resolve(null); }, 5000);
+        img.onload = () => { clearTimeout(t); resolve({ w: img.naturalWidth, h: img.naturalHeight }); };
+        img.onerror = () => { clearTimeout(t); resolve(null); };
         img.src = url;
     });
-    imageOk.set(url, p);
+    imageDims.set(url, p);
     return p;
 }
 
-function toDisplayThread(pda: string, t: { boardId: string; op: Post; count: number }, boards: BoardMeta[], fallbackImg: string): PopularThread {
+// 4chan-parity thumbnail scaling: scale the long side down to `max` and keep
+// the natural aspect ratio. Images smaller than max keep their native size.
+const THUMB_MAX = 150;
+function thumbDims(natW: number, natH: number): { w: number; h: number } {
+    const long = Math.max(natW, natH);
+    if (long <= THUMB_MAX) return { w: natW, h: natH };
+    const ratio = THUMB_MAX / long;
+    return { w: Math.round(natW * ratio), h: Math.round(natH * ratio) };
+}
+
+function toDisplayThread(
+    pda: string,
+    t: { boardId: string; op: Post; count: number },
+    boards: BoardMeta[],
+    fallbackImg: string,
+    dims: { w: number; h: number } | null,
+): PopularThread {
     const board = boards.find((b) => b.id === t.boardId);
+    const scaled = dims ? thumbDims(dims.w, dims.h) : { w: THUMB_MAX, h: THUMB_MAX };
     return {
         boardId: t.boardId,
         boardTitle: board?.title ?? t.boardId,
@@ -50,6 +68,8 @@ function toDisplayThread(pda: string, t: { boardId: string; op: Post; count: num
         name: t.op.name || "",
         img: t.op.img || fallbackImg,
         fallbackImg,
+        thumbW: scaled.w,
+        thumbH: scaled.h,
     };
 }
 
@@ -105,16 +125,18 @@ function useHomeData(boards: BoardMeta[]) {
 
                 setAllThreads(withOp.map(([pda, t]) => ({ boardId: t.boardId, threadPda: pda })));
 
-                // Verify each OP's image actually decodes before using it as a
-                // sort signal. Same check the render path uses (onError → 404.webp).
-                // This eliminates the "5 of 8 Popular slots held by dead Discord/ibb
-                // URLs" problem without maintaining a host denylist.
-                const liveImgPdas = new Set<string>(
-                    (await Promise.all(
-                        withOp.map(async ([pda, t]) => (t.op.img && await checkImageLoads(t.op.img) ? pda : null)),
-                    )).filter((p): p is string => p !== null),
+                // Fetch natural dimensions for every candidate image. Threads whose
+                // image doesn't decode (dead Discord CDN, gallery pages, 404s) get
+                // null and are treated as text threads for sort purposes.
+                const dimsResults = await Promise.all(
+                    withOp.map(async ([pda, t]) => ({
+                        pda,
+                        dims: t.op.img ? await checkImageDims(t.op.img) : null,
+                    })),
                 );
                 if (cancelled) return;
+                const liveImgPdas = new Set(dimsResults.filter((r) => r.dims).map((r) => r.pda));
+                const dimsByPda = new Map(dimsResults.filter((r) => r.dims).map((r) => [r.pda, r.dims!]));
 
                 // Hot score: linear reply rate decaying with thread age + mild
                 // recency boost. post.time/lastActivity are unix seconds.
@@ -154,7 +176,7 @@ function useHomeData(boards: BoardMeta[]) {
                 // Fill image threads with whatever's left (only used if their URL breaks)
                 let fi = noImgIndices.length;
                 all.forEach(([, t], i) => { if (t.op.img) fallbacks[i] = shuffled[fi++ % shuffled.length]; });
-                const combined = all.map(([pda, t], i) => toDisplayThread(pda, t, boards, fallbacks[i]));
+                const combined = all.map(([pda, t], i) => toDisplayThread(pda, t, boards, fallbacks[i], dimsByPda.get(pda) ?? null));
 
                 setTrendingCount(trending.length);
                 setPopular(combined);
@@ -248,7 +270,7 @@ export default function HomePage() {
                         </div>
                         <div className="boxcontent fp-banner">
                             <HashLink href={luckyHref}>
-                                <img alt="banner" src={bannerSrc} />
+                                <img alt="banner" src={bannerSrc} width="600" height="200" />
                                 <div className="fp-lucky">I&apos;m Feeling Lucky</div>
                             </HashLink>
                         </div>
@@ -274,7 +296,7 @@ export default function HomePage() {
                                 <div key={t.threadPda} className="c-thread">
                                     <div className="c-board">{t.boardTitle}</div>
                                     <HashLink href={`/${t.boardId}/${t.threadPda}`} className="boardlink">
-                                        <img alt="" className="c-thumb" src={t.img} width="150" height="150" style={{ objectFit: "cover" }} onError={(e) => { const img = e.target as HTMLImageElement; img.src = t.fallbackImg; img.style.objectFit = "contain"; }} />
+                                        <img alt="" className="c-thumb" src={t.img} width={t.thumbW} height={t.thumbH} onError={(e) => { const img = e.target as HTMLImageElement; img.src = t.fallbackImg; img.width = 150; img.height = 150; }} />
                                     </HashLink>
                                     <div className="c-teaser">
                                         {t.name && t.name !== "Anonymous" && <><b className="name">{t.name}</b>: </>}
