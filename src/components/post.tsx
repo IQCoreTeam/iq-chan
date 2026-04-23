@@ -118,6 +118,14 @@ export default function Post({
                 </li>
                 {signer && (
                     <li style={{ padding: "3px 10px", cursor: "pointer" }} onClick={() => {
+                        window.open(`https://profile.iqlabs.dev/${signer}`, "_blank", "noopener,noreferrer");
+                        setMenuOpen(false);
+                    }}>
+                        Go to the IQ Profile
+                    </li>
+                )}
+                {signer && (
+                    <li style={{ padding: "3px 10px", cursor: "pointer" }} onClick={() => {
                         navigator.clipboard.writeText(signer);
                         setMenuOpen(false);
                     }}>
