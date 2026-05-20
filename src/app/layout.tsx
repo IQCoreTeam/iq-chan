@@ -5,7 +5,7 @@ import "./globals.css";
 import "./chan.css";
 
 export const metadata: Metadata = {
-    metadataBase: new URL("https://blockchan.xyz"),
+    metadataBase: new URL("https://blockchan.sol.site"),
     title: {
         default: "BlockChan",
         template: "%s | BlockChan",
@@ -22,7 +22,7 @@ export const metadata: Metadata = {
         title: "BlockChan",
         description: "On-chain imageboard on Solana — every post is a transaction, nothing can be taken down",
         type: "website",
-        url: "https://blockchan.xyz",
+        url: "https://blockchan.sol.site",
         siteName: "BlockChan",
         images: [{ url: "/og-image.webp", width: 1200, height: 630 }],
     },

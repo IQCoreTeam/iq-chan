@@ -101,10 +101,10 @@ export default function AddBoardPage() {
                         Save this link — it cannot be recovered.
                     </p>
                     <p style={{ margin: "10px 0", fontFamily: "monospace", fontSize: "13px", wordBreak: "break-all", background: "#f0e0d6", padding: "8px", border: "1px solid #d9bfb7", cursor: "pointer" }}
-                        onClick={() => { navigator.clipboard.writeText(`blockchan.xyz/#${createdSeed}`); }}
+                        onClick={() => { navigator.clipboard.writeText(`blockchan.sol.site/#${createdSeed}`); }}
                         title="Click to copy"
                     >
-                        blockchan.xyz/#{createdSeed}
+                        blockchan.sol.site/#{createdSeed}
                     </p>
                     <p>
                         <HashLink href={`/${createdSeed}`} className="quoteLink">
@@ -231,7 +231,7 @@ export default function AddBoardPage() {
                         community.
                     </p>
                     <p style={{ marginTop: "6px" }}>
-                        (<code>blockchan.xyz/#/your-board-id</code>)
+                        (<code>blockchan.sol.site/#/your-board-id</code>)
                     </p>
                     <p style={{ marginTop: "8px" }}>
                         If your board gains traction and you'd like it listed on the main page,

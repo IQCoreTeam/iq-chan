@@ -85,7 +85,7 @@ const POST = {
         "",
         "RIP King Terry 1969-2018",
         "An hero now runs on-chain",
-        "https://blockchan.xyz",
+        "https://blockchan.sol.site",
     ].join("\n"),
 };
 
@@ -349,7 +349,7 @@ async function main() {
     console.log("  🧲 view local (dev server):");
     console.log(`     http://localhost:3000/#/${BOARD_ID}/${threadPda}`);
     console.log("  🌐 thread live on blockchan after cache refresh:");
-    console.log(`     https://blockchan.xyz/#/${BOARD_ID}/${threadPda}`);
+    console.log(`     https://blockchan.sol.site/#/${BOARD_ID}/${threadPda}`);
     console.log();
 }
 
