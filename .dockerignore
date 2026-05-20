@@ -1,0 +1,32 @@
+node_modules
+.next
+out
+.git
+*.log
+
+# Environment files (secrets) - never bake into image
+.env
+.env.*
+!.env.example
+
+# Wallet keypairs - NEVER
+keypair.json
+keypair-*.json
+*.keypair
+*.key
+secrets.json
+*.db
+
+# Tooling artifacts
+.DS_Store
+.idea/
+.vscode/
+.claude/
+*.swp
+*.tsbuildinfo
+
+# Docs / dev-only not needed at runtime
+README.md
+*.md
+DEVNOTES.md
+devdocs/
