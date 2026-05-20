@@ -8,7 +8,6 @@ out/
 downloaded-apps/
 *.tsbuildinfo
 bun.lock
-package-lock.json
 .iqbrowser-upload-cache.json
 gen-banners.*
 *.db
