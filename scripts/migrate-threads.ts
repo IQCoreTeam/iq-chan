@@ -18,7 +18,7 @@ import { DB_ROOT_ID, DB_ROOT_ID_BYTES, DB_ROOT_KEY } from "../src/lib/constants"
 
 const idl = require("iqlabs-sdk/idl/code_in.json");
 const RPC_URL = "https://api.mainnet-beta.solana.com";
-const GATEWAY = "https://gateway.solanainternet.com";
+const GATEWAY = "https://gateway.iqlabs.dev";
 
 const BOARDS = ["po", "biz", "a", "g", "iq"];
 

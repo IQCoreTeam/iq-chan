@@ -33,7 +33,7 @@ import {
 import { getFeedPda } from "../src/lib/board";
 
 const RPC_URL = "https://rpc.reflow.xyz";
-const GATEWAY_URL = "https://gateway.solanainternet.com";
+const GATEWAY_URL = "https://gateway.iqlabs.dev";
 // os.homedir() under snap-confined bun points into snap's fake home, so resolve
 // via $SUDO_USER / $USER with explicit /home prefix.
 const REAL_HOME = process.env.REAL_HOME ?? `/home/${process.env.USER ?? "linbox"}`;
