@@ -45,3 +45,30 @@ jobs:
           build-args: |
             NEXT_PUBLIC_RPC_ENDPOINT=${{ secrets.NEXT_PUBLIC_RPC_ENDPOINT }}
             NEXT_PUBLIC_GATEWAY_URL=${{ vars.NEXT_PUBLIC_GATEWAY_URL || 'https://gateway.iqlabs.dev' }}
+
+  # main only — devnet branch builds the :devnet image but isn't deployed
+  # (no iq-chan-dev container in compose yet).
+  deploy:
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      # authorized_keys is command-restricted to `deploy.sh iq-chan`,
+      # so this key can only redeploy iq-chan even if leaked.
+      - name: Deploy to iqlabs server
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          SSH_HOST_KEY: ${{ secrets.SSH_HOST_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          umask 077
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/deploy_key
+          printf '%s %s\n' "$DEPLOY_HOST" "$SSH_HOST_KEY" > ~/.ssh/known_hosts
+          ssh -i ~/.ssh/deploy_key \
+              -o UserKnownHostsFile=~/.ssh/known_hosts \
+              -o StrictHostKeyChecking=yes \
+              -o BatchMode=yes \
+              -o ConnectTimeout=10 \
+              iqlabs@"$DEPLOY_HOST" 'ignored: forced command runs deploy.sh iq-chan'
+          shred -u ~/.ssh/deploy_key 2>/dev/null || rm -f ~/.ssh/deploy_key
