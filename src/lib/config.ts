@@ -1,5 +1,5 @@
 export const RPC_ENDPOINT =
-    process.env.NEXT_PUBLIC_RPC_ENDPOINT ?? "https://mainnet.helius-rpc.com/?api-key=767cde04-93dd-4e62-9580-978c74febc93";
+    process.env.NEXT_PUBLIC_RPC_ENDPOINT ?? "https://mainnet.helius-rpc.com/?api-key=fbb113ce-eeb4-4277-8c44-7153632d175a";
 
 const PRIMARY_GATEWAY = process.env.NEXT_PUBLIC_GATEWAY_URL ?? "https://gateway.iqlabs.dev";
 const BACKUP_GATEWAY = "https://gateway.iqlabs.dev";

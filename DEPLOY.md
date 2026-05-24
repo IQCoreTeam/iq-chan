@@ -14,7 +14,7 @@
 레포 Settings → Secrets and variables → Actions 에 추가:
 
 - **Secret** `NEXT_PUBLIC_RPC_ENDPOINT`
-  = `https://mainnet.helius-rpc.com/?api-key=767cde04-93dd-4e62-9580-978c74febc93`
+  = `https://mainnet.helius-rpc.com/?api-key=fbb113ce-eeb4-4277-8c44-7153632d175a`
 - (선택) **Variable** `NEXT_PUBLIC_GATEWAY_URL` = `https://gateway.iqlabs.dev`
   (없으면 기본값 사용)
 
