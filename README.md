@@ -2,7 +2,7 @@
 
 A fully decentralized imageboard built on Solana. All posts, threads, and boards are stored permanently on-chain using the [IQ Labs SDK](https://github.com/IQCoreTeam/iqlabs-solana-sdk). No servers hold your data — just Solana transactions and a read-only gateway cache.
 
-Live: [blockchan.xyz](https://blockchan.xyz)
+Live: [blockchan.sol.site](https://blockchan.sol.site)
 
 ## How It Works
 
@@ -151,4 +151,4 @@ Browser (Next.js static app)
 - [IQ Labs SDK](https://github.com/IQCoreTeam/iqlabs-solana-sdk)
 - [IQ Gateway](https://github.com/IQCoreTeam/iq-gateway)
 - [SDK Docs](https://iqlabs.mintlify.app/docs-typescript)
-- [BlockChan](https://blockchan.xyz)
+- [BlockChan](https://blockchan.sol.site)
