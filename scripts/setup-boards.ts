@@ -76,27 +76,18 @@ async function main() {
             console.log(`[${board.id}] Table already exists at ${tablePda.toBase58()}, skipping create`);
         } else {
             console.log(`[${board.id}] Creating table at ${tablePda.toBase58()}...`);
-            await sendTx(
+            await iqlabs.writer.createTable(
                 connection,
                 payer,
-                iqlabs.contract.createTableInstruction(builder, {
-                    db_root: DB_ROOT_KEY,
-                    receiver: payer.publicKey,
-                    signer: payer.publicKey,
-                    table: tablePda,
-                    instruction_table: instructionTablePda,
-                    system_program: SystemProgram.programId,
-                }, {
-                    db_root_id: Buffer.from(iqlabs.utils.toSeedBytes(DB_ROOT_ID)),
-                    table_seed: Buffer.from(iqlabs.utils.toSeedBytes(board.id)),
-                    table_hint: Buffer.from(board.id),
-                    table_name: Buffer.from(board.title),
-                    column_names: ["title", "description", "image", "time"].map((c) => Buffer.from(c)),
-                    id_col: Buffer.from("time"),
-                    ext_keys: [],
-                    gate_opt: null,
-                    writers_opt: null,
-                }),
+                DB_ROOT_ID,
+                board.id,
+                board.title,
+                ["title", "description", "image", "time"],
+                "time",
+                [],
+                undefined,
+                undefined,
+                board.id,
             );
             console.log(`[${board.id}] Created`);
         }
