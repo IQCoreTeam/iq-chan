@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { DB_ROOT_KEY, resolveBoardSeed } from "../lib/constants";
-import { getFeedPda, fetchFeedThreadsQuick, fetchThreadPreviews, ThreadEntry } from "../lib/board";
+import { getChain } from "../lib/chains";
+import type { ThreadEntry } from "../lib/types";
 
 export function useThreads(boardId: string) {
     const [threads, setThreads] = useState<ThreadEntry[]>([]);
@@ -16,10 +16,10 @@ export function useThreads(boardId: string) {
         cancelRef.current = false;
 
         try {
-            const feedPda = getFeedPda(DB_ROOT_KEY, resolveBoardSeed(boardId));
+            const chain = await getChain();
 
             // Phase 1: show threads immediately.
-            const quick = await fetchFeedThreadsQuick(feedPda);
+            const quick = await chain.listThreads(boardId);
             if (cancelRef.current) return;
             setThreads(quick);
             setLoading(false);
@@ -27,7 +27,7 @@ export function useThreads(boardId: string) {
             // Phase 2: Lazy-load reply previews in background (N requests, non-blocking)
             for (const entry of quick) {
                 if (cancelRef.current) return;
-                const updated = await fetchThreadPreviews(entry);
+                const updated = await chain.getThreadPreviews(entry);
                 if (cancelRef.current) return;
                 setThreads((prev) =>
                     prev.map((t) => t.threadPda === updated.threadPda ? updated : t),

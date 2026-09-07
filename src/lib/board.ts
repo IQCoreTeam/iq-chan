@@ -2,19 +2,13 @@ import { PublicKey } from "@solana/web3.js";
 import iqlabs from "iqlabs-sdk";
 import { FEED_SEED_PREFIX, THREADS_PER_PAGE, BOARD_METADATA } from "./constants";
 import { fetchAllTableRows, fetchDbRoot } from "./gateway";
-import type { Post, Reply, BoardMeta } from "./types";
+import type { Post, Reply, BoardMeta, ThreadEntry } from "./types";
+
+export type { ThreadEntry };
 
 const PROGRAM_ID = iqlabs.contract.PROGRAM_ID;
 
 const REPLY_PREVIEW_COUNT = 5;
-
-export interface ThreadEntry {
-    threadPda: string;
-    opData: Post | null;
-    lastActivityTime: number;
-    replyCount: number;
-    lastReplies: Reply[];
-}
 
 export function getFeedPda(dbRootKey: PublicKey, boardId: string): PublicKey {
     return PublicKey.findProgramAddressSync(
