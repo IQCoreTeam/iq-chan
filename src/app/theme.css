@@ -10,11 +10,8 @@
 
 .yotsuba-b {
     --page-bg: #eef2ff;      /* page background */
-    --nav-bg: #b7c5d9;       /* top/bottom board-nav bars */
-    --edge: #b7c5d9;         /* borders, dividers, hr, arrows */
-    --banner-top: #b7c5d9;   /* top stop of the banner gradient (separate from
-                                --edge so a chain can soften the band under the
-                                transparent nav without lightening borders) */
+    --edge: #b7c5d9;         /* nav bars, banner gradient top, borders, dividers.
+                                nav bg == banner top so they read as one piece */
     --panel: #d6daf0;        /* post/panel/form/footer fills */
     --panel-alt: #c9cde8;    /* secondary mobile panel fill */
     --accent: #98b0d7;       /* form label cells, boxbar, dropdown hover */
@@ -29,10 +26,7 @@ html { background: #eef2ff; }
 html[data-net="robinhood"] { background: #eafcef; }
 html[data-net="robinhood"] .yotsuba-b {
     --page-bg: #eafcef;
-    --nav-bg: transparent;   /* blend the nav bars into the page */
     --edge: #a9d9ad;
-    --banner-top: #d6f0dc;   /* gentle: banner starts near page bg so the top
-                                reads as one seamless green under the nav */
     --panel: #dcf3e1;
     --panel-alt: #cdeccf;
     --accent: #8fd3a0;

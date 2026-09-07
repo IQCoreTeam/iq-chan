@@ -12,7 +12,7 @@
 .fp-logo {
     text-align: center;
     padding: 40px 10px 30px;
-    background: linear-gradient(to bottom, var(--banner-top) 0%, var(--panel) 60%, var(--page-bg) 100%);
+    background: linear-gradient(to bottom, var(--edge) 0%, var(--panel) 60%, var(--page-bg) 100%);
     margin-left: calc(-50vw + 50%);
     margin-right: calc(-50vw + 50%);
     margin-bottom: 10px;

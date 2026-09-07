@@ -11,7 +11,7 @@
 #boardNavDesktop {
     font-size: 12px;
     color: #89a;
-    background: var(--nav-bg);
+    background: var(--edge);
     padding: 2px 5px;
     overflow: hidden;
 }
@@ -32,7 +32,7 @@
 /* Mobile nav (hidden on desktop) */
 #boardNavMobile {
     display: none;
-    background: var(--nav-bg);
+    background: var(--edge);
     padding: 2px 6px;
     font-size: 11px;
     font-family: arial, helvetica, sans-serif;
@@ -84,7 +84,7 @@
 .boardBanner {
     text-align: center;
     padding: 40px 10px 30px;
-    background: linear-gradient(to bottom, var(--banner-top) 0%, var(--panel) 60%, var(--page-bg) 100%);
+    background: linear-gradient(to bottom, var(--edge) 0%, var(--panel) 60%, var(--page-bg) 100%);
     margin: 0 calc(-50vw + 50%) 5px;
 }
 
@@ -512,7 +512,7 @@ blockquote.postMessage {
 #boardNavDesktopFoot {
     font-size: 12px;
     color: #89a;
-    background: var(--nav-bg);
+    background: var(--panel);
     border-top: 1px solid var(--edge);
     padding: 2px 5px;
     overflow: hidden;
