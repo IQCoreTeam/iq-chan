@@ -1,14 +1,13 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { useWallet } from "@solana/wallet-adapter-react";
 import { hashHref } from "../hooks/use-hash-router";
 import HashLink from "./hash-link";
-import { ThreadEntry } from "../lib/board";
+import type { ThreadEntry } from "../lib/types";
 import Post from "./post";
 import QuickReply from "./quick-reply";
 import { usePost } from "../hooks/use-post";
-import { useWalletModal } from "../lib/wallet-modal";
+import { useChainWallet } from "../lib/chains/context";
 
 export default function ThreadList({
     threads,
@@ -23,13 +22,12 @@ export default function ThreadList({
     const [hiddenPosts, setHiddenPosts] = useState<Set<string>>(new Set());
     const [qrThread, setQrThread] = useState<{ pda: string; seed: string; opSig: string } | null>(null);
     const { postReply, loading: postLoading, status: postStatus, step: postStep, totalSteps: postTotalSteps, clearStatus } = usePost();
-    const { publicKey } = useWallet();
-    const { openWalletModal } = useWalletModal();
+    const { address, connect } = useChainWallet();
 
     const handleQuoteOnBoard = useCallback((threadPda: string, threadSeed: string, opSig: string) => (_txSig: string) => {
-        if (!publicKey) { openWalletModal(); return; }
+        if (!address) { connect(); return; }
         setQrThread({ pda: threadPda, seed: threadSeed, opSig });
-    }, [publicKey, openWalletModal]);
+    }, [address, connect]);
 
     function toggleThread(pda: string) {
         setHiddenThreads((prev) => {

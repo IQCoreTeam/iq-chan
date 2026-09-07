@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useWallet } from "@solana/wallet-adapter-react";
+import { useChainWallet } from "../lib/chains/context";
 import PostingOverlay from "./posting-overlay";
 
 export default function PostForm({
@@ -21,7 +21,7 @@ export default function PostForm({
     totalSteps?: number;
     onClearStatus?: () => void;
 }) {
-    const { publicKey } = useWallet();
+    const { address } = useChainWallet();
     const [showForm, setShowForm] = useState(false);
     const isError = !!statusText?.startsWith("Error:");
     const showOverlay = !!statusText && (loading || isError);
@@ -31,7 +31,7 @@ export default function PostForm({
     const [img, setImg] = useState("");
     const [options, setOptions] = useState("");
 
-    if (!publicKey) {
+    if (!address) {
         return (
             <div style={{ textAlign: "center", padding: 10, fontSize: 13, color: "#707070" }}>
                 Connect your wallet to post

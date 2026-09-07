@@ -4,11 +4,10 @@ import { useState, useMemo, useCallback } from "react";
 import HashLink from "../hash-link";
 import { useThreads } from "../../hooks/use-threads";
 import { usePost } from "../../hooks/use-post";
-import { THREADS_PER_PAGE, formatBoardTitle, getRandomBanner } from "../../lib/constants";
-import { useWallet } from "@solana/wallet-adapter-react";
+import { THREADS_PER_PAGE, formatBoardTitle, getRandomBanner } from "../../lib/board-config";
+import { useChainWallet } from "../../lib/chains/context";
 import { useBoards } from "../../hooks/use-boards";
 import { useBoardGate } from "../../hooks/use-board-gate";
-import { useWalletModal } from "../../lib/wallet-modal";
 import ThreadList from "../thread-list";
 import PostForm from "../post-form";
 import QuickReply from "../quick-reply";
@@ -45,8 +44,7 @@ function PageList({ page, totalPages, onPage }: { page: number; totalPages: numb
 }
 
 export default function BoardPage({ boardId }: { boardId: string }) {
-    const { publicKey } = useWallet();
-    const { openWalletModal } = useWalletModal();
+    const { address, connect } = useChainWallet();
     const { threads, loading, error, refresh } = useThreads(boardId);
     const { createThread, loading: postLoading, status: postStatus, step: postStep, totalSteps: postTotalSteps, clearStatus } = usePost();
     const [page, setPage] = useState(0);
@@ -113,7 +111,7 @@ export default function BoardPage({ boardId }: { boardId: string }) {
             </div>
 
             <div id="togglePostFormLink" className="mobile" style={{ textAlign: "center", margin: "10px 0" }}>
-                [<a href="#" onClick={(e) => { e.preventDefault(); if (!publicKey) { openWalletModal(); return; } setQrOpen(true); }}>Start a New Thread</a>]
+                [<a href="#" onClick={(e) => { e.preventDefault(); if (!address) { connect(); return; } setQrOpen(true); }}>Start a New Thread</a>]
             </div>
             <div className="desktopPostForm">
                 <PostForm
