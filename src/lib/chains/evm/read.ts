@@ -8,10 +8,10 @@
 //  2. Row identity. EVM rows come back stamped __txHash; the app keys posts on
 //     __txSignature, so every row is normalized to set __txSignature = __txHash.
 //
-// Interim note: listThreads sorts by latest-known activity gathered client-side
-// (creation order in phase 1, refined by getThreadPreviews). True bump ordering
-// is a gateway-derived feed (from DbCodeInEvent) tracked in issue #6; this
-// adapter will switch to that endpoint once it lands, with no call-site change.
+// listThreads uses the gateway's derived bump feed (GET .../:board/threads),
+// which orders threads by latest on-chain activity from the durable row index
+// (no feed PDA exists on EVM). It falls back to grouping board-table rows in
+// creation order for threads just posted but not yet indexed.
 
 import { gwFetch } from "../../gateway";
 import { DB_ROOT_ID, resolveBoardSeed, THREADS_PER_PAGE } from "../../board-config";
@@ -43,6 +43,33 @@ function preferOp(
     return (candidate.time ?? 0) < (current.time ?? 0);
 }
 
+/** Fallback grouping: board table rows -> threads in creation order. Used for
+ *  threads freshly posted but not yet in the gateway's derived feed index. */
+function groupBoardRows(rows: RawRow[]): ThreadEntry[] {
+    const threads = new Map<string, ThreadEntry>();
+    for (const raw of rows) {
+        const post = normalizeRow(raw);
+        if (!post.threadPda) continue;
+        const time = post.time ?? 0;
+        const existing = threads.get(post.threadPda);
+        if (existing) {
+            if (post.threadSeed && preferOp(existing.opData ?? undefined, post)) existing.opData = post;
+            existing.lastActivityTime = Math.max(existing.lastActivityTime, time);
+        } else {
+            threads.set(post.threadPda, {
+                threadPda: post.threadPda,
+                opData: post.threadSeed ? post : null,
+                lastActivityTime: time,
+                replyCount: 0,
+                lastReplies: [],
+            });
+        }
+    }
+    return [...threads.values()]
+        .filter((t) => t.opData !== null)
+        .sort((a, b) => b.lastActivityTime - a.lastActivityTime);
+}
+
 export function createEvmReadAdapter(net: NetworkDescriptor): ChainReadAdapter {
     const netParam = net.gatewayNetworkParam;
 
@@ -66,31 +93,38 @@ export function createEvmReadAdapter(net: NetworkDescriptor): ChainReadAdapter {
         net,
 
         async listThreads(boardId: string): Promise<ThreadEntry[]> {
-            const rows = await getRows(resolveBoardSeed(boardId), THREADS_PER_PAGE * 3);
-            const threads = new Map<string, ThreadEntry>();
+            const boardSeed = resolveBoardSeed(boardId);
 
-            for (const raw of rows) {
-                const post = normalizeRow(raw);
-                if (!post.threadPda) continue;
-                const time = post.time ?? 0;
-                const existing = threads.get(post.threadPda);
-                if (existing) {
-                    if (post.threadSeed && preferOp(existing.opData ?? undefined, post)) existing.opData = post;
-                    existing.lastActivityTime = Math.max(existing.lastActivityTime, time);
-                } else {
-                    threads.set(post.threadPda, {
-                        threadPda: post.threadPda,
-                        opData: post.threadSeed ? post : null,
-                        lastActivityTime: time,
-                        replyCount: 0,
-                        lastReplies: [],
-                    });
+            // Primary: gateway-derived bump feed (real recency order).
+            try {
+                const res = await gwFetch(
+                    `/table/${enc(DB_ROOT_ID)}/${enc(boardSeed)}/threads?${withNetwork({ limit: String(THREADS_PER_PAGE * 3) })}`,
+                );
+                if (res.ok) {
+                    const data = await res.json();
+                    const feed = (data.threads ?? []) as Array<{ threadName: string; op: RawRow | null; replyCount?: number; lastActivityTime?: number | null }>;
+                    if (feed.length) {
+                        return feed
+                            .filter((t) => t.op)
+                            .map((t) => {
+                                const op = normalizeRow(t.op as RawRow);
+                                return {
+                                    threadPda: t.threadName,
+                                    opData: op,
+                                    lastActivityTime: t.lastActivityTime ?? op.time ?? 0,
+                                    replyCount: t.replyCount ?? 0,
+                                    lastReplies: [] as Reply[],
+                                };
+                            });
+                    }
                 }
+            } catch {
+                // fall through to the board-rows fallback
             }
 
-            return [...threads.values()]
-                .filter((t) => t.opData !== null)
-                .sort((a, b) => b.lastActivityTime - a.lastActivityTime);
+            // Fallback: group board table rows (creation order) for freshly
+            // posted threads not yet indexed, or gateways without /threads.
+            return groupBoardRows(await getRows(boardSeed, THREADS_PER_PAGE * 3));
         },
 
         async getThreadPreviews(entry: ThreadEntry): Promise<ThreadEntry> {
