@@ -25,6 +25,9 @@ export interface NetworkTheme {
     logo?: string;
     /** Open Graph / link-preview image under public/ (per chain branding). */
     ogImage?: string;
+    /** Browser and home-screen icons for this chain's branding. */
+    favicon?: string;
+    appleIcon?: string;
 }
 
 export interface NetworkDescriptor {

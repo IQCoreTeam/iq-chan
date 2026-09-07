@@ -27,7 +27,10 @@ export async function generateMetadata(): Promise<Metadata> {
         title: { default: name, template: `%s | ${name}` },
         description,
         other: { "format-detection": "telephone=no" },
-        icons: { icon: "/favicon.ico", apple: "/apple-icon.png" },
+        icons: {
+            icon: net.theme.favicon ?? "/favicon.ico",
+            apple: net.theme.appleIcon ?? "/apple-icon.png",
+        },
         openGraph: {
             title: name,
             description,
