@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import HashLink from "../hash-link";
 import { DB_ROOT_KEY, getRandomBanner, NO_IMAGE_PLACEHOLDERS } from "../../lib/constants";
 import { resolveNetwork } from "../../lib/chains/resolve";
+import { getChain } from "../../lib/chains";
 import { useBoards } from "../../hooks/use-boards";
 import { getFeedPda, isMoreLikelyOp } from "../../lib/board";
 import { fetchAllTableRows } from "../../lib/gateway";
@@ -80,56 +81,60 @@ function useHomeData(boards: BoardMeta[]) {
     const [popular, setPopular] = useState<PopularThread[]>([]);
     const [trendingCount, setTrendingCount] = useState(0);
     const [allThreads, setAllThreads] = useState<{ boardId: string; threadPda: string }[]>([]);
+    const [error, setError] = useState(false);
+    const [refreshKey, setRefreshKey] = useState(0);
 
     useEffect(() => {
         let cancelled = false;
 
         async function load() {
-            // The cross-board "popular" aggregation below reads Solana feed PDAs
-            // directly. On EVM there is no feed PDA — the equivalent is a gateway
-            // bump-feed over evm_row_index (issue #6). Until that endpoint exists,
-            // skip aggregation on EVM so we don't render wrong-chain data; board
-            // pages still work via the adapter.
-            if (resolveNetwork().family !== "svm") {
-                setTotalPosts(0);
-                setTotalThreads(0);
-                setPopular([]);
-                setTrendingCount(0);
-                setAllThreads([]);
-                return;
-            }
+            setError(false);
             try {
-                const feedResults = await Promise.all(
-                    boards.map((b) => fetchAllTableRows(getFeedPda(DB_ROOT_KEY, b.seed).toBase58(), 50).then((rows) => ({ boardId: b.id, rows }))),
-                );
-                if (cancelled) return;
-
                 const threadMap = new Map<string, { boardId: string; op: Post | null; count: number; lastActivity: number }>();
                 let totalPostCount = 0;
 
-                for (const { boardId, rows } of feedResults) {
-                    totalPostCount += rows.length;
-                    for (const row of rows) {
-                        const post = row as Post;
-                        if (!post.threadPda) continue;
-                        const time = post.time ?? 0;
-                        const existing = threadMap.get(post.threadPda);
-                        if (existing) {
-                            existing.count++;
-                            existing.lastActivity = Math.max(existing.lastActivity, time);
-                            if (post.threadSeed && isMoreLikelyOp(existing.op ?? undefined, post)) {
-                                existing.op = post;
+                if (resolveNetwork().family === "evm") {
+                    // The adapter uses the gateway's derived feed, including
+                    // reply counts; no per-thread scans are needed on home.
+                    const chain = await getChain();
+                    const results = await Promise.all(boards.map(async (b) => ({ boardId: b.id, threads: await chain.listThreads(b.id) })));
+                    for (const { boardId, threads } of results) {
+                        for (const thread of threads) {
+                            if (!thread.opData) continue;
+                            const count = 1 + thread.replyCount;
+                            totalPostCount += count;
+                            threadMap.set(thread.threadPda, { boardId, op: thread.opData, count, lastActivity: thread.lastActivityTime });
+                        }
+                    }
+                } else {
+                    const feedResults = await Promise.all(
+                        boards.map((b) => fetchAllTableRows(getFeedPda(DB_ROOT_KEY, b.seed).toBase58(), 50).then((rows) => ({ boardId: b.id, rows }))),
+                    );
+                    for (const { boardId, rows } of feedResults) {
+                        totalPostCount += rows.length;
+                        for (const row of rows) {
+                            const post = row as Post;
+                            if (!post.threadPda) continue;
+                            const time = post.time ?? 0;
+                            const existing = threadMap.get(post.threadPda);
+                            if (existing) {
+                                existing.count++;
+                                existing.lastActivity = Math.max(existing.lastActivity, time);
+                                if (post.threadSeed && isMoreLikelyOp(existing.op ?? undefined, post)) {
+                                    existing.op = post;
+                                }
+                            } else {
+                                threadMap.set(post.threadPda, {
+                                    boardId,
+                                    op: post.threadSeed ? post : null,
+                                    count: 1,
+                                    lastActivity: time,
+                                });
                             }
-                        } else {
-                            threadMap.set(post.threadPda, {
-                                boardId,
-                                op: post.threadSeed ? post : null,
-                                count: 1,
-                                lastActivity: time,
-                            });
                         }
                     }
                 }
+                if (cancelled) return;
 
                 setTotalPosts(totalPostCount);
                 setTotalThreads(threadMap.size);
@@ -194,19 +199,20 @@ function useHomeData(boards: BoardMeta[]) {
 
                 setTrendingCount(trending.length);
                 setPopular(combined);
-            } catch {}
+            } catch { if (!cancelled) setError(true); }
         }
 
         load();
         return () => { cancelled = true; };
-    }, [boards]);
+    }, [boards, refreshKey]);
 
-    return { totalPosts, totalThreads, popular, trendingCount, allThreads };
+    return { totalPosts, totalThreads, popular, trendingCount, allThreads, error, retry: () => setRefreshKey(k => k + 1) };
 }
 
 export default function HomePage() {
     const { boards } = useBoards();
-    const { totalPosts, totalThreads, popular, trendingCount, allThreads } = useHomeData(boards);
+    const { totalPosts, totalThreads, popular, trendingCount, allThreads, error, retry } = useHomeData(boards);
+    const isEvm = resolveNetwork().family === "evm";
     const [bannerSrc, setBannerSrc] = useState("");
     useEffect(() => { setBannerSrc(getRandomBanner()); }, []);
     const [aboutClosed, setAboutClosed] = useState(false);
@@ -299,9 +305,10 @@ export default function HomePage() {
                     </div>
                     <div className="boxcontent">
                         <div id="c-threads">
+                            {error && <p role="alert">Could not load threads. <button onClick={retry}>Retry</button></p>}
                             {popular.length === 0 ? (
                                 <div style={{ textAlign: "center", padding: "10px", color: "#89a", fontSize: "12px" }}>
-                                    {totalPosts === null ? "Loading threads..." : "No threads yet"}
+                                    {error ? "" : totalPosts === null ? "Loading threads..." : "No threads yet"}
                                 </div>
                             ) : popular.flatMap((t, i) => [
                                 ...(i === trendingCount && trendingCount > 0 && trendingCount < popular.length
@@ -331,10 +338,10 @@ export default function HomePage() {
                     </div>
                     <div className="boxcontent">
                         <div className="stat-cell">
-                            <b>Total Posts:</b> {totalPosts !== null ? totalPosts.toLocaleString() : "..."}
+                            <b>{isEvm ? "Recent Posts:" : "Total Posts:"}</b> {totalPosts !== null ? totalPosts.toLocaleString() : error ? "Unavailable" : "..."}
                         </div>
                         <div className="stat-cell">
-                            <b>Active Threads:</b> {totalThreads !== null ? totalThreads.toLocaleString() : "..."}
+                            <b>{isEvm ? "Recent Threads:" : "Active Threads:"}</b> {totalThreads !== null ? totalThreads.toLocaleString() : error ? "Unavailable" : "..."}
                         </div>
                         <div className="stat-cell">
                             <b>Boards:</b> {boards.length}
