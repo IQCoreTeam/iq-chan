@@ -281,6 +281,9 @@ export function usePost() {
     );
 
     // ─── Edit Post (1 TX) ───────────────────────────────────────────────────
+    // NOTE: editPost/deletePost are not wired to any UI yet. They write
+    // soft-edit/soft-delete markers to the per-table instruction table via
+    // manageRowData; the read side already merges them (parse.ts).
 
     const editPost = useCallback(
         async (threadSeed: string, targetTxSig: string, newCom: string) => {

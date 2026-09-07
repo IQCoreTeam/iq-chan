@@ -10,6 +10,7 @@ import BN from "bn.js";
 import HashLink from "../hash-link";
 import { FooterNav } from "../board-nav";
 import {
+    BOARD_COLUMNS,
     DB_ROOT_ID_BYTES,
     DB_ROOT_KEY,
     deriveTablePda,
@@ -67,7 +68,7 @@ export default function AddBoardPage() {
                 table_seed: boardSeedBytes,
                 table_hint: Buffer.from(boardSeed),
                 table_name: Buffer.from(title),
-                column_names: ["sub", "com", "name", "time", "img", "threadPda", "threadSeed"].map((c) => Buffer.from(c)),
+                column_names: BOARD_COLUMNS.map((c) => Buffer.from(c)),
                 id_col: Buffer.from("time"),
                 ext_keys: [],
                 gate_opt: gate,

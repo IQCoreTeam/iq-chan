@@ -21,7 +21,7 @@ import {
     Transaction,
 } from "@solana/web3.js";
 import iqlabs from "iqlabs-sdk";
-import { DB_ROOT_ID, DB_ROOT_ID_BYTES, DB_ROOT_KEY } from "../src/lib/constants";
+import { BOARD_COLUMNS, DB_ROOT_ID, DB_ROOT_ID_BYTES, DB_ROOT_KEY } from "../src/lib/constants";
 
 const idl = require("iqlabs-sdk/idl/code_in.json");
 
@@ -104,8 +104,6 @@ async function main() {
             // newly created — no existing meta to read
         }
 
-        // Columns: ["title","description","image","time"] — matches addboard-page format
-        const BOARD_COLUMNS = ["title", "description", "image", "time"];
         await sendTx(
             connection,
             payer,
