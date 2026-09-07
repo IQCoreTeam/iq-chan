@@ -1225,9 +1225,17 @@ html[data-net="robinhood"] .boardBanner,
 html[data-net="robinhood"] .fp-logo {
     background: linear-gradient(to bottom, #7fce93 0%, #c2ecca 60%, #eafcef 100%);
 }
+/* Make the top nav blend into the page instead of reading as a separate bar,
+   and keep any margin gap green rather than showing a dark strip. */
+html[data-net="robinhood"] { background: #eafcef; }
 html[data-net="robinhood"] #boardNavDesktop,
 html[data-net="robinhood"] #boardNavMobile {
-    background: #cbead0;
+    background: transparent;
+}
+/* Bottom board-nav bar: kill the lavender fill + blue divider. */
+html[data-net="robinhood"] #boardNavDesktopFoot {
+    background: transparent;
+    border-top-color: #a9d9ad;
 }
 
 /* Navy link accents (#34345c) -> green, per selector to beat the id-scoped
