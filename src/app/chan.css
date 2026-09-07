@@ -3,7 +3,7 @@
 .yotsuba-b {
     font-family: arial, helvetica, sans-serif;
     font-size: 13px;
-    background: #eef2ff;
+    background: var(--page-bg);
     color: #000;
 }
 
@@ -11,13 +11,13 @@
 #boardNavDesktop {
     font-size: 12px;
     color: #89a;
-    background: #b7c5d9;
+    background: var(--nav-bg);
     padding: 2px 5px;
     overflow: hidden;
 }
 
 #boardNavDesktop a {
-    color: #34345c;
+    color: var(--link);
     text-decoration: none;
 }
 
@@ -32,7 +32,7 @@
 /* Mobile nav (hidden on desktop) */
 #boardNavMobile {
     display: none;
-    background: #b7c5d9;
+    background: var(--nav-bg);
     padding: 2px 6px;
     font-size: 11px;
     font-family: arial, helvetica, sans-serif;
@@ -67,7 +67,7 @@
 }
 
 #boardNavMobile .pageJump a {
-    color: #34345c;
+    color: var(--link);
     text-decoration: none;
     margin-left: 6px;
 }
@@ -84,7 +84,7 @@
 .boardBanner {
     text-align: center;
     padding: 40px 10px 30px;
-    background: linear-gradient(to bottom, #b7c5d9 0%, #d6daf0 60%, #eef2ff 100%);
+    background: linear-gradient(to bottom, var(--edge) 0%, var(--panel) 60%, var(--page-bg) 100%);
     margin: 0 calc(-50vw + 50%) 5px;
 }
 
@@ -107,7 +107,7 @@
     margin: 0 auto;
     border-spacing: 1px;
     border: none;
-    background: #d6daf0;
+    background: var(--panel);
 }
 
 .postForm td {
@@ -116,17 +116,17 @@
 }
 
 .postForm td:first-child {
-    background: #98b0d7;
+    background: var(--accent);
     color: #000;
     font-weight: bold;
-    border: 1px solid #b7c5d9;
+    border: 1px solid var(--edge);
     padding: 1px 5px;
     font-size: 10pt;
     white-space: nowrap;
 }
 
 .postForm td:last-child {
-    background: #d6daf0;
+    background: var(--panel);
     padding: 1px 2px;
 }
 
@@ -189,11 +189,11 @@
     display: flex;
     align-items: center;
     clear: both;
-    border-top: 1px solid #b7c5d9;
+    border-top: 1px solid var(--edge);
 }
 
 .navLinks a {
-    color: #34345c;
+    color: var(--link);
     text-decoration: none;
 }
 
@@ -223,8 +223,8 @@
 }
 
 .post.reply {
-    background: #d6daf0;
-    border: 1px solid #b7c5d9;
+    background: var(--panel);
+    border: 1px solid var(--edge);
     border-left: none;
     border-top: none;
     display: table;
@@ -236,7 +236,7 @@
     float: left;
     margin-right: 2px;
     margin-top: 0;
-    color: #b7c5d9;
+    color: var(--edge);
     font-size: 13px;
 }
 
@@ -260,7 +260,7 @@
 }
 
 .subject {
-    color: #0f0c5d;
+    color: var(--subject);
     font-weight: bold;
 }
 
@@ -274,7 +274,7 @@
 }
 
 .postNum a {
-    color: #34345c;
+    color: var(--link);
     text-decoration: none;
 }
 
@@ -322,7 +322,7 @@ blockquote.postMessage {
 }
 
 .external-link {
-    color: #34345c;
+    color: var(--link);
     text-decoration: underline;
     word-break: break-all;
 }
@@ -342,7 +342,7 @@ blockquote.postMessage {
 }
 
 .fileText a {
-    color: #34345c;
+    color: var(--link);
     text-decoration: underline;
 }
 
@@ -405,11 +405,11 @@ blockquote.postMessage {
 }
 
 .summary a {
-    color: #34345c;
+    color: var(--link);
 }
 
 .replylink {
-    color: #34345c;
+    color: var(--link);
     text-decoration: none;
 }
 
@@ -419,7 +419,7 @@ blockquote.postMessage {
 
 /* Post menu */
 .postMenuBtn {
-    color: #34345c;
+    color: var(--link);
     text-decoration: none;
     margin-left: 5px;
     font-size: 10px;
@@ -437,7 +437,7 @@ blockquote.postMessage {
 
 /* Dropdown menu */
 .dd-menu ul li:hover {
-    background: #98b0d7;
+    background: var(--accent);
     color: #000;
 }
 
@@ -473,7 +473,7 @@ blockquote.postMessage {
 }
 
 .navLinksBot a {
-    color: #34345c;
+    color: var(--link);
     text-decoration: none;
 }
 
@@ -493,7 +493,7 @@ blockquote.postMessage {
 }
 
 #togglePostFormLink a {
-    color: #34345c;
+    color: var(--link);
     text-decoration: none;
 }
 
@@ -504,7 +504,7 @@ blockquote.postMessage {
 /* Horizontal rules */
 .board hr {
     border: none;
-    border-top: 1px solid #b7c5d9;
+    border-top: 1px solid var(--edge);
     margin: 0;
 }
 
@@ -512,15 +512,15 @@ blockquote.postMessage {
 #boardNavDesktopFoot {
     font-size: 12px;
     color: #89a;
-    background: #d6daf0;
-    border-top: 1px solid #b7c5d9;
+    background: var(--nav-bg);
+    border-top: 1px solid var(--edge);
     padding: 2px 5px;
     overflow: hidden;
     clear: both;
 }
 
 #boardNavDesktopFoot a {
-    color: #34345c;
+    color: var(--link);
     text-decoration: none;
 }
 
@@ -537,7 +537,7 @@ blockquote.postMessage {
 }
 
 #absbot a {
-    color: #34345c;
+    color: var(--link);
     text-decoration: none;
 }
 
@@ -576,7 +576,7 @@ blockquote.postMessage {
 }
 
 .pagelist a {
-    color: #34345c;
+    color: var(--link);
     text-decoration: none;
 }
 
@@ -655,8 +655,8 @@ blockquote.postMessage {
         flex-wrap: wrap;
         align-items: baseline;
         gap: 0 5px;
-        border-bottom: 1px solid #b7c5d9;
-        background-color: #c9cde8;
+        border-bottom: 1px solid var(--edge);
+        background-color: var(--panel-alt);
         padding: 5px;
         margin: 0;
         color: #000;
@@ -698,7 +698,7 @@ blockquote.postMessage {
     }
 
     .postInfoM.mobile .nameBlock .subject {
-        color: #0f0c5d;
+        color: var(--subject);
         font-weight: bold;
     }
 
@@ -707,7 +707,7 @@ blockquote.postMessage {
     }
 
     .postInfoM.mobile .dateTime a {
-        color: #34345c;
+        color: var(--link);
         text-decoration: none;
     }
 
@@ -724,8 +724,8 @@ blockquote.postMessage {
         padding: 3px 5px;
         clear: both;
         line-height: 2;
-        background: #c9cde8;
-        border-top: 1px solid #b7c5d9;
+        background: var(--panel-alt);
+        border-top: 1px solid var(--edge);
     }
 
     .backlink.mobile a {
@@ -737,8 +737,8 @@ blockquote.postMessage {
     /* Mobile "View Thread" bar */
     .postLink.mobile {
         display: block;
-        background: #d6daf0;
-        border-top: 1px solid #b7c5d9;
+        background: var(--panel);
+        border-top: 1px solid var(--edge);
         padding: 4px 8px;
         font-size: 10pt;
         overflow: hidden;
@@ -752,10 +752,10 @@ blockquote.postMessage {
 
     .postLink.mobile .button {
         float: right;
-        background: #d6daf0;
+        background: var(--panel);
         border: 1px solid #aaa;
         padding: 3px 12px;
-        color: #34345c;
+        color: var(--link);
         text-decoration: none;
         font-size: 10pt;
     }
@@ -863,7 +863,7 @@ blockquote.postMessage {
         display: block;
         overflow: visible;
         word-wrap: break-word;
-        background: #d6daf0;
+        background: var(--panel);
         border: none;
         padding: 0;
         margin: 0;
@@ -875,7 +875,7 @@ blockquote.postMessage {
 
     .post.op {
         overflow: visible;
-        background: #d6daf0;
+        background: var(--panel);
         border: none;
         padding: 0;
         margin: 0;
@@ -925,7 +925,7 @@ blockquote.postMessage {
 
     .mFileInfo.mobile .mFileName {
         font-size: 9pt;
-        color: #34345c;
+        color: var(--link);
         word-break: break-all;
         margin-bottom: 1px;
     }
@@ -1008,12 +1008,12 @@ blockquote.postMessage {
     }
     .mobileib.button a,
     .mobileib.button label {
-        background: #d6daf0;
-        border: 1px solid #b7c5d9;
+        background: var(--panel);
+        border: 1px solid var(--edge);
         padding: 4px 10px;
         border-radius: 3px;
         font-size: 10pt;
-        color: #34345c;
+        color: var(--link);
         text-decoration: none;
         cursor: pointer;
     }
@@ -1032,10 +1032,10 @@ blockquote.postMessage {
 
     .mobileThreadFooter .mobilePostFormToggle.button {
         display: block;
-        background: #d6daf0;
-        border: 1px solid #b7c5d9;
+        background: var(--panel);
+        border: 1px solid var(--edge);
         padding: 6px 12px;
-        color: #34345c;
+        color: var(--link);
         text-decoration: none;
         font-size: 10pt;
         text-align: center;
@@ -1053,10 +1053,10 @@ blockquote.postMessage {
 
     .mobileThreadFooter .mobileib.button a,
     .mobileThreadFooter .mobileib.button label {
-        background: #d6daf0;
-        border: 1px solid #b7c5d9;
+        background: var(--panel);
+        border: 1px solid var(--edge);
         padding: 4px 10px;
-        color: #34345c;
+        color: var(--link);
         text-decoration: none;
         font-size: 10pt;
         cursor: pointer;
@@ -1214,54 +1214,3 @@ blockquote.postMessage {
 
 }
 
-/* ── Robinhood (HoodChan) green theme ─────────────────────────────────────
-   Scoped to the active network via the data-net attribute set on <html> by
-   Providers. Recolors the large page surfaces (base, hero banners, nav bar)
-   green; win95 content panels stay as-is for readability. */
-html[data-net="robinhood"] .yotsuba-b {
-    background: #eafcef;
-}
-html[data-net="robinhood"] .boardBanner,
-html[data-net="robinhood"] .fp-logo {
-    background: linear-gradient(to bottom, #7fce93 0%, #c2ecca 60%, #eafcef 100%);
-}
-/* Make the top nav blend into the page instead of reading as a separate bar,
-   and keep any margin gap green rather than showing a dark strip. */
-html[data-net="robinhood"] { background: #eafcef; }
-html[data-net="robinhood"] #boardNavDesktop,
-html[data-net="robinhood"] #boardNavMobile {
-    background: transparent;
-}
-/* Bottom board-nav bar: kill the lavender fill + blue divider. */
-html[data-net="robinhood"] #boardNavDesktopFoot {
-    background: transparent;
-    border-top-color: #a9d9ad;
-}
-
-/* Navy link accents (#34345c) -> green, per selector to beat the id-scoped
-   originals. Covers the visible "blue points": top bar, post nav, replies,
-   file links, pagelist, footers. */
-html[data-net="robinhood"] #boardNavDesktop a,
-html[data-net="robinhood"] #boardNavMobile .pageJump a,
-html[data-net="robinhood"] .navLinks a,
-html[data-net="robinhood"] .navLinksBot a,
-html[data-net="robinhood"] .postNum a,
-html[data-net="robinhood"] .external-link,
-html[data-net="robinhood"] .fileText a,
-html[data-net="robinhood"] .summary a,
-html[data-net="robinhood"] .replylink,
-html[data-net="robinhood"] .postMenuBtn,
-html[data-net="robinhood"] #togglePostFormLink a,
-html[data-net="robinhood"] #boardNavDesktopFoot a,
-html[data-net="robinhood"] #absbot a,
-html[data-net="robinhood"] .pagelist a {
-    color: #0b7a2f;
-}
-
-/* Light-blue fills (#98b0d7) -> green: post-form label cells, dropdown hover. */
-html[data-net="robinhood"] .postForm td:first-child {
-    background: #8fd3a0;
-}
-html[data-net="robinhood"] .dd-menu ul li:hover {
-    background: #57b979;
-}

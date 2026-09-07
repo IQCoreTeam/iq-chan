@@ -96,7 +96,7 @@ export default function BoardPage({ boardId }: { boardId: string }) {
 
             {gate.gateMint && <GateNotice gate={gate} />}
 
-            <hr style={{ border: "none", borderTop: "1px solid #b7c5d9" }} />
+            <hr style={{ border: "none", borderTop: "1px solid var(--edge)" }} />
 
             <div className="navLinks mobile" style={{ textAlign: "center", padding: "5px 0" }}>
                 <span className="mobileib button">
@@ -125,7 +125,7 @@ export default function BoardPage({ boardId }: { boardId: string }) {
                 />
             </div>
 
-            <hr style={{ border: "none", borderTop: "1px solid #b7c5d9" }} />
+            <hr style={{ border: "none", borderTop: "1px solid var(--edge)" }} />
 
             <div className="navLinks desktop">
                 [<HashLink href="/">Home</HashLink>]
@@ -135,7 +135,7 @@ export default function BoardPage({ boardId }: { boardId: string }) {
                 [<a href="#" onClick={(e) => { e.preventDefault(); document.getElementById("bottom")?.scrollIntoView({ behavior: "smooth" }); }}>Bottom</a>]
             </div>
 
-            <hr style={{ border: "none", borderTop: "1px solid #b7c5d9" }} />
+            <hr style={{ border: "none", borderTop: "1px solid var(--edge)" }} />
 
             {loading && threads.length === 0 ? (
                 <div className="loading-text">Loading threads...</div>

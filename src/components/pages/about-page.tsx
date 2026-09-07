@@ -12,7 +12,7 @@ export default function AboutPage() {
                 <div className="boardTitle">About</div>
             </div>
 
-            <hr style={{ border: "none", borderTop: "1px solid #b7c5d9" }} />
+            <hr style={{ border: "none", borderTop: "1px solid var(--edge)" }} />
 
             <div style={{ maxWidth: 700, margin: "10px auto", padding: "0 10px", fontSize: 13, lineHeight: 1.5 }}>
                 <p>
@@ -30,7 +30,7 @@ export default function AboutPage() {
                     that interests you and start posting!
                 </p>
                 <br />
-                <h3 style={{ borderBottom: "1px solid #b7c5d9", paddingBottom: 3 }}>Run Your Own</h3>
+                <h3 style={{ borderBottom: "1px solid var(--edge)", paddingBottom: 3 }}>Run Your Own</h3>
                 <p>
                     BlockChan is fully open source. Run your own frontend, your own gateway, or both.
                     No single server controls the data.

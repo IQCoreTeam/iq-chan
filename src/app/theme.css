@@ -1,0 +1,37 @@
+/* ─────────────────────────────────────────────────────────────────────────
+   Per-chain theme palette. This is the ONE place chain colors live: chan.css
+   and home.css reference these variables (var(--x)) instead of hard-coded hex.
+
+   Defaults below are the original Yotsuba-B blue palette, so Solana renders
+   exactly as before. Each chain overrides only the variables under its
+   html[data-net="<id>"] block (data-net is set on <html> by Providers).
+   Adding a chain theme = one block here, no edits to chan.css/home.css.
+   ───────────────────────────────────────────────────────────────────────── */
+
+.yotsuba-b {
+    --page-bg: #eef2ff;      /* page background */
+    --nav-bg: #b7c5d9;       /* top/bottom board-nav bars */
+    --edge: #b7c5d9;         /* borders, dividers, hr, arrows */
+    --panel: #d6daf0;        /* post/panel/form/footer fills */
+    --panel-alt: #c9cde8;    /* secondary mobile panel fill */
+    --accent: #98b0d7;       /* form label cells, boxbar, dropdown hover */
+    --accent-dark: #34345c;  /* announce boxbar, banner/thumb borders */
+    --link: #34345c;         /* link text */
+    --subject: #0f0c5d;      /* post subject */
+}
+
+html { background: #eef2ff; }
+
+/* ── Robinhood Chain (HoodChan) — green ─────────────────────────────────── */
+html[data-net="robinhood"] { background: #eafcef; }
+html[data-net="robinhood"] .yotsuba-b {
+    --page-bg: #eafcef;
+    --nav-bg: transparent;   /* blend the nav bars into the page */
+    --edge: #a9d9ad;
+    --panel: #dcf3e1;
+    --panel-alt: #cdeccf;
+    --accent: #8fd3a0;
+    --accent-dark: #0b7a2f;
+    --link: #0b7a2f;
+    --subject: #0b7a2f;
+}

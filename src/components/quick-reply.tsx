@@ -119,8 +119,8 @@ export default function QuickReply({
                 top: isMobile ? undefined : pos.y,
                 left: isMobile ? undefined : pos.x,
                 zIndex: 100,
-                background: "#d6daf0",
-                border: "1px solid #b7c5d9",
+                background: "var(--panel)",
+                border: "1px solid var(--edge)",
                 boxShadow: "2px 2px 4px rgba(0,0,0,0.2)",
                 minWidth: isMobile ? undefined : 350,
                 width: isMobile ? undefined : "auto",
@@ -132,7 +132,7 @@ export default function QuickReply({
                 className="drag postblock"
                 onMouseDown={handleMouseDown}
                 style={{
-                    background: "#98b0d7",
+                    background: "var(--accent)",
                     padding: "2px 5px",
                     cursor: "move",
                     fontWeight: "bold",
@@ -146,7 +146,7 @@ export default function QuickReply({
                 <a
                     href="#"
                     onClick={(e) => { e.preventDefault(); onClose(); }}
-                    style={{ color: "#34345c", textDecoration: "none", fontSize: 14, position: "absolute", right: 5, top: 2 }}
+                    style={{ color: "var(--link)", textDecoration: "none", fontSize: 14, position: "absolute", right: 5, top: 2 }}
                 >
                     X
                 </a>

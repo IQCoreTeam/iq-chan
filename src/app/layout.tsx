@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Header from "../components/header";
 import Providers from "./providers";
+import "./theme.css";
 import "./globals.css";
 import "./chan.css";
 

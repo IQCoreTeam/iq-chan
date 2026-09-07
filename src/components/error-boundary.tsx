@@ -24,7 +24,7 @@ export default class ErrorBoundary extends Component<
                     <div className="boardBanner">
                         <div className="boardTitle">Something went wrong</div>
                     </div>
-                    <hr style={{ border: "none", borderTop: "1px solid #b7c5d9" }} />
+                    <hr style={{ border: "none", borderTop: "1px solid var(--edge)" }} />
                     <div style={{ padding: "30px 10px" }}>
                         <img src="/error.webp" alt="Error" style={{ maxWidth: 200, margin: "0 auto 20px", display: "block" }} />
                         <p style={{ fontSize: 14, color: "#d00", marginBottom: 10 }}>
@@ -37,10 +37,10 @@ export default class ErrorBoundary extends Component<
                                     e.preventDefault();
                                     this.setState({ error: null });
                                 }}
-                                style={{ color: "#34345c" }}
+                                style={{ color: "var(--link)" }}
                             >Try Again</a>]
                             {" "}
-                            [<a href="#/" style={{ color: "#34345c" }}>Home</a>]
+                            [<a href="#/" style={{ color: "var(--link)" }}>Home</a>]
                         </p>
                     </div>
                 </div>

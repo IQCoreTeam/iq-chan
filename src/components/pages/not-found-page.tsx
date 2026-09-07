@@ -10,7 +10,7 @@ export default function NotFoundPage() {
                 <div className="boardTitle">404 - Not Found</div>
             </div>
 
-            <hr style={{ border: "none", borderTop: "1px solid #b7c5d9" }} />
+            <hr style={{ border: "none", borderTop: "1px solid var(--edge)" }} />
 
             <div style={{ textAlign: "center", padding: "40px 10px" }}>
                 <img src="/404.webp" alt="Not Found" style={{ maxWidth: 200, margin: "0 auto 20px", display: "block" }} />

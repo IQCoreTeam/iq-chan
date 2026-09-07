@@ -30,7 +30,7 @@ export default function PostingOverlay({ statusText, step, totalSteps, isError, 
                 onClick={(e) => e.stopPropagation()}
                 style={{
                     background: "#fff",
-                    border: isError ? "2px solid #d00" : "2px solid #98b0d7",
+                    border: isError ? "2px solid #d00" : "2px solid var(--accent)",
                     fontFamily: "arial, helvetica, sans-serif",
                     fontSize: "13px",
                     width: 280,
@@ -41,7 +41,7 @@ export default function PostingOverlay({ statusText, step, totalSteps, isError, 
                     style={{
                         background: isError
                             ? "linear-gradient(90deg, #a53a3a, #d07070)"
-                            : "linear-gradient(90deg, #3a6ea5, #98b0d7)",
+                            : "linear-gradient(90deg, #3a6ea5, var(--accent))",
                         padding: "3px 8px",
                         color: "#fff",
                         fontWeight: "bold",
@@ -92,8 +92,8 @@ export default function PostingOverlay({ statusText, step, totalSteps, isError, 
                     </p>
                     {progress !== undefined && !isError && (
                         <div style={{
-                            background: "#d6daf0",
-                            border: "1px solid #98b0d7",
+                            background: "var(--panel)",
+                            border: "1px solid var(--accent)",
                             height: 14,
                             borderRadius: 1,
                         }}>

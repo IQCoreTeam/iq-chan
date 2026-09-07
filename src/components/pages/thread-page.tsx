@@ -193,7 +193,7 @@ export default function ThreadPage({ boardId, threadId: threadPda, scrollTo }: {
                 </div>
             </div>
 
-            <hr className="desktop" style={{ border: "none", borderTop: "1px solid #b7c5d9" }} />
+            <hr className="desktop" style={{ border: "none", borderTop: "1px solid var(--edge)" }} />
 
             {loading && !op ? (
                 <div className="loading-text">Loading...</div>
@@ -228,7 +228,7 @@ export default function ThreadPage({ boardId, threadId: threadPda, scrollTo }: {
                     {countdown > 0 && <span style={{ marginLeft: 3 }}>{countdown}</span>}
                 </div>
                 <div style={{ position: "absolute", left: "50%", transform: "translateX(-50%)", fontSize: "110%" }}>
-                    [<a href="#" onClick={(e) => { e.preventDefault(); if (!address) { connect(); return; } setQrOpen(true); }} style={{ color: "#34345c", textDecoration: "none" }}>Post a Reply</a>]
+                    [<a href="#" onClick={(e) => { e.preventDefault(); if (!address) { connect(); return; } setQrOpen(true); }} style={{ color: "var(--link)", textDecoration: "none" }}>Post a Reply</a>]
                 </div>
                 <div className="thread-stats" style={{ marginLeft: "auto" }}>
                     <span className="ts-replies" title="Replies">{totalReplies}</span>

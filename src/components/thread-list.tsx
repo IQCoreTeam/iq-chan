@@ -130,7 +130,7 @@ export default function ThreadList({
                                 </>
                             )}
                         </div>
-                        <hr style={{ border: "none", borderTop: "1px solid #b7c5d9" }} />
+                        <hr style={{ border: "none", borderTop: "1px solid var(--edge)" }} />
                     </div>
                 );
             })}

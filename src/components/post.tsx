@@ -104,7 +104,7 @@ export default function Post({
     const postUrl = () => `${window.location.origin}${window.location.pathname}#/${boardId}/${threadPda}:p${txSig}`;
 
     const menuDropdown = menuOpen ? (
-        <div className="dd-menu" style={{ position: "absolute", top: "100%", left: 0, background: "#d6daf0", border: "1px solid #b7c5d9", zIndex: 9999, boxShadow: "1px 1px 2px rgba(0,0,0,0.15)", whiteSpace: "nowrap" }}>
+        <div className="dd-menu" style={{ position: "absolute", top: "100%", left: 0, background: "var(--panel)", border: "1px solid var(--edge)", zIndex: 9999, boxShadow: "1px 1px 2px rgba(0,0,0,0.15)", whiteSpace: "nowrap" }}>
             <ul style={{ listStyle: "none", margin: 0, padding: 0, fontSize: 12 }}>
                 {onHide && (
                     <li style={{ padding: "3px 10px", cursor: "pointer" }} onClick={() => { onHide(); setMenuOpen(false); }}>

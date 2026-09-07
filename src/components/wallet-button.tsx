@@ -31,7 +31,7 @@ export default function WalletButton() {
         <a
             href="#"
             onClick={(e) => { e.preventDefault(); connect(); }}
-            style={{ color: "#34345c", textDecoration: "none", fontSize: 12 }}
+            style={{ color: "var(--link)", textDecoration: "none", fontSize: 12 }}
         >
             [Connect Wallet]
         </a>

@@ -51,8 +51,8 @@ export default function SolanaWalletModal() {
             <div
                 onClick={(e) => e.stopPropagation()}
                 style={{
-                    background: "#d6daf0",
-                    border: "2px outset #eef2ff",
+                    background: "var(--panel)",
+                    border: "2px outset var(--page-bg)",
                     fontFamily: "arial, helvetica, sans-serif",
                     fontSize: "13px",
                     minWidth: 260,
@@ -62,7 +62,7 @@ export default function SolanaWalletModal() {
                 {/* Title bar */}
                 <div
                     style={{
-                        background: "linear-gradient(90deg, #3a6ea5, #98b0d7)",
+                        background: "linear-gradient(90deg, #3a6ea5, var(--accent))",
                         padding: "3px 4px",
                         display: "flex",
                         justifyContent: "space-between",
@@ -75,8 +75,8 @@ export default function SolanaWalletModal() {
                     <button
                         onClick={() => closeWalletModal()}
                         style={{
-                            background: "#d6daf0",
-                            border: "2px outset #eef2ff",
+                            background: "var(--panel)",
+                            border: "2px outset var(--page-bg)",
                             width: 18,
                             height: 18,
                             fontSize: "11px",
@@ -100,7 +100,7 @@ export default function SolanaWalletModal() {
                     {wallets.length === 0 ? (
                         <div style={{
                             background: "#fff",
-                            border: "2px inset #b7c5d9",
+                            border: "2px inset var(--edge)",
                             padding: "12px",
                             textAlign: "center",
                         }}>
@@ -119,7 +119,7 @@ export default function SolanaWalletModal() {
                     ) : (
                         <div style={{
                             background: "#fff",
-                            border: "2px inset #b7c5d9",
+                            border: "2px inset var(--edge)",
                             padding: 2,
                         }}>
                             {wallets.map((wallet) => (

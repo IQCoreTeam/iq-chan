@@ -12,7 +12,7 @@
 .fp-logo {
     text-align: center;
     padding: 40px 10px 30px;
-    background: linear-gradient(to bottom, #b7c5d9 0%, #d6daf0 60%, #eef2ff 100%);
+    background: linear-gradient(to bottom, var(--edge) 0%, var(--panel) 60%, var(--page-bg) 100%);
     margin-left: calc(-50vw + 50%);
     margin-right: calc(-50vw + 50%);
     margin-bottom: 10px;
@@ -31,7 +31,7 @@
 
 /* Boxes */
 .box-outer {
-    border: 1.5px solid #b7c5d9;
+    border: 1.5px solid var(--edge);
     zoom: 100%;
     margin-bottom: .5em;
     padding-bottom: .5em;
@@ -44,7 +44,7 @@
 }
 
 #announce .boxbar {
-    background: #34345c;
+    background: var(--accent-dark);
     color: #fff;
 }
 
@@ -55,7 +55,7 @@
 .boxbar {
     padding-left: .5em;
     line-height: 2em;
-    background: #98b0d7;
+    background: var(--accent);
     color: #000;
     position: relative;
     zoom: 100%;
@@ -80,7 +80,7 @@
     margin-top: 4px;
     margin-right: 4px;
     cursor: pointer;
-    background: #98b0d7;
+    background: var(--accent);
     color: #fff;
     text-decoration: none;
     font-size: 11px;
@@ -91,7 +91,7 @@
 }
 
 #announce .closebutton:hover {
-    background: #98b0d7;
+    background: var(--accent);
 }
 
 .boxcontent {
@@ -102,7 +102,7 @@
 }
 
 .boxcontent a {
-    color: #34345c;
+    color: var(--link);
     text-decoration: none;
 }
 .boxcontent a:hover {
@@ -121,23 +121,23 @@
 }
 
 .fp-banner a:hover img {
-    border-color: #34345c;
+    border-color: var(--link);
 }
 
 .fp-banner img {
     max-width: 100%;
     max-height: 200px;
-    border: 2px solid #34345c;
+    border: 2px solid var(--accent-dark);
     border-radius: 4px;
     box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.15);
     padding: 2px;
-    background: #d6daf0;
+    background: var(--panel);
 }
 
 .fp-lucky {
     margin-top: 4px;
     font-size: 13px;
-    color: #34345c;
+    color: var(--link);
     font-style: italic;
 }
 
@@ -170,7 +170,7 @@
 }
 
 #boards a {
-    color: #34345c;
+    color: var(--link);
     text-decoration: none;
 }
 
@@ -192,7 +192,7 @@ br.clear-bug {
     font-size: 11px;
     color: #89a;
     margin: 8px 0 4px;
-    border-top: 1px solid #d9e1f2;
+    border-top: 1px solid var(--panel);
     padding-top: 6px;
 }
 
@@ -223,7 +223,7 @@ br.clear-bug {
 }
 
 .c-thread img {
-    border: 1px solid #34345c;
+    border: 1px solid var(--accent-dark);
     display: inline-block;
 }
 
@@ -265,7 +265,7 @@ br.clear-bug {
 #ft li.fill {
     flex-basis: 100%;
     height: 0;
-    border-top: 1px solid #b7c5d9;
+    border-top: 1px solid var(--edge);
     padding: 0;
     margin: 0;
     background: none;
@@ -275,19 +275,19 @@ br.clear-bug {
 }
 
 #ft li {
-    border: 1px solid #b7c5d9;
+    border: 1px solid var(--edge);
     padding: 2px 1em;
     border-left: none;
     margin-top: -1px;
-    background: #d6daf0;
+    background: var(--panel);
 }
 
 #ft li:first-child {
-    border-left: 1px solid #b7c5d9;
+    border-left: 1px solid var(--edge);
 }
 
 #ft li a {
-    color: #34345c;
+    color: var(--link);
     text-decoration: none;
     font-size: 13px;
 }
@@ -305,7 +305,7 @@ br.clear-bug {
 }
 
 #copyright a {
-    color: #34345c;
+    color: var(--link);
     text-decoration: none;
 }
 
@@ -403,7 +403,7 @@ br.clear-bug {
     }
 
     #ft li a {
-        color: #34345c;
+        color: var(--link);
         text-decoration: underline;
         font-size: 14px;
     }
@@ -414,17 +414,3 @@ br.clear-bug {
     }
 }
 
-/* ── Robinhood (HoodChan) green theme — front-page boxes ───────────────────
-   Recolors the "What is BlockChan?" announcement and the other home boxes from
-   the blue/navy palette to green, matching the page theme. Scoped to
-   html[data-net="robinhood"] set by Providers, so Solana is untouched. */
-html[data-net="robinhood"] .box-outer { border-color: #8fc79a; }
-html[data-net="robinhood"] #announce .boxbar { background: #0b7a2f; }
-html[data-net="robinhood"] .boxbar { background: #8fd3a0; }
-html[data-net="robinhood"] #announce .closebutton,
-html[data-net="robinhood"] #announce .closebutton:hover { background: #2fa055; }
-html[data-net="robinhood"] .boxcontent a { color: #0b7a2f; }
-html[data-net="robinhood"] .fp-banner img { background: #cdeccf; border-color: #0b7a2f; }
-html[data-net="robinhood"] .fp-banner a:hover img { border-color: #0b7a2f; }
-html[data-net="robinhood"] .fp-lucky,
-html[data-net="robinhood"] .fp-banner a:hover .fp-lucky { color: #0b7a2f; }

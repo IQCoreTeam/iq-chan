@@ -93,7 +93,7 @@ export default function Header() {
                         e.preventDefault();
                         setGwInput(getGatewayUrl());
                         setShowSettings((v) => !v);
-                    }} style={{ color: "#34345c", textDecoration: "none" }}>{showSettings ? "Close Settings" : "Settings"}</a>]
+                    }} style={{ color: "var(--link)", textDecoration: "none" }}>{showSettings ? "Close Settings" : "Settings"}</a>]
                     {" "}
                     [<HashLink href="/">Home</HashLink>]
                 </span>
@@ -126,8 +126,8 @@ export default function Header() {
             </div>
             {showSettings && (
                 <div style={{
-                    background: "#d6daf0",
-                    border: "1px solid #b7c5d9",
+                    background: "var(--panel)",
+                    border: "1px solid var(--edge)",
                     borderTop: "none",
                     padding: "5px 8px",
                     fontSize: 12,
@@ -169,7 +169,7 @@ export default function Header() {
                         <button onClick={addFallback} style={{ fontSize: 12, padding: "1px 6px", border: "1px solid #aaa", background: "#f8f8f8", cursor: "pointer" }}>Add Fallback</button>
                     </div>
                     <div style={{ color: "#707070", fontSize: 11 }}>
-                        Run your own: <a href="https://github.com/IQCoreTeam/iq-gateway" target="_blank" rel="noopener noreferrer" style={{ color: "#34345c" }}>github.com/IQCoreTeam/iq-gateway</a>
+                        Run your own: <a href="https://github.com/IQCoreTeam/iq-gateway" target="_blank" rel="noopener noreferrer" style={{ color: "var(--link)" }}>github.com/IQCoreTeam/iq-gateway</a>
                     </div>
                 </div>
             )}
