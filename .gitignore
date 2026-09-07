@@ -15,3 +15,15 @@ DEVNOTES.md
 devdocs/
 aaa.json
 dd.txt
+
+# Secrets — never track keys. Belt-and-suspenders on top of .env above.
+*.key
+*.key.txt
+*-key.txt
+*.keystore
+id.json
+_*.mjs
+
+# EVM CLI tooling runs against the funded mainnet deployer key — keep local-only.
+scripts/setup-boards-evm.mjs
+scripts/inscribe-thread-evm.mjs
