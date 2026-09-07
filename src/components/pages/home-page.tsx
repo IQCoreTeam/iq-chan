@@ -230,20 +230,20 @@ export default function HomePage() {
             {!aboutClosed && <div className="box-outer" id="announce">
                 <div className="box-inner">
                     <div className="boxbar">
-                        <h2>What is BlockChan?</h2>
+                        <h2>What is {resolveNetwork().theme.siteName}?</h2>
                         <a href="#" className="closebutton" onClick={(e) => { e.preventDefault(); sessionStorage.setItem("blockchan_about_closed", "1"); setAboutClosed(true); }}>X</a>
                     </div>
                     <div className="boxcontent">
                         <p>
-                            BlockChan is a simple on-chain bulletin board where anyone can post
+                            {resolveNetwork().theme.siteName} is a simple on-chain bulletin board where anyone can post
                             comments and share images. There are boards dedicated to a variety
                             of topics, from business and finance to technology, anime, and
                             shitposting. Users do not need to register an account before
-                            participating in the community. Just connect a Solana wallet and
+                            participating in the community. Just connect a wallet and
                             jump right in!
                         </p>
                         <p style={{ marginTop: 8 }}>
-                            Every post is a Solana transaction. Every thread is an on-chain
+                            Every post is a {resolveNetwork().theme.chainLabel} transaction. Every thread is an on-chain
                             table. Nothing can be taken down. Feel free to click on a board
                             below that interests you and start posting! Check out the{" "}
                             <HashLink href="/about">About</HashLink> page to learn more, or leave{" "}
@@ -359,7 +359,7 @@ export default function HomePage() {
                     <HashLink href="/feedback">Feedback</HashLink>
                     <br /><br />
                     All trademarks and copyrights on this page are owned by their respective parties.
-                    Images uploaded are the responsibility of the Poster. All posts are Solana transactions. Powered by IQ Labs.
+                    Images uploaded are the responsibility of the Poster. All posts are {resolveNetwork().theme.chainLabel} transactions. Powered by IQ Labs.
                 </div>
             </div>
         </div>

@@ -1227,5 +1227,33 @@ html[data-net="robinhood"] .fp-logo {
 }
 html[data-net="robinhood"] #boardNavDesktop,
 html[data-net="robinhood"] #boardNavMobile {
-    background: #aadcb0;
+    background: #cbead0;
+}
+
+/* Navy link accents (#34345c) -> green, per selector to beat the id-scoped
+   originals. Covers the visible "blue points": top bar, post nav, replies,
+   file links, pagelist, footers. */
+html[data-net="robinhood"] #boardNavDesktop a,
+html[data-net="robinhood"] #boardNavMobile .pageJump a,
+html[data-net="robinhood"] .navLinks a,
+html[data-net="robinhood"] .navLinksBot a,
+html[data-net="robinhood"] .postNum a,
+html[data-net="robinhood"] .external-link,
+html[data-net="robinhood"] .fileText a,
+html[data-net="robinhood"] .summary a,
+html[data-net="robinhood"] .replylink,
+html[data-net="robinhood"] .postMenuBtn,
+html[data-net="robinhood"] #togglePostFormLink a,
+html[data-net="robinhood"] #boardNavDesktopFoot a,
+html[data-net="robinhood"] #absbot a,
+html[data-net="robinhood"] .pagelist a {
+    color: #0b7a2f;
+}
+
+/* Light-blue fills (#98b0d7) -> green: post-form label cells, dropdown hover. */
+html[data-net="robinhood"] .postForm td:first-child {
+    background: #8fd3a0;
+}
+html[data-net="robinhood"] .dd-menu ul li:hover {
+    background: #57b979;
 }

@@ -2,8 +2,10 @@
 
 import HashLink from "../hash-link";
 import { FooterNav } from "../board-nav";
+import { resolveNetwork } from "../../lib/chains/resolve";
 
 export default function AboutPage() {
+    const net = resolveNetwork();
     return (
         <>
             <div className="boardBanner">
@@ -14,16 +16,16 @@ export default function AboutPage() {
 
             <div style={{ maxWidth: 700, margin: "10px auto", padding: "0 10px", fontSize: 13, lineHeight: 1.5 }}>
                 <p>
-                    BlockChan is a simple on-chain bulletin board where anyone can post
+                    {net.theme.siteName} is a simple on-chain bulletin board where anyone can post
                     comments and share images. There are boards dedicated to a variety
                     of topics, from business and finance to technology, anime, and
                     shitposting. Users do not need to register an account before
-                    participating in the community. Just connect a Solana wallet and
+                    participating in the community. Just connect a wallet and
                     jump right in!
                 </p>
                 <br />
                 <p>
-                    Every post is a Solana transaction. Every thread is an on-chain
+                    Every post is a {net.theme.chainLabel} transaction. Every thread is an on-chain
                     table. Nothing can be taken down. Feel free to click on a board
                     that interests you and start posting!
                 </p>

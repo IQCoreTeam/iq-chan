@@ -10,7 +10,7 @@ export const metadata: Metadata = {
         default: "BlockChan",
         template: "%s | BlockChan",
     },
-    description: "On-chain imageboard on Solana — every post is a transaction, nothing can be taken down",
+    description: "On-chain imageboard — every post is a transaction, nothing can be taken down",
     other: {
         "format-detection": "telephone=no",
     },
@@ -20,7 +20,7 @@ export const metadata: Metadata = {
     },
     openGraph: {
         title: "BlockChan",
-        description: "On-chain imageboard on Solana — every post is a transaction, nothing can be taken down",
+        description: "On-chain imageboard — every post is a transaction, nothing can be taken down",
         type: "website",
         url: "https://blockchan.sol.site",
         siteName: "BlockChan",
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
     twitter: {
         card: "summary_large_image",
         title: "BlockChan",
-        description: "On-chain imageboard on Solana — every post is a transaction, nothing can be taken down",
+        description: "On-chain imageboard — every post is a transaction, nothing can be taken down",
         images: ["/og-image.webp"],
     },
 };

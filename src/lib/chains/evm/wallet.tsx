@@ -1,11 +1,12 @@
 "use client";
 
-// Minimal EVM wallet on the injected EIP-1193 provider (window.ethereum) +
-// ethers v6 BrowserProvider — no wagmi/viem, matching iq-chan's framework-free
-// wallet approach and keeping the EVM bundle light. Single injected wallet for
-// v1 (EIP-6963 multi-wallet selection can come later).
+// EVM wallet on injected EIP-1193 providers, discovered via EIP-6963 so ALL
+// installed wallets (MetaMask, Robinhood Wallet, Rabby, ...) are selectable —
+// not just whichever one won the legacy `window.ethereum` slot. connect() opens
+// a picker (like the Solana modal); the chosen provider is used for signing.
+// ethers v6 BrowserProvider, no wagmi.
 
-import { createContext, useContext, useState, useEffect, useCallback } from "react";
+import { createContext, useContext, useState, useEffect, useRef, useCallback } from "react";
 import { BrowserProvider, type Signer } from "ethers";
 import { resolveNetwork } from "../resolve";
 import type { NetworkDescriptor } from "../types";
@@ -14,11 +15,25 @@ interface Eip1193 {
     request: (args: { method: string; params?: unknown[] }) => Promise<unknown>;
     on?: (event: string, handler: (...args: unknown[]) => void) => void;
     removeListener?: (event: string, handler: (...args: unknown[]) => void) => void;
+    isMetaMask?: boolean;
+    isRobinhood?: boolean;
 }
 
-function getInjected(): Eip1193 | undefined {
-    if (typeof window === "undefined") return undefined;
-    return (window as unknown as { ethereum?: Eip1193 }).ethereum;
+export interface WalletOption {
+    id: string;      // EIP-6963 rdns, or "injected"
+    name: string;
+    icon?: string;   // data URI
+    provider: Eip1193;
+}
+
+interface Eip6963Detail { info: { uuid: string; name: string; icon: string; rdns: string }; provider: Eip1193 }
+
+function legacyInjected(): WalletOption | null {
+    if (typeof window === "undefined") return null;
+    const eth = (window as unknown as { ethereum?: Eip1193 }).ethereum;
+    if (!eth) return null;
+    const name = eth.isRobinhood ? "Robinhood Wallet" : eth.isMetaMask ? "MetaMask" : "Injected Wallet";
+    return { id: "injected", name, provider: eth };
 }
 
 async function ensureChain(eth: Eip1193, net: NetworkDescriptor): Promise<void> {
@@ -27,7 +42,6 @@ async function ensureChain(eth: Eip1193, net: NetworkDescriptor): Promise<void> 
     try {
         await eth.request({ method: "wallet_switchEthereumChain", params: [{ chainId: hexId }] });
     } catch (e) {
-        // 4902 = chain not added to the wallet yet; add it, then it's selected.
         if ((e as { code?: number }).code === 4902) {
             const explorer = net.explorerTxUrl.replace(/\/tx\/?$/, "");
             await eth.request({
@@ -49,9 +63,14 @@ async function ensureChain(eth: Eip1193, net: NetworkDescriptor): Promise<void> 
 interface EvmWalletValue {
     address: string | null;
     connecting: boolean;
-    connect: () => Promise<void>;
+    connect: () => void;
     disconnect: () => void;
     getSigner: () => Promise<Signer>;
+    // picker
+    wallets: WalletOption[];
+    modalOpen: boolean;
+    closeModal: () => void;
+    selectWallet: (opt: WalletOption) => Promise<void>;
 }
 
 const EvmWalletContext = createContext<EvmWalletValue | null>(null);
@@ -60,64 +79,81 @@ export function EvmWalletProvider({ children }: { children: React.ReactNode }) {
     const net = resolveNetwork();
     const [address, setAddress] = useState<string | null>(null);
     const [connecting, setConnecting] = useState(false);
+    const [wallets, setWallets] = useState<WalletOption[]>([]);
+    const [modalOpen, setModalOpen] = useState(false);
+    const chosen = useRef<Eip1193 | null>(null);
 
-    // Pick up an already-authorized account and react to wallet-side changes.
+    // EIP-6963 discovery: ask installed wallets to announce themselves.
     useEffect(() => {
-        const eth = getInjected();
-        if (!eth) return;
-
-        eth.request({ method: "eth_accounts" })
-            .then((accts) => {
-                const list = accts as string[];
-                if (list && list.length) setAddress(list[0]);
-            })
-            .catch(() => {});
-
-        const onAccounts = (...args: unknown[]) => {
-            const list = args[0] as string[];
-            setAddress(list && list.length ? list[0] : null);
+        if (typeof window === "undefined") return;
+        const found = new Map<string, WalletOption>();
+        const onAnnounce = (ev: Event) => {
+            const d = (ev as CustomEvent<Eip6963Detail>).detail;
+            if (!d?.info || !d.provider) return;
+            found.set(d.info.rdns, { id: d.info.rdns, name: d.info.name, icon: d.info.icon, provider: d.provider });
+            setWallets([...found.values()]);
         };
-        const onChain = () => { /* re-render; chain switches are handled at connect() */ };
-
-        eth.on?.("accountsChanged", onAccounts);
-        eth.on?.("chainChanged", onChain);
-        return () => {
-            eth.removeListener?.("accountsChanged", onAccounts);
-            eth.removeListener?.("chainChanged", onChain);
-        };
+        window.addEventListener("eip6963:announceProvider", onAnnounce as EventListener);
+        window.dispatchEvent(new Event("eip6963:requestProvider"));
+        return () => window.removeEventListener("eip6963:announceProvider", onAnnounce as EventListener);
     }, []);
 
-    const connect = useCallback(async () => {
-        const eth = getInjected();
-        if (!eth) {
-            window.open("https://metamask.io/download/", "_blank");
-            return;
-        }
+    // Pick up an already-authorized account + react to wallet changes.
+    useEffect(() => {
+        const eth = legacyInjected()?.provider;
+        if (!eth) return;
+        eth.request({ method: "eth_accounts" })
+            .then((a) => { const l = a as string[]; if (l?.length) { setAddress(l[0]); chosen.current = eth; } })
+            .catch(() => {});
+        const onAccounts = (...args: unknown[]) => {
+            const l = args[0] as string[];
+            setAddress(l?.length ? l[0] : null);
+        };
+        eth.on?.("accountsChanged", onAccounts);
+        return () => eth.removeListener?.("accountsChanged", onAccounts);
+    }, []);
+
+    const selectWallet = useCallback(async (opt: WalletOption) => {
         setConnecting(true);
         try {
-            const accts = (await eth.request({ method: "eth_requestAccounts" })) as string[];
-            await ensureChain(eth, net);
-            setAddress(accts && accts.length ? accts[0] : null);
+            const accts = (await opt.provider.request({ method: "eth_requestAccounts" })) as string[];
+            await ensureChain(opt.provider, net);
+            chosen.current = opt.provider;
+            setAddress(accts?.length ? accts[0] : null);
+            setModalOpen(false);
         } finally {
             setConnecting(false);
         }
     }, [net]);
 
-    const disconnect = useCallback(() => {
-        // EIP-1193 has no programmatic disconnect; forget locally.
-        setAddress(null);
-    }, []);
+    const connect = useCallback(() => {
+        // Prefer EIP-6963 list; fall back to the legacy injected provider.
+        const opts = wallets.length ? wallets : ([legacyInjected()].filter(Boolean) as WalletOption[]);
+        if (opts.length === 0) {
+            window.open("https://metamask.io/download/", "_blank");
+            return;
+        }
+        if (opts.length === 1) { void selectWallet(opts[0]); return; }
+        setModalOpen(true);
+    }, [wallets, selectWallet]);
+
+    const disconnect = useCallback(() => { setAddress(null); chosen.current = null; }, []);
 
     const getSigner = useCallback(async (): Promise<Signer> => {
-        const eth = getInjected();
-        if (!eth) throw new Error("No EVM wallet found");
+        const eth = chosen.current ?? legacyInjected()?.provider;
+        if (!eth) throw new Error("No EVM wallet connected");
         await ensureChain(eth, net);
-        const provider = new BrowserProvider(eth as never);
-        return provider.getSigner();
+        return new BrowserProvider(eth as never).getSigner();
     }, [net]);
 
+    const closeModal = useCallback(() => setModalOpen(false), []);
+
     return (
-        <EvmWalletContext.Provider value={{ address, connecting, connect, disconnect, getSigner }}>
+        <EvmWalletContext.Provider value={{
+            address, connecting, connect, disconnect, getSigner,
+            wallets: wallets.length ? wallets : ([legacyInjected()].filter(Boolean) as WalletOption[]),
+            modalOpen, closeModal, selectWallet,
+        }}>
             {children}
         </EvmWalletContext.Provider>
     );

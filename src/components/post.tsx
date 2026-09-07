@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { formatPostMessage, safePostUrl } from "../lib/format";
 import { scrollToPost, highlightPost, showPostPreview, hidePostPreview } from "../lib/highlight";
 import { formatDate, timeAgo } from "../lib/time";
-import { EXPLORER_TX_URL } from "../lib/config";
+import { resolveNetwork } from "../lib/chains/resolve";
 
 export default function Post({
     txSig,
@@ -40,6 +40,7 @@ export default function Post({
     isHidden?: boolean;
 }) {
     const display = txSig.slice(0, 8);
+    const net = resolveNetwork();
     const [expanded, setExpanded] = useState(false);
     const [menuOpen, setMenuOpen] = useState(false);
     const menuRefMobile = useRef<HTMLSpanElement>(null);
@@ -98,7 +99,7 @@ export default function Post({
         ? <a href="#" title="Reply to this post" onClick={(e) => { e.preventDefault(); onQuote(txSig); }}>{display}</a>
         : replyLink
             ? <a href={replyLink} title="Reply to this post">{display}</a>
-            : <a href={`${EXPLORER_TX_URL}${txSig}`} target="_blank" rel="noopener noreferrer" title="View on Solscan">{display}</a>;
+            : <a href={`${net.explorerTxUrl}${txSig}`} target="_blank" rel="noopener noreferrer" title={`View on ${net.explorerName}`}>{display}</a>;
 
     const postUrl = () => `${window.location.origin}${window.location.pathname}#/${boardId}/${threadPda}:p${txSig}`;
 
@@ -117,8 +118,8 @@ export default function Post({
                         Open original file
                     </li>
                 )}
-                <li style={{ padding: "3px 10px", cursor: "pointer" }} onClick={() => { window.open(`${EXPLORER_TX_URL}${txSig}`, "_blank"); setMenuOpen(false); }}>
-                    View on Solscan
+                <li style={{ padding: "3px 10px", cursor: "pointer" }} onClick={() => { window.open(`${net.explorerTxUrl}${txSig}`, "_blank"); setMenuOpen(false); }}>
+                    View on {net.explorerName}
                 </li>
                 {signer && (
                     <li style={{ padding: "3px 10px", cursor: "pointer" }} onClick={() => {

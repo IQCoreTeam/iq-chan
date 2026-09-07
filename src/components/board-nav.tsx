@@ -2,6 +2,7 @@
 
 import HashLink from "./hash-link";
 import { useBoards } from "../hooks/use-boards";
+import { resolveNetwork } from "../lib/chains/resolve";
 
 export function BoardList() {
     const { boards } = useBoards();
@@ -31,7 +32,7 @@ export function FooterNav() {
             <div id="absbot">
                 <span className="absBotDisclaimer">
                     All trademarks and copyrights on this page are owned by their respective parties.
-                    Images uploaded are the responsibility of the Poster. All posts are Solana transactions. Powered by IQ Labs.
+                    Images uploaded are the responsibility of the Poster. All posts are {resolveNetwork().theme.chainLabel} transactions. Powered by IQ Labs.
                 </span>
                 <div id="footer-links">
                     <HashLink href="/about">About</HashLink>

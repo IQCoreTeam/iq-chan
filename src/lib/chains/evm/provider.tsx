@@ -5,6 +5,7 @@
 
 import { EvmWalletProvider, useEvmWallet } from "./wallet";
 import { useEvmWriter } from "./writer";
+import EvmWalletModal from "./wallet-modal-ui";
 import { ChainWalletContext, WriterContext, type ChainWallet } from "../context";
 
 function EvmWiring({ children }: { children: React.ReactNode }) {
@@ -22,6 +23,7 @@ function EvmWiring({ children }: { children: React.ReactNode }) {
     return (
         <ChainWalletContext.Provider value={chainWallet}>
             <WriterContext.Provider value={writer}>
+                <EvmWalletModal />
                 {children}
             </WriterContext.Provider>
         </ChainWalletContext.Provider>
