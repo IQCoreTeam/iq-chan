@@ -72,6 +72,19 @@ function peelTrail(url: string): { url: string; trail: string } {
 
 const INLINE_RE = /(>>[A-Za-z0-9]{6,}|\bmagnet:\?[^\s<>"]+|\bhttps?:\/\/[^\s<>"]+)/g;
 
+/**
+ * Any wallet can write any string on chain, so a post field that ends up in an
+ * href has to be scheme-checked before it is rendered. React renders a
+ * `javascript:` href as-is (dev-time warning only), which would make an
+ * unchecked url stored XSS. Same whitelist INLINE_RE applies to body links.
+ * Returns null for anything that isn't plain http(s), so callers can drop it.
+ */
+export function safePostUrl(url: string | undefined): string | null {
+    if (!url) return null;
+    const trimmed = url.trim();
+    return /^https?:\/\//i.test(trimmed) ? trimmed : null;
+}
+
 export function formatPostMessage(text: string): React.ReactNode[] {
     const lines = text.split("\n");
     const elements: React.ReactNode[] = [];

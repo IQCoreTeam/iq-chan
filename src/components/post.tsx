@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { formatPostMessage } from "../lib/format";
+import { formatPostMessage, safePostUrl } from "../lib/format";
 import { scrollToPost, highlightPost, showPostPreview, hidePostPreview } from "../lib/highlight";
 import { formatDate, timeAgo } from "../lib/time";
 import { EXPLORER_TX_URL } from "../lib/config";
@@ -57,24 +57,28 @@ export default function Post({
         return () => document.removeEventListener("mousedown", handleClick);
     }, [menuOpen]);
 
+    // Drop any non-http(s) image url instead of linking it: the field is
+    // attacker-controlled on-chain data and lands in an href below.
+    const safeImg = safePostUrl(img);
+
     let fileName = "";
-    if (img) {
-        try { fileName = decodeURIComponent(new URL(img).pathname.split("/").pop() ?? "image"); }
+    if (safeImg) {
+        try { fileName = decodeURIComponent(new URL(safeImg).pathname.split("/").pop() ?? "image"); }
         catch { fileName = "image"; }
     }
 
-    const fileBlock = img ? (
+    const fileBlock = safeImg ? (
         <div className="file" id={`f${txSig}`}>
             <div className="fileText" id={`fT${txSig}`}>
-                File: <a href={img} target="_blank" rel="noopener noreferrer">{fileName}</a>
+                File: <a href={safeImg} target="_blank" rel="noopener noreferrer">{fileName}</a>
             </div>
             <a
                 className={`fileThumb${expanded ? " fileThumbExpanded" : ""}`}
-                href={img}
+                href={safeImg}
                 onClick={(e) => { e.preventDefault(); setExpanded((v) => !v); }}
             >
                 <img
-                    src={img}
+                    src={safeImg}
                     alt={fileName}
                     style={expanded
                         ? { maxWidth: "100%", maxHeight: "none" }

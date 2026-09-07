@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { useWallet } from "@solana/wallet-adapter-react";
+import { useChainWallet } from "../lib/chains/context";
 import PostingOverlay from "./posting-overlay";
 
 export default function QuickReply({
@@ -27,7 +27,7 @@ export default function QuickReply({
     onClearStatus?: () => void;
     mode?: "reply" | "thread";
 }) {
-    const { publicKey } = useWallet();
+    const { address } = useChainWallet();
     const isError = !!statusText?.startsWith("Error:");
     const showOverlay = !!statusText && (loading || isError);
 
@@ -105,7 +105,7 @@ export default function QuickReply({
         onClose();
     }
 
-    if (!publicKey) return null;
+    if (!address) return null;
 
     return (
         <>

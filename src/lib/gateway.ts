@@ -6,8 +6,10 @@ const isDev = process.env.NODE_ENV === "development";
 export type Row = Post & Record<string, unknown>;
 
 /** Fetch with fallback chain: primary → fallbacks in order. 304 counts as a
- *  valid response so callers can honor If-None-Match. */
-async function gwFetch(path: string, init: RequestInit = {}): Promise<Response> {
+ *  valid response so callers can honor If-None-Match. Shared transport: the
+ *  gateway serves every chain, so the EVM adapter reuses this for its own
+ *  (dbRootId, tableName) paths. */
+export async function gwFetch(path: string, init: RequestInit = {}): Promise<Response> {
     const primary = getGatewayUrl();
     const tried = new Set<string>();
     const reqInit: RequestInit = { cache: "no-store", ...init };

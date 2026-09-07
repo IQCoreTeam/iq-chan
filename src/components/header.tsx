@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useHashRoute, hashHref } from "../hooks/use-hash-router";
 import HashLink from "./hash-link";
 import WalletButton from "./wallet-button";
+import NetworkSwitcher from "./network-switcher";
 import { BoardList } from "./board-nav";
 import { useBoards } from "../hooks/use-boards";
 import { getGatewayUrl, getFallbacks, GATEWAY_FALLBACKS } from "../lib/config";
@@ -87,6 +88,7 @@ export default function Header() {
             <div id="boardNavDesktop">
                 <BoardList />
                 <span id="navtopright">
+                    <NetworkSwitcher />
                     <WalletButton />
                     {" "}
                     [<a href="#" onClick={(e) => {
@@ -120,6 +122,7 @@ export default function Header() {
                         setGwInput(getGatewayUrl());
                         setShowSettings((v) => !v);
                     }}>Settings</a>
+                    <NetworkSwitcher />
                     <WalletButton />
                     <HashLink href="/">Home</HashLink>
                 </span>
