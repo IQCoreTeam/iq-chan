@@ -22,6 +22,7 @@ export const NETWORKS: Record<string, NetworkDescriptor> = {
             siteName: "BlockChan",
             chainLabel: "Solana",
             accent: "#800000",
+            logo: "/blockchan.webp",
         },
     },
 
@@ -42,6 +43,7 @@ export const NETWORKS: Record<string, NetworkDescriptor> = {
             siteName: "HoodChan",
             chainLabel: "Robinhood Chain",
             accent: "#00c805",
+            logo: "/hoodchan.webp",
         },
     },
 

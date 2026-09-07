@@ -1213,3 +1213,19 @@ blockquote.postMessage {
     }
 
 }
+
+/* ── Robinhood (HoodChan) green theme ─────────────────────────────────────
+   Scoped to the active network via the data-net attribute set on <html> by
+   Providers. Recolors the large page surfaces (base, hero banners, nav bar)
+   green; win95 content panels stay as-is for readability. */
+html[data-net="robinhood"] .yotsuba-b {
+    background: #eafcef;
+}
+html[data-net="robinhood"] .boardBanner,
+html[data-net="robinhood"] .fp-logo {
+    background: linear-gradient(to bottom, #7fce93 0%, #c2ecca 60%, #eafcef 100%);
+}
+html[data-net="robinhood"] #boardNavDesktop,
+html[data-net="robinhood"] #boardNavMobile {
+    background: #aadcb0;
+}

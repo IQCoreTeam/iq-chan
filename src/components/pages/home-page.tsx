@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import HashLink from "../hash-link";
 import { DB_ROOT_KEY, getRandomBanner, NO_IMAGE_PLACEHOLDERS } from "../../lib/constants";
+import { resolveNetwork } from "../../lib/chains/resolve";
 import { useBoards } from "../../hooks/use-boards";
 import { getFeedPda, isMoreLikelyOp } from "../../lib/board";
 import { fetchAllTableRows } from "../../lib/gateway";
@@ -84,6 +85,19 @@ function useHomeData(boards: BoardMeta[]) {
         let cancelled = false;
 
         async function load() {
+            // The cross-board "popular" aggregation below reads Solana feed PDAs
+            // directly. On EVM there is no feed PDA — the equivalent is a gateway
+            // bump-feed over evm_row_index (issue #6). Until that endpoint exists,
+            // skip aggregation on EVM so we don't render wrong-chain data; board
+            // pages still work via the adapter.
+            if (resolveNetwork().family !== "svm") {
+                setTotalPosts(0);
+                setTotalThreads(0);
+                setPopular([]);
+                setTrendingCount(0);
+                setAllThreads([]);
+                return;
+            }
             try {
                 const feedResults = await Promise.all(
                     boards.map((b) => fetchAllTableRows(getFeedPda(DB_ROOT_KEY, b.seed).toBase58(), 50).then((rows) => ({ boardId: b.id, rows }))),
@@ -209,7 +223,7 @@ export default function HomePage() {
         <div className="fp-wrap">
             <div className="fp-logo">
                 <HashLink href="/" title="Home">
-                    <img alt="BlockChan" src="/blockchan.webp" width="300" height="120" />
+                    <img alt={resolveNetwork().theme.siteName} src={resolveNetwork().theme.logo ?? "/blockchan.webp"} width="300" height="120" />
                 </HashLink>
             </div>
 
