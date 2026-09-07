@@ -413,3 +413,18 @@ br.clear-bug {
         padding: 0 10px;
     }
 }
+
+/* ── Robinhood (HoodChan) green theme — front-page boxes ───────────────────
+   Recolors the "What is BlockChan?" announcement and the other home boxes from
+   the blue/navy palette to green, matching the page theme. Scoped to
+   html[data-net="robinhood"] set by Providers, so Solana is untouched. */
+html[data-net="robinhood"] .box-outer { border-color: #8fc79a; }
+html[data-net="robinhood"] #announce .boxbar { background: #0b7a2f; }
+html[data-net="robinhood"] .boxbar { background: #8fd3a0; }
+html[data-net="robinhood"] #announce .closebutton,
+html[data-net="robinhood"] #announce .closebutton:hover { background: #2fa055; }
+html[data-net="robinhood"] .boxcontent a { color: #0b7a2f; }
+html[data-net="robinhood"] .fp-banner img { background: #cdeccf; border-color: #0b7a2f; }
+html[data-net="robinhood"] .fp-banner a:hover img { border-color: #0b7a2f; }
+html[data-net="robinhood"] .fp-lucky,
+html[data-net="robinhood"] .fp-banner a:hover .fp-lucky { color: #0b7a2f; }
