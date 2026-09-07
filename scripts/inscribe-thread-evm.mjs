@@ -42,6 +42,19 @@ const signer = new Wallet(PK, provider);
 const address = await signer.getAddress();
 const nowSec = () => Math.floor(Date.now() / 1000);
 
+const GW = process.env.IQCHAN_GATEWAY || "https://gateway.iqlabs.dev";
+// Warm the gateway's durable index like the app does on post — otherwise the
+// first read cold-walks the chain (slow enough to hit CDN timeouts on some RPCs).
+async function notify(tableName, txHash, row) {
+    try {
+        await fetch(`${GW}/table/${DB_ROOT_ID}/${tableName}/notify?network=${NETWORK}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ txHash, row, signer: address }),
+        });
+    } catch { /* best-effort */ }
+}
+
 console.log(`network=${NETWORK} rpc=${rpc} signer=${address} board=${board}`);
 
 // 1. Create the thread's own table (slash-free name, matches the app)
@@ -57,6 +70,7 @@ const opRow = {
     threadSeed: threadName,
 };
 const opTx = await writer.writeRow(signer, DB_ROOT_ID, board, JSON.stringify(opRow));
+await notify(board, opTx, opRow);
 console.log(`OP written: tx=${opTx}`);
 
 // 3. Replies -> the thread table
@@ -72,6 +86,7 @@ for (let i = 0; i < replies.length; i++) {
         threadSeed: threadName,
     };
     const h = await writer.writeRow(signer, DB_ROOT_ID, threadName, JSON.stringify(row));
+    await notify(threadName, h, row);
     console.log(`reply ${i + 1} written: tx=${h}`);
 }
 
