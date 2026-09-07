@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useChainWallet } from "../lib/chains/context";
+import { resolveNetwork } from "../lib/chains/resolve";
 import PostingOverlay from "./posting-overlay";
 
 export default function PostForm({
@@ -176,7 +177,7 @@ export default function PostForm({
                     <tr className="rules">
                         <td colSpan={2}>
                             <ul>
-                                <li>Your {mode === "thread" ? "thread" : "reply"} is permanently stored on the Solana blockchain and cannot be deleted.</li>
+                                <li>Your {mode === "thread" ? "thread" : "reply"} is permanently stored on {resolveNetwork().theme.chainLabel} and cannot be deleted.</li>
                             </ul>
                         </td>
                     </tr>
