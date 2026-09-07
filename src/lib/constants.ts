@@ -1,45 +1,11 @@
-// DbRoot ("iqchan")
-// └── board table (ext table)  seed: boardId  e.g. "po", "biz"
-//     ├── OP row:    {sub, com, name, time, img?, threadPda, threadSeed}
-//     └── reply row: {sub:"", com, name, time, img?, threadPda, threadSeed}
-// feed (one per board) — remainingAccounts, bump ordering
-// threadPda = board table PDA (same for all posts in the board)
-// threadSeed = unique UUID per thread OP, shared by all its replies
+// Solana-specific derivations layered on top of the chain-neutral board config.
+// Everything chain-neutral lives in board-config.ts and is re-exported here so
+// existing Solana call sites keep importing from "./constants" unchanged.
 
 import iqlabs from "iqlabs-sdk";
-import { RANDOM_BANNERS, NO_IMAGE_PLACEHOLDERS } from "./generated-images";
-export { RANDOM_BANNERS, NO_IMAGE_PLACEHOLDERS };
+import { DB_ROOT_ID } from "./board-config";
 
-export const DB_ROOT_ID = "iqchan";
-export const THREADS_PER_PAGE = 20;
-export const BUMP_LIMIT = 300;
-export const FEED_SEED_PREFIX = "feedmY}AGBJiqLabs";
-// Fallback board metadata for known boards (used until on-chain metadata is loaded) //this board is not onboarded yet
-export const BOARD_METADATA: Record<string, { seed: string; title: string; description: string; image: string }> = {
-    iq:  { seed: "iq",  title: "IQ Labs Community", description: "IQ token holders only", image: "/boards/iqbanner.webp" },
-    po:  { seed: "po",  title: "Politically Incorrect", description: "Political discussion", image: "" },
-    biz: { seed: "biz", title: "Business & Finance", description: "Business and finance discussion", image: "" },
-    a:   { seed: "a",   title: "Anime & Manga", description: "Anime and manga discussion", image: "" },
-    g:   { seed: "g",   title: "Technology",  description: "Technology discussion",  image: "" },
-    nub:   { seed: "nub",   title: "Nub Cat Community",  description: "Nub Cat Community",  image: "/boards/nubcat.webp" },
-    mlg:   { seed: "mlg",   title: "Community For MLG",  description: "Community For MLG",  image: "/boards/mlg.webp" },
-    y2k:   { seed: "y2k",   title: "Community For Y2kDotCom",  description: "Community For Y2kDotCom",  image: "/boards/y2k.webp" },
-    retardio: { seed: "retardio", title: "Only for Retardio", description: "Only for Retardio", image: "/boards/retardio.webp" },
-    dominance: { seed: "dominance", title: "Market Dominance", description: "Market Dominance", image: "/boards/dominance.webp" },
-};
-
-export const OFFICIAL_BOARDS: string[] = ["iq", "po", "biz", "a", "g"];
-
-export function getRandomBanner(): string {
-    return RANDOM_BANNERS[Math.floor(Math.random() * RANDOM_BANNERS.length)];
-}
-
-/** Wallets with admin access (create/update boards) */
-export const ADMIN_WALLETS: string[] = [
-    "B8d355pft6DfrQNetCqXNumRk8WoEs21waqeuPP3HUJC",
-];
-
-export const BOARD_COLUMNS = ["sub", "com", "name", "time", "img", "threadPda", "threadSeed"];
+export * from "./board-config";
 
 export const DB_ROOT_ID_BYTES = Buffer.from(iqlabs.utils.toSeedBytes(DB_ROOT_ID));
 export const DB_ROOT_KEY = iqlabs.contract.getDbRootPda(DB_ROOT_ID_BYTES);
@@ -50,16 +16,4 @@ export function deriveTablePda(seed: string): string {
 
 export function deriveInstructionTablePda(seed: string): string {
     return iqlabs.contract.getInstructionTablePda(DB_ROOT_KEY, iqlabs.utils.toSeedBytes(seed)).toBase58();
-}
-
-export function resolveBoardSeed(slug: string): string {
-    return BOARD_METADATA[slug]?.seed ?? slug;
-}
-
-export function threadTableSeed(boardId: string, randomId: string): string {
-    return `${boardId}/thread/${randomId}`;
-}
-
-export function formatBoardTitle(boardId: string, displaySlug: string, displayName: string): string {
-    return displayName ? `/${displaySlug}/ - ${displayName}` : `/${boardId.slice(0, 12)}${boardId.length > 12 ? "..." : ""}/`;
 }

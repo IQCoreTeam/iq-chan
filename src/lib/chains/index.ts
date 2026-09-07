@@ -25,6 +25,6 @@ async function loadAdapter(): Promise<ChainReadAdapter> {
         const { createSolanaReadAdapter } = await import("./solana/read");
         return createSolanaReadAdapter(net);
     }
-    // EVM adapter is wired in once chains/evm/read.ts lands.
-    throw new Error(`no read adapter for family "${net.family}" yet`);
+    const { createEvmReadAdapter } = await import("./evm/read");
+    return createEvmReadAdapter(net);
 }
