@@ -23,6 +23,7 @@ export const NETWORKS: Record<string, NetworkDescriptor> = {
             chainLabel: "Solana",
             accent: "#800000",
             logo: "/blockchan.webp",
+            ogImage: "/og-image.webp",
         },
     },
 
@@ -44,6 +45,7 @@ export const NETWORKS: Record<string, NetworkDescriptor> = {
             chainLabel: "Robinhood Chain",
             accent: "#00c805",
             logo: "/hoodchan.webp",
+            ogImage: "/hoodchan.webp",
         },
     },
 

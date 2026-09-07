@@ -23,6 +23,8 @@ export interface NetworkTheme {
     bannerDir?: string;
     /** Logo asset path under public/, if the chain ships a distinct one. */
     logo?: string;
+    /** Open Graph / link-preview image under public/ (per chain branding). */
+    ogImage?: string;
 }
 
 export interface NetworkDescriptor {
