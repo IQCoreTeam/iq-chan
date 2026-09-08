@@ -46,6 +46,8 @@ export const NETWORKS: Record<string, NetworkDescriptor> = {
             accent: "#00c805",
             logo: "/hoodchan.webp",
             ogImage: "/hoodchan.webp",
+            favicon: "/hoodchan/favicon.png",
+            appleIcon: "/hoodchan/apple-icon.png",
         },
     },
 
