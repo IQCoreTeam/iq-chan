@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import HashLink from "../hash-link";
 import { DB_ROOT_KEY, getRandomBanner, NO_IMAGE_PLACEHOLDERS } from "../../lib/constants";
 import { resolveNetwork } from "../../lib/chains/resolve";
+import { getChain } from "../../lib/chains";
 import { useBoards } from "../../hooks/use-boards";
 import { getFeedPda, isMoreLikelyOp } from "../../lib/board";
 import { fetchAllTableRows } from "../../lib/gateway";
@@ -85,58 +86,72 @@ function useHomeData(boards: BoardMeta[]) {
         let cancelled = false;
 
         async function load() {
-            // The cross-board "popular" aggregation below reads Solana feed PDAs
-            // directly. On EVM there is no feed PDA — the equivalent is a gateway
-            // bump-feed over evm_row_index (issue #6). Until that endpoint exists,
-            // skip aggregation on EVM so we don't render wrong-chain data; board
-            // pages still work via the adapter.
-            if (resolveNetwork().family !== "svm") {
-                setTotalPosts(0);
-                setTotalThreads(0);
-                setPopular([]);
-                setTrendingCount(0);
-                setAllThreads([]);
-                return;
-            }
             try {
-                const feedResults = await Promise.all(
-                    boards.map((b) => fetchAllTableRows(getFeedPda(DB_ROOT_KEY, b.seed).toBase58(), 50).then((rows) => ({ boardId: b.id, rows }))),
-                );
-                if (cancelled) return;
-
-                const threadMap = new Map<string, { boardId: string; op: Post | null; count: number; lastActivity: number }>();
+                type WithOp = [string, { boardId: string; op: Post; count: number; lastActivity: number }];
+                let withOp: WithOp[];
                 let totalPostCount = 0;
+                let threadCount = 0;
 
-                for (const { boardId, rows } of feedResults) {
-                    totalPostCount += rows.length;
-                    for (const row of rows) {
-                        const post = row as Post;
-                        if (!post.threadPda) continue;
-                        const time = post.time ?? 0;
-                        const existing = threadMap.get(post.threadPda);
-                        if (existing) {
-                            existing.count++;
-                            existing.lastActivity = Math.max(existing.lastActivity, time);
-                            if (post.threadSeed && isMoreLikelyOp(existing.op ?? undefined, post)) {
-                                existing.op = post;
+                if (resolveNetwork().family === "svm") {
+                    // Solana: aggregate from the feed PDAs (unchanged).
+                    const feedResults = await Promise.all(
+                        boards.map((b) => fetchAllTableRows(getFeedPda(DB_ROOT_KEY, b.seed).toBase58(), 50).then((rows) => ({ boardId: b.id, rows }))),
+                    );
+                    if (cancelled) return;
+
+                    const threadMap = new Map<string, { boardId: string; op: Post | null; count: number; lastActivity: number }>();
+                    for (const { boardId, rows } of feedResults) {
+                        totalPostCount += rows.length;
+                        for (const row of rows) {
+                            const post = row as Post;
+                            if (!post.threadPda) continue;
+                            const time = post.time ?? 0;
+                            const existing = threadMap.get(post.threadPda);
+                            if (existing) {
+                                existing.count++;
+                                existing.lastActivity = Math.max(existing.lastActivity, time);
+                                if (post.threadSeed && isMoreLikelyOp(existing.op ?? undefined, post)) {
+                                    existing.op = post;
+                                }
+                            } else {
+                                threadMap.set(post.threadPda, {
+                                    boardId,
+                                    op: post.threadSeed ? post : null,
+                                    count: 1,
+                                    lastActivity: time,
+                                });
                             }
-                        } else {
-                            threadMap.set(post.threadPda, {
-                                boardId,
-                                op: post.threadSeed ? post : null,
-                                count: 1,
-                                lastActivity: time,
-                            });
                         }
                     }
+                    threadCount = threadMap.size;
+                    withOp = [...threadMap.entries()].filter(([, t]) => t.op) as WithOp[];
+                } else {
+                    // EVM: aggregate from the gateway derived feed via the adapter.
+                    const chain = await getChain();
+                    const perBoard = await Promise.all(
+                        boards.map((b) => chain.listThreads(b.id).then((threads) => ({ boardId: b.id, threads })).catch(() => ({ boardId: b.id, threads: [] }))),
+                    );
+                    if (cancelled) return;
+
+                    withOp = [];
+                    for (const { boardId, threads } of perBoard) {
+                        for (const t of threads) {
+                            if (!t.opData) continue;
+                            const count = t.replyCount ?? 0;
+                            totalPostCount += count + 1;
+                            withOp.push([t.threadPda, {
+                                boardId,
+                                op: t.opData,
+                                count,
+                                lastActivity: t.lastActivityTime ?? t.opData.time ?? 0,
+                            }]);
+                        }
+                    }
+                    threadCount = withOp.length;
                 }
 
                 setTotalPosts(totalPostCount);
-                setTotalThreads(threadMap.size);
-
-                const withOp = [...threadMap.entries()]
-                    .filter(([, t]) => t.op) as [string, { boardId: string; op: Post; count: number; lastActivity: number }][];
-
+                setTotalThreads(threadCount);
                 setAllThreads(withOp.map(([pda, t]) => ({ boardId: t.boardId, threadPda: pda })));
 
                 // Fetch natural dimensions for every candidate image. Threads whose
