@@ -32,7 +32,7 @@ export default function AboutPage() {
                 <br />
                 <h3 style={{ borderBottom: "1px solid var(--edge)", paddingBottom: 3 }}>Run Your Own</h3>
                 <p>
-                    BlockChan is fully open source. Run your own frontend, your own gateway, or both.
+                    {net.theme.siteName} is fully open source. Run your own frontend, your own gateway, or both.
                     No single server controls the data.
                     anyone can serve it.
                 </p>
@@ -46,7 +46,7 @@ export default function AboutPage() {
                     {" — "}read-only cache layer. Run your own so you never depend on ours.
                 </p>
                 <p>
-                    <a href="https://github.com/IQCoreTeam/iqlabs-solana-sdk" target="_blank" rel="noopener noreferrer">IQ Labs SDK</a>
+                    <a href={net.family === "evm" ? "https://github.com/IQCoreTeam/iq-ethereum-sdk" : "https://github.com/IQCoreTeam/iqlabs-solana-sdk"} target="_blank" rel="noopener noreferrer">IQ Labs SDK</a>
                     {" — "}the protocol that powers it all. Build your own apps on-chain.
                 </p>
                 <br />
