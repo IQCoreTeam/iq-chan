@@ -42,6 +42,8 @@ export const NETWORKS: Record<string, NetworkDescriptor> = {
         rpcUrl: "https://rpc.mainnet.chain.robinhood.com",
         theme: {
             siteName: "HoodChan",
+            bannerDir: "hoodchan/banners",
+            placeholderDir: "hoodchan/noimage",
             chainLabel: "Robinhood Chain",
             accent: "#00c805",
             logo: "/hoodchan.webp",

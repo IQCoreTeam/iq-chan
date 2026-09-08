@@ -21,6 +21,8 @@ export interface NetworkTheme {
     accent: string;
     /** public/ subdirectory for random banners; falls back to default set. */
     bannerDir?: string;
+    /** public/ subdirectory for no-image placeholders; falls back to default. */
+    placeholderDir?: string;
     /** Logo asset path under public/, if the chain ships a distinct one. */
     logo?: string;
     /** Open Graph / link-preview image under public/ (per chain branding). */

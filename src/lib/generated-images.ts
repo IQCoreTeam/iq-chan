@@ -132,3 +132,48 @@ export const NO_IMAGE_PLACEHOLDERS: string[] = [
     "/noimage/7-yotsuba-no-image.webp",
     "/noimage/8-q-yotsuba-together.webp"
 ];
+
+export const BANNERS_BY_DIR: Record<string, string[]> = {
+    "hoodchan/banners": [
+    "/hoodchan/banners/backup-12-cia-glows.webp",
+    "/hoodchan/banners/backup-15-snowden.webp",
+    "/hoodchan/banners/backup-22-windows-xp.webp",
+    "/hoodchan/banners/backup-25-wojak-schizo.webp",
+    "/hoodchan/banners/final-02-catbus.webp",
+    "/hoodchan/banners/final-05-cirno.webp",
+    "/hoodchan/banners/final-06-angry-punch.webp",
+    "/hoodchan/banners/final-11-pixel-wrestler.webp",
+    "/hoodchan/banners/final-13-anime-girl-green.webp",
+    "/hoodchan/banners/final-21-epstein.webp",
+    "/hoodchan/banners/final-27-counterstrike.webp",
+    "/hoodchan/banners/final-28-kim-cute.webp",
+    "/hoodchan/banners/final-33-ghibli-dark.webp",
+    "/hoodchan/banners/final-35-chibi-blue.webp",
+    "/hoodchan/banners/final-41-dark-reach.webp",
+    "/hoodchan/banners/final-44-sports.webp",
+    "/hoodchan/banners/final-45-messy-otaku.webp",
+    "/hoodchan/banners/final-55-remake-22.webp",
+    "/hoodchan/banners/final-57-remake-45.webp",
+    "/hoodchan/banners/final-71-remake-70.webp",
+    "/hoodchan/banners/final-72-remake-31.webp",
+    "/hoodchan/banners/flash-03-53.webp",
+    "/hoodchan/banners/flash-10-32.webp",
+    "/hoodchan/banners/flash-12-94.webp",
+    "/hoodchan/banners/flash-17-77.webp",
+    "/hoodchan/banners/flash-18-187.webp",
+    "/hoodchan/banners/flash-24-68.webp",
+    "/hoodchan/banners/flash-32-48.webp",
+    "/hoodchan/banners/flash-33-181.webp"
+]
+};
+
+export const PLACEHOLDERS_BY_DIR: Record<string, string[]> = {
+    "hoodchan/noimage": [
+    "/hoodchan/noimage/13-q-milady-yotsuba.webp",
+    "/hoodchan/noimage/14-op-lazy-blue.webp",
+    "/hoodchan/noimage/15-void-blue.webp",
+    "/hoodchan/noimage/6-q-no-image.webp",
+    "/hoodchan/noimage/7-yotsuba-no-image.webp",
+    "/hoodchan/noimage/8-q-yotsuba-together.webp"
+]
+};
