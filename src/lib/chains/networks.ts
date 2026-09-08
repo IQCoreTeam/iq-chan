@@ -28,8 +28,8 @@ export const NETWORKS: Record<string, NetworkDescriptor> = {
     },
 
     // ── Robinhood Chain (launch EVM target, hoodchan.xyz) ────────────────────
-    // Mainnet contract live + Blockscout-verified. No testnet exists, so EVM
-    // development/testing happens on monadTestnet (see below).
+    // Mainnet contract live + Blockscout-verified. Robinhood has a testnet,
+    // but the IQ Labs contract is not deployed there yet; use monadTestnet below.
     robinhood: {
         id: "robinhood",
         family: "evm",
