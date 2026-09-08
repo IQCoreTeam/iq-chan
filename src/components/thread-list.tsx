@@ -13,10 +13,12 @@ export default function ThreadList({
     threads,
     boardId,
     onRefresh,
+    onConfirmedReply,
 }: {
     threads: ThreadEntry[];
     boardId: string;
     onRefresh?: () => void;
+    onConfirmedReply?: (threadPda: string, row: unknown) => void;
 }) {
     const [hiddenThreads, setHiddenThreads] = useState<Set<string>>(new Set());
     const [hiddenPosts, setHiddenPosts] = useState<Set<string>>(new Set());
@@ -139,7 +141,7 @@ export default function ThreadList({
                     threadSig={qrThread.opSig}
                     initialQuote={qrThread.opSig}
                     onSubmit={(data) =>
-                        postReply(qrThread.seed, qrThread.pda, boardId, data).then(() => { setQrThread(null); onRefresh?.(); })
+                        postReply(qrThread.seed, qrThread.pda, boardId, data).then((row) => { onConfirmedReply?.(qrThread.pda, row); setQrThread(null); onRefresh?.(); })
                     }
                     loading={postLoading}
                     statusText={postStatus}

@@ -45,7 +45,7 @@ function PageList({ page, totalPages, onPage }: { page: number; totalPages: numb
 
 export default function BoardPage({ boardId }: { boardId: string }) {
     const { address, connect } = useChainWallet();
-    const { threads, loading, error, refresh } = useThreads(boardId);
+    const { threads, loading, error, refresh, addConfirmedThread, addConfirmedReply } = useThreads(boardId);
     const { createThread, loading: postLoading, status: postStatus, step: postStep, totalSteps: postTotalSteps, clearStatus } = usePost();
     const [page, setPage] = useState(0);
     const [qrOpen, setQrOpen] = useState(false);
@@ -58,19 +58,19 @@ export default function BoardPage({ boardId }: { boardId: string }) {
     const [bannerSrc] = useState(() => getRandomBanner());
     const boardTitle = formatBoardTitle(boardId, displaySlug, displayName);
 
-    // createThread awaits the writeRow tx and the /notify POST to every relevant
-    // PDA (board, feed, thread) before returning. So by the time we refresh,
-    // the gateway has the row in cache — no optimistic state needed.
+    // Show the confirmed OP even when notification or gateway indexing lags.
     const handleCreateThread = useCallback(async (
         data: { sub: string; com: string; name: string; img?: string },
     ) => {
-        await createThread(
+        const row = await createThread(
             boardId,
             data,
             gate.gateMint ? { mint: gate.gateMint, amount: gate.gateAmount || 1, gateType: gate.gateType || 0 } : undefined,
         );
+        addConfirmedThread(row);
+        setPage(0);
         refresh();
-    }, [createThread, boardId, gate.gateMint, gate.gateAmount, gate.gateType, refresh]);
+    }, [createThread, boardId, gate.gateMint, gate.gateAmount, gate.gateType, refresh, addConfirmedThread]);
 
     const totalPages = Math.max(1, Math.ceil(threads.length / THREADS_PER_PAGE));
     const pageThreads = useMemo(() => {
@@ -118,7 +118,7 @@ export default function BoardPage({ boardId }: { boardId: string }) {
                     mode="thread"
                     onSubmit={(data) => handleCreateThread(data as { sub: string; com: string; name: string; img?: string })}
                     loading={postLoading}
-                    statusText={postStatus}
+                    statusText={qrOpen ? "" : postStatus}
                     step={postStep}
                     totalSteps={postTotalSteps}
                     onClearStatus={clearStatus}
@@ -137,14 +137,15 @@ export default function BoardPage({ boardId }: { boardId: string }) {
 
             <hr style={{ border: "none", borderTop: "1px solid var(--edge)" }} />
 
+            {error && threads.length > 0 && <p role="status">Could not refresh the board. Showing available posts.</p>}
             {loading && threads.length === 0 ? (
                 <div className="loading-text">Loading threads...</div>
-            ) : error ? (
+            ) : error && threads.length === 0 ? (
                 <div className="loading-text" style={{ color: "#d00" }}>Error: {error.message}</div>
             ) : threads.length === 0 ? (
                 <div className="loading-text">No threads yet. Be the first to post!</div>
             ) : (
-                <ThreadList threads={pageThreads} boardId={boardId} onRefresh={refresh} />
+                <ThreadList threads={pageThreads} boardId={boardId} onRefresh={refresh} onConfirmedReply={addConfirmedReply} />
             )}
 
             <PageList page={page} totalPages={totalPages} onPage={handlePage} />

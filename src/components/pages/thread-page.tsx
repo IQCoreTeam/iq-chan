@@ -33,6 +33,7 @@ export default function ThreadPage({ boardId, threadId: threadPda, scrollTo }: {
         loading,
         error,
         refresh,
+        addConfirmedReply,
     } = usePaginatedReplies(threadPda, boardId);
 
     const { postReply, loading: postLoading, status: postStatus, step: postStep, totalSteps: postTotalSteps, clearStatus } = usePost();
@@ -104,13 +105,12 @@ export default function ThreadPage({ boardId, threadId: threadPda, scrollTo }: {
         }
     }, [refresh, autoUpdate]);
 
-    // postReply awaits the writeRow tx and the /notify POST to the thread
-    // (always) and to the feed (if the reply bumps the thread) before returning,
-    // so by the time we refresh the gateway cache already has the row.
+    // The write has confirmed, but a gateway may still lag or fail notification.
     const handlePostReply = useCallback(async (data: { com: string; name: string; img?: string; options?: string }) => {
-        await postReply(threadSeed, threadPda, boardId, data, totalReplies);
+        const row = await postReply(threadSeed, threadPda, boardId, data, totalReplies);
+        addConfirmedReply(row);
         refresh();
-    }, [postReply, threadSeed, threadPda, boardId, totalReplies, refresh]);
+    }, [postReply, threadSeed, threadPda, boardId, totalReplies, refresh, addConfirmedReply]);
 
     const onQuote = useCallback((sig: string) => {
         if (!address) { connect(); return; }
@@ -159,7 +159,7 @@ export default function ThreadPage({ boardId, threadId: threadPda, scrollTo }: {
                             mode="reply"
                             onSubmit={handlePostReply}
                             loading={postLoading}
-                            statusText={postStatus}
+                            statusText={qrOpen ? "" : postStatus}
                             step={postStep}
                             totalSteps={postTotalSteps}
                             onClearStatus={clearStatus}
@@ -195,9 +195,10 @@ export default function ThreadPage({ boardId, threadId: threadPda, scrollTo }: {
 
             <hr className="desktop" style={{ border: "none", borderTop: "1px solid var(--edge)" }} />
 
+            {error && op && <p role="status">Could not refresh the thread. Showing available posts.</p>}
             {loading && !op ? (
                 <div className="loading-text">Loading...</div>
-            ) : error ? (
+            ) : error && !op ? (
                 <div className="loading-text" style={{ color: "#d00" }}>Error: {error.message}</div>
             ) : (
                 <ThreadDetail

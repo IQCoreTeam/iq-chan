@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useChainWallet } from "../lib/chains/context";
 import { resolveNetwork } from "../lib/chains/resolve";
 import PostingOverlay from "./posting-overlay";
@@ -15,7 +15,7 @@ export default function PostForm({
     onClearStatus,
 }: {
     mode: "thread" | "reply";
-    onSubmit: (data: { sub?: string; com: string; name: string; img?: string; options?: string }) => void;
+    onSubmit: (data: { sub?: string; com: string; name: string; img?: string; options?: string }) => Promise<unknown>;
     loading: boolean;
     statusText?: string;
     step?: number;
@@ -31,6 +31,7 @@ export default function PostForm({
     const [name, setName] = useState("");
     const [img, setImg] = useState("");
     const [options, setOptions] = useState("");
+    const submitting = useRef(false);
 
     if (!address) {
         return (
@@ -51,21 +52,28 @@ export default function PostForm({
         );
     }
 
-    function handleSubmit(e: React.FormEvent) {
+    async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
-        if (!com.trim()) return;
-        onSubmit({
-            ...(mode === "thread" && sub.trim() ? { sub: sub.trim() } : {}),
-            com: com.trim(),
-            name: name.trim() || "Anonymous",
-            ...(img.trim() ? { img: img.trim() } : {}),
-            ...(options.trim() ? { options: options.trim().toLowerCase() } : {}),
-        });
-        setSub("");
-        setCom("");
-        setImg("");
-        setOptions("");
-        setShowForm(false);
+        if (!com.trim() || loading || submitting.current) return;
+        submitting.current = true;
+        try {
+            await onSubmit({
+                ...(mode === "thread" && sub.trim() ? { sub: sub.trim() } : {}),
+                com: com.trim(),
+                name: name.trim() || "Anonymous",
+                ...(img.trim() ? { img: img.trim() } : {}),
+                ...(options.trim() ? { options: options.trim().toLowerCase() } : {}),
+            });
+            setSub("");
+            setCom("");
+            setImg("");
+            setOptions("");
+            setShowForm(false);
+        } catch {
+            // The writer owns error display. Keep the form and draft for recovery.
+        } finally {
+            submitting.current = false;
+        }
     }
 
     const label = mode === "thread" ? "Start a New Thread" : "Post a Reply";
@@ -87,6 +95,7 @@ export default function PostForm({
                         <td>
                             <input
                                 name="name"
+                                disabled={loading}
                                 type="text"
                                 tabIndex={1}
                                 placeholder="Anonymous"
@@ -100,6 +109,7 @@ export default function PostForm({
                         <td>
                             <input
                                 name="email"
+                                disabled={loading}
                                 type="text"
                                 tabIndex={2}
                                 value={options}
@@ -121,6 +131,7 @@ export default function PostForm({
                             <td>
                                 <input
                                     name="sub"
+                                    disabled={loading}
                                     type="text"
                                     tabIndex={3}
                                     placeholder="Subject"
@@ -141,6 +152,7 @@ export default function PostForm({
                         <td>
                             <textarea
                                 name="com"
+                                disabled={loading}
                                 cols={48}
                                 rows={4}
                                 wrap="soft"
@@ -156,6 +168,7 @@ export default function PostForm({
                         <td>
                             <input
                                 name="img"
+                                disabled={loading}
                                 type="url"
                                 tabIndex={8}
                                 value={img}
@@ -177,6 +190,7 @@ export default function PostForm({
                                 {" "}
                                 <button
                                     type="button"
+                                    disabled={loading}
                                     onClick={() => setImg("")}
                                     style={{ color: "#d00", fontSize: 11, background: "none", border: "none", cursor: "pointer" }}
                                 >
