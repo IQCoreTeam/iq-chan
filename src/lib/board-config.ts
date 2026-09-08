@@ -10,7 +10,8 @@
 // threadPda  = the thread's own ext table id (unique per thread)
 // threadSeed = the thread seed ("<board>/thread/<uuid>"), shared by its replies
 
-import { RANDOM_BANNERS, NO_IMAGE_PLACEHOLDERS } from "./generated-images";
+import { RANDOM_BANNERS, NO_IMAGE_PLACEHOLDERS, BANNERS_BY_DIR, PLACEHOLDERS_BY_DIR } from "./generated-images";
+import { resolveNetwork } from "./chains/resolve";
 export { RANDOM_BANNERS, NO_IMAGE_PLACEHOLDERS };
 
 export const DB_ROOT_ID = "iqchan";
@@ -35,7 +36,14 @@ export const BOARD_METADATA: Record<string, { seed: string; title: string; descr
 export const OFFICIAL_BOARDS: string[] = ["iq", "po", "biz", "a", "g"];
 
 export function getRandomBanner(): string {
-    return RANDOM_BANNERS[Math.floor(Math.random() * RANDOM_BANNERS.length)];
+    const themed = BANNERS_BY_DIR[resolveNetwork().theme.bannerDir ?? ""];
+    const banners = themed?.length ? themed : RANDOM_BANNERS;
+    return banners[Math.floor(Math.random() * banners.length)];
+}
+
+export function getNoImagePlaceholders(): string[] {
+    const themed = PLACEHOLDERS_BY_DIR[resolveNetwork().theme.placeholderDir ?? ""];
+    return themed?.length ? themed : NO_IMAGE_PLACEHOLDERS;
 }
 
 /** Wallets with admin access (create/update boards) */

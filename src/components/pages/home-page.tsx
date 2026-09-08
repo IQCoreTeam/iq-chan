@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import HashLink from "../hash-link";
-import { DB_ROOT_KEY, getRandomBanner, NO_IMAGE_PLACEHOLDERS } from "../../lib/constants";
+import { DB_ROOT_KEY, getRandomBanner, getNoImagePlaceholders } from "../../lib/constants";
 import { resolveNetwork } from "../../lib/chains/resolve";
 import { getChain } from "../../lib/chains";
 import { useBoards } from "../../hooks/use-boards";
@@ -198,7 +198,7 @@ function useHomeData(boards: BoardMeta[]) {
 
                 // Assign unique placeholders to no-image threads first
                 const all = [...trending, ...recentArr];
-                const shuffled = [...NO_IMAGE_PLACEHOLDERS].sort(() => Math.random() - 0.5);
+                const shuffled = [...getNoImagePlaceholders()].sort(() => Math.random() - 0.5);
                 const noImgIndices = all.map(([, t], i) => t.op.img ? -1 : i).filter((i) => i >= 0);
                 const fallbacks: string[] = new Array(all.length).fill(shuffled[0]);
                 noImgIndices.forEach((idx, i) => { fallbacks[idx] = shuffled[i % shuffled.length]; });
