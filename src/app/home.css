@@ -237,6 +237,37 @@ br.clear-bug {
     height: auto;
 }
 
+.c-loading {
+    min-height: 180px;
+    display: grid;
+    place-items: center;
+    color: var(--link);
+}
+
+.c-thumbnail {
+    display: inline-grid;
+    place-items: center;
+    position: relative;
+    max-width: 100%;
+    vertical-align: top;
+    background: var(--panel);
+}
+
+.c-thumbnail img {
+    box-sizing: border-box;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+.c-image-status {
+    position: absolute;
+    inset: auto 0 0;
+    padding: 4px;
+    background: var(--panel);
+    color: var(--link);
+    font-size: 11px;
+}
+
 .c-teaser {
     margin-bottom: 5px;
     padding: 0 2px;

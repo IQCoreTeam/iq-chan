@@ -24,6 +24,33 @@ interface PopularThread {
     thumbH: number;
 }
 
+function ThreadThumbnail({ thread }: { thread: PopularThread }) {
+    const [failed, setFailed] = useState(false);
+    const [loaded, setLoaded] = useState(false);
+    const src = failed ? thread.fallbackImg : thread.img;
+    return (
+        <span className="c-thumbnail" style={{ width: thread.thumbW, height: thread.thumbH }}>
+            <img
+                alt=""
+                className="c-thumb"
+                src={src}
+                width={thread.thumbW}
+                height={thread.thumbH}
+                decoding="async"
+                style={{ opacity: loaded ? 1 : 0 }}
+                onLoad={() => setLoaded(true)}
+                onError={() => {
+                    // A missing fallback must not cause an endless error/reload loop.
+                    if (src === thread.fallbackImg) setLoaded(true);
+                    else { setFailed(true); setLoaded(false); }
+                }}
+            />
+            {!loaded && <span className="c-image-status">Loading image…</span>}
+            {loaded && failed && <span className="c-image-status">Image unavailable</span>}
+        </span>
+    );
+}
+
 // Decode the image via a detached Image() and report its natural dimensions.
 // Null on failure (timeout, network error, non-image response). One fetch per
 // URL — result cached so the later <img> render uses the browser's hot cache.
@@ -33,7 +60,9 @@ function checkImageDims(url: string): Promise<{ w: number; h: number } | null> {
     if (cached) return cached;
     const p = new Promise<{ w: number; h: number } | null>((resolve) => {
         const img = new Image();
-        const t = setTimeout(() => { img.src = ""; resolve(null); }, 5000);
+        // Stop waiting for ranking, but let a slow valid image finish downloading.
+        // Cancelling it here makes the rendered thumbnail start the request again.
+        const t = setTimeout(() => resolve(null), 5000);
         img.onload = () => { clearTimeout(t); resolve({ w: img.naturalWidth, h: img.naturalHeight }); };
         img.onerror = () => { clearTimeout(t); resolve(null); };
         img.src = url;
@@ -76,6 +105,7 @@ function toDisplayThread(
 }
 
 function useHomeData(boards: BoardMeta[]) {
+    const [loading, setLoading] = useState(true);
     const [totalPosts, setTotalPosts] = useState<number | null>(null);
     const [totalThreads, setTotalThreads] = useState<number | null>(null);
     const [popular, setPopular] = useState<PopularThread[]>([]);
@@ -209,19 +239,21 @@ function useHomeData(boards: BoardMeta[]) {
 
                 setTrendingCount(trending.length);
                 setPopular(combined);
-            } catch {}
+            } catch {} finally {
+                if (!cancelled) setLoading(false);
+            }
         }
 
         load();
         return () => { cancelled = true; };
     }, [boards]);
 
-    return { totalPosts, totalThreads, popular, trendingCount, allThreads };
+    return { totalPosts, totalThreads, popular, trendingCount, allThreads, loading };
 }
 
 export default function HomePage() {
     const { boards } = useBoards();
-    const { totalPosts, totalThreads, popular, trendingCount, allThreads } = useHomeData(boards);
+    const { totalPosts, totalThreads, popular, trendingCount, allThreads, loading } = useHomeData(boards);
     const [bannerSrc, setBannerSrc] = useState("");
     useEffect(() => { setBannerSrc(getRandomBanner()); }, []);
     const [aboutClosed, setAboutClosed] = useState(false);
@@ -313,10 +345,10 @@ export default function HomePage() {
                         <h2>Popular Threads</h2>
                     </div>
                     <div className="boxcontent">
-                        <div id="c-threads">
+                        <div id="c-threads" aria-busy={loading}>
                             {popular.length === 0 ? (
-                                <div style={{ textAlign: "center", padding: "10px", color: "#89a", fontSize: "12px" }}>
-                                    {totalPosts === null ? "Loading threads..." : "No threads yet"}
+                                <div className="c-loading" role="status">
+                                    {loading ? "Loading threads…" : "No threads yet"}
                                 </div>
                             ) : popular.flatMap((t, i) => [
                                 ...(i === trendingCount && trendingCount > 0 && trendingCount < popular.length
@@ -325,7 +357,7 @@ export default function HomePage() {
                                 <div key={t.threadPda} className="c-thread">
                                     <div className="c-board">{t.boardTitle}</div>
                                     <HashLink href={`/${t.boardId}/${t.threadPda}`} className="boardlink">
-                                        <img alt="" className="c-thumb" src={t.img} width={t.thumbW} height={t.thumbH} onError={(e) => { const img = e.target as HTMLImageElement; img.src = t.fallbackImg; img.width = 150; img.height = 150; }} />
+                                        <ThreadThumbnail key={t.img} thread={t} />
                                     </HashLink>
                                     <div className="c-teaser">
                                         {t.name && t.name !== "Anonymous" && <><b className="name">{t.name}</b>: </>}
