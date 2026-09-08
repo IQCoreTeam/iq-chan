@@ -91,8 +91,8 @@ export default function EvmWalletModal() {
                                     <span>
                                         {w.name}
                                         {w.id === "walletconnect" && (
-                                            <span style={{ display: "block", fontSize: "9px", opacity: 0.7 }}>
-                                                mobile app / scan QR
+                                            <span style={{ display: "block", fontSize: "10px", opacity: 0.7 }}>
+                                                WalletConnect · scan QR with any mobile wallet
                                             </span>
                                         )}
                                     </span>
