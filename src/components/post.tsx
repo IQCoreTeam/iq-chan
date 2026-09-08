@@ -146,7 +146,7 @@ export default function Post({
                             Copy link to post
                         </li>
                         <li style={{ padding: "3px 10px", cursor: "pointer" }} onClick={() => {
-                            const tweet = `https://twitter.com/intent/tweet?text=${encodeURIComponent(sub || "Check out this post on blockchan")}&url=${encodeURIComponent(postUrl())}`;
+                            const tweet = `https://twitter.com/intent/tweet?text=${encodeURIComponent(sub || `Check out this post on ${net.theme.siteName}`)}&url=${encodeURIComponent(postUrl())}`;
                             window.open(tweet, "_blank", "noopener,noreferrer");
                             setMenuOpen(false);
                         }}>
