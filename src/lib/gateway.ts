@@ -1,3 +1,4 @@
+import { notifyGateway } from "./notify-gateway";
 import { getGatewayUrl, getFallbacks } from "./config";
 import type { Post, Reply } from "./types";
 
@@ -95,15 +96,7 @@ export async function notifyPost(
     row?: Record<string, unknown>,
     signer?: string,
 ): Promise<void> {
-    try {
-        await fetch(`${getGatewayUrl()}/table/${tablePda}/notify`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ txSignature, row, signer }),
-        });
-    } catch {
-        // Non-critical — gateway will pick it up on next poll
-    }
+    await notifyGateway(`${getGatewayUrl()}/table/${tablePda}/notify`, { txSignature, row, signer });
 }
 
 /** Fetch DbRoot data (tableSeeds, globalTableSeeds, creator, tableCreators, tableNames) from gateway. */

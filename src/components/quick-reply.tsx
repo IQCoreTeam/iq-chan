@@ -17,7 +17,7 @@ export default function QuickReply({
     mode = "reply",
 }: {
     threadSig: string;
-    onSubmit: (data: { sub?: string; com: string; name: string; img?: string; options?: string }) => void;
+    onSubmit: (data: { sub?: string; com: string; name: string; img?: string; options?: string }) => Promise<unknown>;
     loading: boolean;
     statusText?: string;
     step?: number;
@@ -41,6 +41,7 @@ export default function QuickReply({
     const dragOffset = useRef({ x: 0, y: 0 });
     const panelRef = useRef<HTMLDivElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
+    const submitting = useRef(false);
 
     const isMobile = typeof window !== "undefined" && window.innerWidth <= 480;
 
@@ -88,21 +89,28 @@ export default function QuickReply({
         };
     }, [dragging]);
 
-    function handleSubmit(e: React.FormEvent) {
+    async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
-        if (!com.trim()) return;
-        onSubmit({
-            ...(mode === "thread" && sub.trim() ? { sub: sub.trim() } : {}),
-            com: com.trim(),
-            name: name.trim() || "Anonymous",
-            ...(img.trim() ? { img: img.trim() } : {}),
-            ...(options.trim() ? { options: options.trim().toLowerCase() } : {}),
-        });
-        setSub("");
-        setCom("");
-        setImg("");
-        setOptions("");
-        onClose();
+        if (!com.trim() || loading || submitting.current) return;
+        submitting.current = true;
+        try {
+            await onSubmit({
+                ...(mode === "thread" && sub.trim() ? { sub: sub.trim() } : {}),
+                com: com.trim(),
+                name: name.trim() || "Anonymous",
+                ...(img.trim() ? { img: img.trim() } : {}),
+                ...(options.trim() ? { options: options.trim().toLowerCase() } : {}),
+            });
+            setSub("");
+            setCom("");
+            setImg("");
+            setOptions("");
+            onClose();
+        } catch {
+            // Keep this panel mounted so its error and draft remain available.
+        } finally {
+            submitting.current = false;
+        }
     }
 
     if (!address) return null;
@@ -155,6 +163,7 @@ export default function QuickReply({
                 <div style={{ marginBottom: 3 }}>
                     <input
                         name="name"
+                        disabled={loading}
                         type="text"
                         placeholder="Anonymous"
                         value={name}
@@ -166,6 +175,7 @@ export default function QuickReply({
                     <div style={{ marginBottom: 3 }}>
                         <input
                             name="sub"
+                            disabled={loading}
                             type="text"
                             placeholder="Subject"
                             value={sub}
@@ -177,6 +187,7 @@ export default function QuickReply({
                 <div style={{ marginBottom: 3 }}>
                     <input
                         name="email"
+                        disabled={loading}
                         type="text"
                         placeholder="Options"
                         value={options}
@@ -188,6 +199,7 @@ export default function QuickReply({
                     <textarea
                         ref={textareaRef}
                         name="com"
+                        disabled={loading}
                         cols={48}
                         rows={4}
                         value={com}
@@ -202,6 +214,7 @@ export default function QuickReply({
                 <div style={{ marginBottom: 3 }}>
                     <input
                         name="img"
+                        disabled={loading}
                         type="url"
                         placeholder="Image URL"
                         value={img}

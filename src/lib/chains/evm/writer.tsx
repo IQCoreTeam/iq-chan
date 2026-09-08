@@ -16,6 +16,7 @@ import { writer as evmWriter, setNetwork } from "@iqlabs-official/ethereum-sdk";
 import { useEvmWallet } from "./wallet";
 import { resolveNetwork } from "../resolve";
 import { getGatewayUrl } from "../../config";
+import { notifyGateway } from "../../notify-gateway";
 import { gwFetch } from "../../gateway";
 import { DB_ROOT_ID, BOARD_COLUMNS, resolveBoardSeed } from "../../board-config";
 import type { Writer } from "../context";
@@ -53,15 +54,7 @@ export function useEvmWriter(): Writer {
     }, [query, net.currency]);
 
     const notify = useCallback(async (tableName: string, txHash: string, row: unknown, signer: string) => {
-        try {
-            await fetch(`${getGatewayUrl()}/table/${enc(DB_ROOT_ID)}/${enc(tableName)}/notify?${query()}`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ txHash, row, signer }),
-            });
-        } catch {
-            // best-effort; gateway backfill picks it up otherwise
-        }
+        return notifyGateway(`${getGatewayUrl()}/table/${enc(DB_ROOT_ID)}/${enc(tableName)}/notify?${query()}`, { txHash, row, signer });
     }, [query]);
 
     const createThread = useCallback(

@@ -55,6 +55,7 @@ export default function PostingOverlay({ statusText, step, totalSteps, isError, 
                     <span>{isError ? "Error" : "Posting"}</span>
                     {isError && (
                         <button
+                            type="button"
                             onClick={onDismiss}
                             style={{
                                 background: "transparent",
@@ -109,6 +110,7 @@ export default function PostingOverlay({ statusText, step, totalSteps, isError, 
                     {isError && (
                         <div style={{ textAlign: "center", marginTop: 8 }}>
                             <button
+                                type="button"
                                 onClick={onDismiss}
                                 style={{
                                     background: "#f8f8f8",
