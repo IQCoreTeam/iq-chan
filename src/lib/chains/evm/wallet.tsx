@@ -11,6 +11,16 @@ import { BrowserProvider, type Signer } from "ethers";
 import { resolveNetwork } from "../resolve";
 import type { NetworkDescriptor } from "../types";
 
+// Public WalletConnect (Reown) project id — client-side, not a secret. Lets
+// mobile wallets that don't inject a desktop provider (Robinhood Wallet, etc.)
+// connect over QR / deep link. Env override for other deploys.
+const WC_PROJECT_ID = process.env.NEXT_PUBLIC_WALLETCONNECT_ID || "7a1b344e1cb6addd4f946258b44d0b89";
+
+// Synthetic picker entry id for the WalletConnect path. Labeled "Robinhood
+// Wallet" on hoodchan so ordinary users pick it without knowing what
+// WalletConnect is; it opens the WC QR / deep-link flow underneath.
+const WC_OPTION_ID = "walletconnect";
+
 interface Eip1193 {
     request: (args: { method: string; params?: unknown[] }) => Promise<unknown>;
     on?: (event: string, handler: (...args: unknown[]) => void) => void;
@@ -34,6 +44,15 @@ function legacyInjected(): WalletOption | null {
     if (!eth) return null;
     const name = eth.isRobinhood ? "Robinhood Wallet" : eth.isMetaMask ? "MetaMask" : "Injected Wallet";
     return { id: "injected", name, provider: eth };
+}
+
+// The synthetic WalletConnect entry shown in the picker. On robinhood it reads
+// "Robinhood Wallet" (the wallet users will actually scan with); elsewhere it's
+// a generic WalletConnect entry. provider is a placeholder — selectWallet routes
+// this id to the WC init flow, not the injected request path.
+function wcOption(net: NetworkDescriptor): WalletOption {
+    const name = net.id === "robinhood" ? "Robinhood Wallet" : "WalletConnect";
+    return { id: WC_OPTION_ID, name, provider: {} as Eip1193 };
 }
 
 async function ensureChain(eth: Eip1193, net: NetworkDescriptor): Promise<void> {
@@ -113,7 +132,49 @@ export function EvmWalletProvider({ children }: { children: React.ReactNode }) {
         return () => eth.removeListener?.("accountsChanged", onAccounts);
     }, []);
 
+    const wcRef = useRef<{ disconnect: () => Promise<void> } | null>(null);
+
+    // WalletConnect path: lazy-loaded so it stays out of the initial bundle.
+    // Opens the WC QR / deep-link modal; the resulting session provider is
+    // EIP-1193, so the rest of the app (getSigner, ensureChain) is unchanged.
+    const connectWalletConnect = useCallback(async () => {
+        setConnecting(true);
+        try {
+            const { EthereumProvider } = await import("@walletconnect/ethereum-provider");
+            const cid = net.chainId ?? 4663;
+            const chains: [number, ...number[]] = [cid];
+            const origin = typeof window !== "undefined" ? window.location.origin : "https://hoodchan.xyz";
+            const wc = await EthereumProvider.init({
+                projectId: WC_PROJECT_ID,
+                chains,
+                optionalChains: chains,
+                showQrModal: true,
+                rpcMap: net.rpcUrl ? { [cid]: net.rpcUrl } : undefined,
+                metadata: {
+                    name: net.theme.siteName,
+                    description: `${net.theme.siteName} onchain imageboard on ${net.theme.chainLabel}`,
+                    url: origin,
+                    icons: [origin + (net.theme.logo || "/favicon.ico")],
+                },
+            });
+            await wc.connect();
+            const accts = (wc.accounts || []) as string[];
+            chosen.current = wc as unknown as Eip1193;
+            wcRef.current = wc as unknown as { disconnect: () => Promise<void> };
+            setAddress(accts.length ? accts[0] : null);
+            setModalOpen(false);
+            wc.on?.("accountsChanged", (...a: unknown[]) => {
+                const l = a[0] as string[];
+                setAddress(l?.length ? l[0] : null);
+            });
+            wc.on?.("disconnect", () => { setAddress(null); chosen.current = null; wcRef.current = null; });
+        } finally {
+            setConnecting(false);
+        }
+    }, [net]);
+
     const selectWallet = useCallback(async (opt: WalletOption) => {
+        if (opt.id === WC_OPTION_ID) { await connectWalletConnect(); return; }
         setConnecting(true);
         try {
             const accts = (await opt.provider.request({ method: "eth_requestAccounts" })) as string[];
@@ -124,20 +185,24 @@ export function EvmWalletProvider({ children }: { children: React.ReactNode }) {
         } finally {
             setConnecting(false);
         }
-    }, [net]);
+    }, [net, connectWalletConnect]);
 
     const connect = useCallback(() => {
-        // Prefer EIP-6963 list; fall back to the legacy injected provider.
-        const opts = wallets.length ? wallets : ([legacyInjected()].filter(Boolean) as WalletOption[]);
-        if (opts.length === 0) {
-            window.open("https://metamask.io/download/", "_blank");
-            return;
-        }
+        // EIP-6963 injected wallets (or the legacy slot) plus the WalletConnect
+        // entry, which is always offered so mobile wallets work even with no
+        // injected provider. One option total -> connect straight away.
+        const injected = wallets.length ? wallets : ([legacyInjected()].filter(Boolean) as WalletOption[]);
+        const opts = [...injected, wcOption(net)];
         if (opts.length === 1) { void selectWallet(opts[0]); return; }
         setModalOpen(true);
-    }, [wallets, selectWallet]);
+    }, [wallets, selectWallet, net]);
 
-    const disconnect = useCallback(() => { setAddress(null); chosen.current = null; }, []);
+    const disconnect = useCallback(() => {
+        void wcRef.current?.disconnect().catch(() => {});
+        wcRef.current = null;
+        setAddress(null);
+        chosen.current = null;
+    }, []);
 
     const getSigner = useCallback(async (): Promise<Signer> => {
         const eth = chosen.current ?? legacyInjected()?.provider;
@@ -148,10 +213,13 @@ export function EvmWalletProvider({ children }: { children: React.ReactNode }) {
 
     const closeModal = useCallback(() => setModalOpen(false), []);
 
+    const injectedList = wallets.length ? wallets : ([legacyInjected()].filter(Boolean) as WalletOption[]);
+    const pickerWallets = [...injectedList, wcOption(net)];
+
     return (
         <EvmWalletContext.Provider value={{
             address, connecting, connect, disconnect, getSigner,
-            wallets: wallets.length ? wallets : ([legacyInjected()].filter(Boolean) as WalletOption[]),
+            wallets: pickerWallets,
             modalOpen, closeModal, selectWallet,
         }}>
             {children}

@@ -88,7 +88,14 @@ export default function EvmWalletModal() {
                                     onMouseLeave={(e) => { e.currentTarget.style.border = "1px dotted transparent"; e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "#000"; }}
                                 >
                                     {w.icon && <img src={w.icon} alt="" width={16} height={16} style={{ display: "block" }} />}
-                                    {w.name}
+                                    <span>
+                                        {w.name}
+                                        {w.id === "walletconnect" && (
+                                            <span style={{ display: "block", fontSize: "9px", opacity: 0.7 }}>
+                                                mobile app / scan QR
+                                            </span>
+                                        )}
+                                    </span>
                                 </button>
                             ))}
                         </div>
