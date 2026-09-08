@@ -10,8 +10,12 @@ import { useEffect } from "react";
 import dynamic from "next/dynamic";
 import { resolveNetwork } from "../lib/chains/resolve";
 
-const SolanaProviders = dynamic(() => import("../lib/chains/solana/provider"), { ssr: false });
-const EvmProviders = dynamic(() => import("../lib/chains/evm/provider"), { ssr: false });
+function LoadingBoard() {
+    return <p role="status" style={{ padding: "24px", textAlign: "center", color: "var(--link)" }}>Loading board…</p>;
+}
+
+const SolanaProviders = dynamic(() => import("../lib/chains/solana/provider"), { ssr: false, loading: LoadingBoard });
+const EvmProviders = dynamic(() => import("../lib/chains/evm/provider"), { ssr: false, loading: LoadingBoard });
 
 export default function Providers({ children }: { children: React.ReactNode }) {
     const net = resolveNetwork();
