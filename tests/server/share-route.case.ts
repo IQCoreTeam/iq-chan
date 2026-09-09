@@ -1,4 +1,5 @@
 import { test, expect, mock } from "bun:test";
+import { runInNewContext } from "node:vm";
 
 // The cache is a Next server facility; these tests exercise the actual route,
 // adapter and transport against gateway responses without a Next process.
@@ -21,6 +22,12 @@ test("reply metadata uses the selected reply, escapes content, and preserves its
         expect(html).toContain(`/#/iq/iq-thread:p${tx}`);
         expect(html).toContain('content="summary_large_image"');
         expect(html).toContain(`https://hoodchan.xyz/share/${route.join("/")}?image=1`);
+        expect(res.headers.get("location")).toBeNull();
+        expect(html).not.toMatch(/<h1|<img|<style|http-equiv="refresh"/i);
+        let opened = "";
+        runInNewContext(html.match(/<script>([\s\S]*?)<\/script>/)![1], { location: { replace: (url: string) => { opened = url; } } });
+        expect(opened).toBe(`https://hoodchan.xyz/#/iq/iq-thread:p${tx}`);
+        expect(html).toContain(`<noscript><a href="${opened}">Open post</a></noscript>`);
         const uppercaseRoute = [...route.slice(0, -1), `0x${"B".repeat(64)}`];
         const uppercase = await GET(new Request(`https://hoodchan.xyz/share/${uppercaseRoute.join("/")}`), { params: Promise.resolve({ segments: uppercaseRoute }) });
         expect(uppercase.status).toBe(200);
@@ -35,10 +42,50 @@ test("missing replies and gateway outages do not produce misleading cached cards
         const missing = await GET(new Request("https://hoodchan.xyz/share"), { params: Promise.resolve({ segments: route }) });
         expect(missing.status).toBe(404);
         expect(missing.headers.get("cache-control")).toBe("no-store");
+        expect(await missing.text()).toContain(`location.replace("https://hoodchan.xyz/#/iq/iq-thread:p${tx}")`);
         globalThis.fetch = (async () => { throw new Error("offline"); }) as unknown as typeof fetch;
         const failed = await GET(new Request("https://hoodchan.xyz/share"), { params: Promise.resolve({ segments: route }) });
         expect(failed.status).toBe(503);
         expect(failed.headers.get("cache-control")).toBe("no-store");
+        const failedHtml = await failed.text();
+        expect(failedHtml).toContain(`location.replace("https://hoodchan.xyz/#/iq/iq-thread:p${tx}")`);
+        expect(failedHtml).not.toContain('property="og:image"');
+        const failedImage = await GET(new Request("https://hoodchan.xyz/share?image=1"), { params: Promise.resolve({ segments: route }) });
+        expect(failedImage.status).toBe(503);
+        expect(await failedImage.text()).not.toContain("<script>");
+    } finally { globalThis.fetch = original; }
+});
+
+test("browsers and social crawlers receive the same server-rendered metadata", async () => {
+    for (const [network, host] of [["solana", "blockchan.sol.site"], ["robinhood", "hoodchan.xyz"]]) {
+        let expected = "";
+        for (const agent of ["Mozilla/5.0", "Twitterbot/1.0", "facebookexternalhit/1.1", "Discordbot/2.0", "TelegramBot (like TwitterBot)", "Slackbot-LinkExpanding 1.0"]) {
+            const res = await GET(new Request(`https://${host}/share/${network}`, { headers: { "User-Agent": agent } }), { params: Promise.resolve({ segments: [network] }) });
+            const html = await res.text();
+            expect(res.status).toBe(200);
+            expect(res.headers.get("location")).toBeNull();
+            expect(html).toContain(`property="og:image" content="https://${host}/share/${network}?image=1"`);
+            expect(html).toContain('name="twitter:card" content="summary_large_image"');
+            expect(html).toContain(`location.replace("https://${host}/#/")`);
+            if (expected) expect(html).toBe(expected);
+            expected = html;
+        }
+    }
+});
+
+test("the browser handoff preserves existing Solana deep links when metadata is unavailable", async () => {
+    const original = globalThis.fetch;
+    const thread = "Atk6BqT8U6Rz6JcFNncj77oSvykGBL5QaQkoKHwisqXb";
+    const post = "rcnUZ987ovi962rXoBE6WHd7z1hpUbBqfPH3HnYnHN4ehRxkcuJQMN6RsgT833CS3z9Ay34KWUwDcmbBtSK9Eo9";
+    globalThis.fetch = (async () => { throw new Error("offline"); }) as unknown as typeof fetch;
+    try {
+        for (const path of [["solana", "g"], ["solana", "g", thread], ["solana", "g", thread, post]]) {
+            const res = await GET(new Request(`http://localhost:3007/share/${path.join("/")}`, { headers: { Host: "127.0.0.1:3216" } }), { params: Promise.resolve({ segments: path }) });
+            const html = await res.text();
+            let opened = "";
+            runInNewContext(html.match(/<script>([\s\S]*?)<\/script>/)![1], { location: { replace: (url: string) => { opened = url; } } });
+            expect(opened).toBe(`http://127.0.0.1:3216/#/g${path.length > 2 ? `/${thread}` : ""}${path.length > 3 ? `:p${post}` : ""}`);
+        }
     } finally { globalThis.fetch = original; }
 });
 

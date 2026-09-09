@@ -6,6 +6,7 @@ import { scrollToPost, highlightPost, showPostPreview, hidePostPreview } from ".
 import { formatDate, timeAgo } from "../lib/time";
 import { resolveNetwork } from "../lib/chains/resolve";
 import { shareUrl } from "../lib/share";
+import ShareLink from "./share-link";
 
 export default function Post({
     txSig,
@@ -44,12 +45,10 @@ export default function Post({
     const net = resolveNetwork();
     const [expanded, setExpanded] = useState(false);
     const [menuOpen, setMenuOpen] = useState(false);
-    const [linkCopy, setLinkCopy] = useState<"idle" | "copied" | "failed">("idle");
     const menuRefMobile = useRef<HTMLSpanElement>(null);
     const menuRefDesktop = useRef<HTMLSpanElement>(null);
 
     useEffect(() => {
-        setLinkCopy("idle");
         if (!menuOpen) return;
         function handleClick(e: MouseEvent) {
             const target = e.target as Node;
@@ -143,20 +142,7 @@ export default function Post({
                 {boardId && threadPda && (
                     <>
                         <li style={{ padding: "3px 10px" }}>
-                            <button type="button" style={{ border: 0, padding: 0, background: "none", color: "inherit", font: "inherit", cursor: "pointer" }} onClick={async () => {
-                                try {
-                                    await navigator.clipboard.writeText(postUrl());
-                                    setLinkCopy("copied");
-                                } catch {
-                                    setLinkCopy("failed");
-                                }
-                            }}>
-                                {linkCopy === "copied" ? "Link copied!" : "Copy link to post"}
-                            </button>
-                            {linkCopy === "failed" && <div role="status" style={{ whiteSpace: "normal", width: 200 }}>
-                                Couldn’t copy. Select the link below:
-                                <input aria-label="Link to post" readOnly value={postUrl()} onFocus={(e) => e.currentTarget.select()} style={{ width: "100%", boxSizing: "border-box" }} />
-                            </div>}
+                            <ShareLink board={boardId} thread={threadPda} post={txSig} />
                         </li>
                         <li style={{ padding: "3px 10px", cursor: "pointer" }} onClick={() => {
                             const tweet = `https://twitter.com/intent/tweet?text=${encodeURIComponent(sub || `Check out this post on ${net.theme.siteName}`)}&url=${encodeURIComponent(postUrl())}`;

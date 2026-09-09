@@ -3,11 +3,20 @@
 Share URLs use `/share/{network}[/{board}[/{thread}[/{transaction}]]]`.
 For example, `/share/robinhood/iq` previews the HoodChan IQ board.
 The same path with `?image=1` serves a 1200×630 PNG. HTML includes Open Graph
-and Twitter large-image metadata without requiring JavaScript. The page's
-Open link leads to the existing hash route, retaining a selected post anchor.
+and Twitter large-image metadata without requiring JavaScript, covering
+Open Graph consumers such as Discord, Telegram, Slack and Facebook as well
+as Twitter cards. Actual display and caching remain platform-controlled.
 
-Site, board and thread views expose share links. Post menus copy the share
-URL and use it for Share on X. Ordinary internal navigation and quotes retain
+People opening a share URL automatically go to the existing hash route,
+retaining the selected post anchor and its existing scroll/highlight behavior.
+There is no preview landing page. The HTTP response retains its metadata for
+unfurlers; a small browser script uses location.replace to open the app without
+an extra Back-button stop. A noscript link is the only fallback UI. HTTP and
+meta-refresh redirects are avoided so crawlers can read the metadata.
+
+Site, board and thread share controls copy the share URL, using the same copy
+component as post menus. Copy failures expose a selectable URL. Post menus also
+use that URL for Share on X. Ordinary internal navigation and quotes retain
 the existing hash router. Static/on-chain mirrors share their matching public
 domain, because a static export cannot answer dynamic crawler requests.
 
@@ -20,15 +29,16 @@ in locally copied URLs for review, so those links are not public share links.
 Cards use the actual logo assets and the site's Yotsuba palette. The app keeps
 its existing theme.css import and root metadata images. The image renderer
 uses inline palette values checked against theme.css by the share tests.
-Card layouts follow the home
-sections and post information/thumbnail/message layout, without simulated
-interactive controls. Images are static previews; links on the HTML page work.
+Card layouts follow the home sections and post information/thumbnail/message
+layout, without simulated interactive controls. Images are static social
+previews; visitors use the existing app.
 
 Reads reuse the existing SVM/EVM adapters, including Solana instruction merges.
 Successful preview data is cached for 60 seconds. Missing selected replies
 return 404 rather than substituting an OP; read failures return 503. Neither
-response is publicly cached. A reply outside a gateway's returned window is
-reported unavailable rather than shown as a different post.
+response is publicly cached. Browsers still continue to the requested app
+destination when preview data is unavailable. A reply outside a gateway's
+returned window is reported unavailable rather than shown as a different post.
 
 Images are optional. The renderer reads registered local logos and only fetches
 HTTPS images from `hoodchan.xyz`, `blockchan.sol.site`, `images.nubs.site`,
