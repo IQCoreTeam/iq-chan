@@ -37,12 +37,15 @@ are rejected; image reads have a three-second deadline, a 2 MB byte limit and
 a 16-megapixel decode limit. Sharp normalizes accepted images to bounded PNG
 thumbnails, including WebP inputs, before Next ImageResponse renders the card.
 Sharp already appears as an optional Next dependency in the upstream lockfile;
-this feature declares it directly because these conversions require it. The
-production Docker image still needs an image-rendering smoke test.
+this feature declares it directly because these conversions require it.
 
 Run `npm test` for the browser/unit suite and isolated server-route tests,
 then `npx tsc --noEmit` and `npm run build`. Server tests run separately because
 the existing hook tests mock the chain module globally in Bun.
+For Docker checks, pass the `NEXT_PUBLIC_RPC_ENDPOINT` and
+`NEXT_PUBLIC_GATEWAY_URL` build arguments as CI does; they are compiled into
+the client bundle. Check the HTML's actual image URL through the mapped port
+and production Host headers, not just a direct request to the PNG endpoint.
 
 Before publishing, inspect site/board/thread/reply previews for both chains,
 check the raw HTML with a crawler user agent, and open a reply's destination.

@@ -19,7 +19,7 @@ export const getShareData = unstable_cache(async (segments: string[]) => {
         ...target,
         title: net.theme.siteName,
         text: `An on-chain imageboard on ${net.theme.chainLabel}.`,
-        posts: [] as Post[], replies: null as number | null,
+        posts: [] as Post[],
         boardTitle: board ? BOARD_METADATA[board]?.title || `/${board}/` : "",
         kind: post ? "Reply" : thread ? "Thread" : board ? "Board" : "Home",
     };
@@ -39,14 +39,14 @@ export const getShareData = unstable_cache(async (segments: string[]) => {
     }
     const result = await adapter.getThread(board, thread);
     // Never substitute the OP when a requested reply is missing from the read.
-    const row = post ? [result.op, ...result.replies].find((r) => r?.__txSignature === post) : result.op;
+    const row = post ? [result.op, ...result.replies].find((r) =>
+        (net.family === "evm" ? r?.__txSignature?.toLowerCase() : r?.__txSignature) === post) : result.op;
     if (!row) throw new SharePostNotFound("Post unavailable in the current gateway read");
     if (row === result.op) data.kind = "Thread";
     data.title = ("sub" in row && typeof row.sub === "string" && row.sub) ||
         `${data.kind} in /${board}/`;
     data.text = typeof row.com === "string" ? row.com : "";
     data.posts = [row];
-    data.replies = result.totalReplies;
     return data;
 }, ["share-preview-v2"], { revalidate: 60 });
 

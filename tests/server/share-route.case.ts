@@ -21,6 +21,10 @@ test("reply metadata uses the selected reply, escapes content, and preserves its
         expect(html).toContain(`/#/iq/iq-thread:p${tx}`);
         expect(html).toContain('content="summary_large_image"');
         expect(html).toContain(`https://hoodchan.xyz/share/${route.join("/")}?image=1`);
+        const uppercaseRoute = [...route.slice(0, -1), `0x${"B".repeat(64)}`];
+        const uppercase = await GET(new Request(`https://hoodchan.xyz/share/${uppercaseRoute.join("/")}`), { params: Promise.resolve({ segments: uppercaseRoute }) });
+        expect(uppercase.status).toBe(200);
+        expect(await uppercase.text()).toContain(`/#/iq/iq-thread:p${tx}`);
     } finally { globalThis.fetch = original; }
 });
 
@@ -36,6 +40,20 @@ test("missing replies and gateway outages do not produce misleading cached cards
         expect(failed.status).toBe(503);
         expect(failed.headers.get("cache-control")).toBe("no-store");
     } finally { globalThis.fetch = original; }
+});
+
+test("share metadata and image links use the incoming host behind a container proxy", async () => {
+    for (const [host, network, expectedOrigin] of [
+        ["127.0.0.1:3216", "robinhood", "http://127.0.0.1:3216"],
+        ["hoodchan.xyz", "robinhood", "https://hoodchan.xyz"],
+        ["blockchan.sol.site", "solana", "https://blockchan.sol.site"],
+    ]) {
+        const res = await GET(new Request(`http://localhost:3007/share/${network}`, { headers: { Host: host } }), { params: Promise.resolve({ segments: [network] }) });
+        const html = await res.text();
+        expect(res.status).toBe(200);
+        expect(html).toContain(`content="${expectedOrigin}/share/${network}?image=1"`);
+        expect(html).not.toContain("localhost:3007");
+    }
 });
 
 test("card image requests reject arbitrary hosts, local paths and redirect destinations", async () => {
@@ -61,4 +79,40 @@ test("both actual logos decode to bounded PNG thumbnails", async () => {
         expect(image!.width).toBeLessThanOrEqual(270);
         expect(image!.height).toBeLessThanOrEqual(240);
     }
+});
+
+test("invalid and oversized attachments fall back without retaining the response stream", async () => {
+    const original = globalThis.fetch;
+    const imageUrl = "https://images.nubs.site/hoodchan/fixture.png";
+    try {
+        globalThis.fetch = (async () => new Response("not a PNG", { headers: { "Content-Type": "image/png" } })) as unknown as typeof fetch;
+        expect(await shareThumbnail(imageUrl)).toBeUndefined();
+
+        let cancelled = false;
+        globalThis.fetch = (async () => new Response(new ReadableStream({
+            pull(controller) { controller.enqueue(new Uint8Array(1_000_001)); },
+            cancel() { cancelled = true; },
+        }), { headers: { "Content-Type": "image/png" } })) as unknown as typeof fetch;
+        expect(await shareThumbnail(imageUrl)).toBeUndefined();
+        expect(cancelled).toBe(true);
+
+        const { default: sharp } = await import("sharp");
+        const oversized = await sharp({ create: { width: 4001, height: 4000, channels: 3, background: "white" } }).png().toBuffer();
+        globalThis.fetch = (async () => new Response(oversized, { headers: { "Content-Type": "image/png" } })) as unknown as typeof fetch;
+        expect(await shareThumbnail(imageUrl)).toBeUndefined();
+    } finally { globalThis.fetch = original; }
+});
+
+test("an image body that stalls after headers is aborted by its deadline", async () => {
+    const original = globalThis.fetch;
+    let aborted = false;
+    globalThis.fetch = (async (_url: unknown, init?: RequestInit) => new Response(new ReadableStream({
+        start(controller) {
+            init?.signal?.addEventListener("abort", () => { aborted = true; controller.error(init.signal?.reason); }, { once: true });
+        },
+    }), { headers: { "Content-Type": "image/png" } })) as unknown as typeof fetch;
+    try {
+        expect(await shareThumbnail("https://images.nubs.site/hoodchan/stalled.png")).toBeUndefined();
+        expect(aborted).toBe(true);
+    } finally { globalThis.fetch = original; }
 });

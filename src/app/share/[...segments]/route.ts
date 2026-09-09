@@ -22,6 +22,10 @@ export async function GET(request: Request, { params }: { params: Promise<{ segm
     }
     if (!data) return new Response("Post unavailable in the current gateway read. Open the board to find it.", { status: 404, headers: { "Cache-Control": "no-store" } });
     const url = new URL(request.url);
+    // Next may construct request.url with the container's internal hostname.
+    // Use the incoming authority, as the app's root metadata already does.
+    const host = request.headers.get("host");
+    if (host) { url.port = ""; url.host = host; }
     const canonical = shareUrl(url.origin, data.net.id, segments.slice(1));
     if (url.searchParams.get("image") === "1") {
         const [thumbnail, logo] = await Promise.all([shareThumbnail(data.posts[0]?.img || ""), shareThumbnail(data.net.theme.logo || "/blockchan.webp")]);

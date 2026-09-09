@@ -8,6 +8,7 @@ export function shareUrl(origin: string, network: string, path: string[] = []): 
     const domain = Object.keys(HOSTNAME_MAP).find((host) => HOSTNAME_MAP[host] === network);
     if (domain && !["localhost", "127.0.0.1", "[::1]"].includes(url.hostname)) {
         url.host = domain;
+        url.port = "";
         url.protocol = "https:";
     }
     url.pathname = `/share/${[network, ...path].map(encodeURIComponent).join("/")}`;
@@ -23,5 +24,5 @@ export function parseSharePath(segments: string[]) {
     const net = NETWORKS[network];
     if (thread && net.family === "svm" && !/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(thread)) return null;
     if (post && !(net.family === "evm" ? /^0x[\da-fA-F]{64}$/ : /^[1-9A-HJ-NP-Za-km-z]{80,90}$/).test(post)) return null;
-    return { net, board, thread, post };
+    return { net, board, thread, post: net.family === "evm" ? post?.toLowerCase() : post };
 }
