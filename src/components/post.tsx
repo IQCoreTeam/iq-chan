@@ -5,6 +5,7 @@ import { formatPostMessage, safePostUrl } from "../lib/format";
 import { scrollToPost, highlightPost, showPostPreview, hidePostPreview } from "../lib/highlight";
 import { formatDate, timeAgo } from "../lib/time";
 import { resolveNetwork } from "../lib/chains/resolve";
+import { shareUrl } from "../lib/share";
 
 export default function Post({
     txSig,
@@ -103,7 +104,7 @@ export default function Post({
             ? <a href={replyLink} title="Reply to this post">{display}</a>
             : <a href={`${net.explorerTxUrl}${txSig}`} target="_blank" rel="noopener noreferrer" title={`View on ${net.explorerName}`}>{display}</a>;
 
-    const postUrl = () => `${window.location.origin}${window.location.pathname}#/${boardId}/${threadPda}:p${txSig}`;
+    const postUrl = () => shareUrl(window.location.origin, net.id, [boardId!, threadPda!, txSig]);
 
     const menuDropdown = menuOpen ? (
         <div className="dd-menu" style={{ position: "absolute", top: "100%", left: 0, background: "var(--panel)", border: "1px solid var(--edge)", zIndex: 9999, boxShadow: "1px 1px 2px rgba(0,0,0,0.15)", whiteSpace: "nowrap" }}>

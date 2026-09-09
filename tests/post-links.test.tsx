@@ -20,7 +20,7 @@ test("post copy reports success only after writing a URL and exposes the URL on 
         const copy = () => document.querySelector<HTMLButtonElement>(".postInfo.desktop .dd-menu button")!.click();
         await act(async () => toggle());
         await act(async () => copy());
-        expect(copied).toBe("https://hoodchan.xyz/#/iq/iq-thread:p0x1234");
+        expect(copied).toBe("https://hoodchan.xyz/share/robinhood/iq/iq-thread/0x1234");
         expect(document.body.textContent).toContain("Link copied!");
         await act(async () => toggle());
         await act(async () => toggle());
