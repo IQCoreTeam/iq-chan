@@ -88,7 +88,9 @@ export default function BoardPage({ boardId }: { boardId: string }) {
             <div className="boardBanner">
                 {(boardMeta?.image || bannerSrc) && (
                     <div className="title" style={{ textAlign: "center" }}>
-                        <img alt={boardId} src={boardMeta?.image || bannerSrc} style={{ maxHeight: 150, display: "block", margin: "0 auto" }} />
+                        <HashLink href="/" title="Home">
+                            <img alt={boardId} src={boardMeta?.image || bannerSrc} style={{ maxHeight: 150, display: "block", margin: "0 auto", cursor: "pointer" }} />
+                        </HashLink>
                     </div>
                 )}
                 <div className="boardTitle">{boardTitle}</div>
