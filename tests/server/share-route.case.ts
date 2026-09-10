@@ -4,7 +4,7 @@ import { runInNewContext } from "node:vm";
 // The cache is a Next server facility; these tests exercise the actual route,
 // adapter and transport against gateway responses without a Next process.
 mock.module("next/cache", () => ({ unstable_cache: (fn: unknown) => fn }));
-const { GET } = await import("../../src/app/share/[...segments]/route");
+const { GET } = await import("../../src/app/share/[...segments]/route.server");
 const { shareThumbnail } = await import("../../src/lib/share-data");
 const tx = `0x${"b".repeat(64)}`;
 const route = ["robinhood", "iq", "iq-thread", tx];

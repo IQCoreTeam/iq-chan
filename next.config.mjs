@@ -25,6 +25,8 @@ const csp = [
 
 const nextConfig = {
     reactStrictMode: true,
+    // route.server.ts needs a server; static/on-chain builds omit it.
+    pageExtensions: [...(isStaticExport ? [] : ["server.ts"]), "tsx", "ts", "jsx", "js"],
     ...(isStaticExport ? { output: "export" } : {}),
     // headers() is a server feature - a static export has to set these at the
     // proxy layer (Caddy) instead.
