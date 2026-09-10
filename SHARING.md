@@ -14,7 +14,7 @@ unfurlers; a small browser script uses location.replace to open the app without
 an extra Back-button stop. A noscript link is the only fallback UI. HTTP and
 meta-refresh redirects are avoided so crawlers can read the metadata.
 
-Site, board and thread share controls copy the share URL, using the same copy
+Board and thread share controls copy the share URL, using the same copy
 component as post menus. Copy failures expose a selectable URL. Post menus also
 use that URL for Share on X. Ordinary internal navigation and quotes retain
 the existing hash router. Static/on-chain mirrors share their matching public

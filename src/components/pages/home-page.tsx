@@ -1,7 +1,5 @@
 "use client";
 
-import ShareLink from "../share-link";
-
 import { useState, useEffect } from "react";
 import HashLink from "../hash-link";
 import { DB_ROOT_KEY, getRandomBanner, getNoImagePlaceholders } from "../../lib/constants";
@@ -270,7 +268,6 @@ export default function HomePage() {
 
     return (
         <div className="fp-wrap">
-            <ShareLink />
             <div className="fp-logo">
                 <HashLink href="/" title="Home">
                     <img alt={resolveNetwork().theme.siteName} src={resolveNetwork().theme.logo ?? "/blockchan.webp"} width="300" height="120" />
