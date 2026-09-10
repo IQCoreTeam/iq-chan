@@ -18,6 +18,7 @@
     --accent-dark: #34345c;  /* announce boxbar, banner/thumb borders */
     --link: #34345c;         /* link text */
     --subject: #0f0c5d;      /* post subject */
+    --name: #117743;         /* post author */
 }
 
 html { background: #eef2ff; }
@@ -33,4 +34,5 @@ html[data-net="robinhood"] .yotsuba-b {
     --accent-dark: #0b7a2f;
     --link: #0b7a2f;
     --subject: #0b7a2f;
+    --name: #1d4ed8;
 }

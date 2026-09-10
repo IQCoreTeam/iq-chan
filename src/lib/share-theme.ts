@@ -19,6 +19,6 @@ export const SHARE_PALETTES: Record<string, Record<string, string>> = {
         "accent-dark": "#0b7a2f",
         "link": "#0b7a2f",
         "subject": "#0b7a2f",
-        "name": "#117743"
+        "name": "#1d4ed8"
     }
 };

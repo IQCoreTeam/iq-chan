@@ -26,7 +26,7 @@ test("preview palettes match the existing app stylesheet", () => {
         const block = blocks.find((b) => b.includes(".yotsuba-b") && (network === "robinhood" ? b.includes('data-net="robinhood"') : !b.includes("data-net")))!;
         expect(block).toBeDefined();
         for (const [key, value] of Object.entries(palette)) {
-            if (key !== "name") expect(block).toMatch(new RegExp(`--${key}:\\s*${value}\\s*;`));
+            expect(block).toMatch(new RegExp(`--${key}:\\s*${value}\\s*;`));
         }
     }
 });

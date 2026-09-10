@@ -46,7 +46,6 @@ function ThreadThumbnail({ thread }: { thread: PopularThread }) {
                 }}
             />
             {!loaded && <span className="c-image-status">Loading image…</span>}
-            {loaded && failed && <span className="c-image-status">Image unavailable</span>}
         </span>
     );
 }
