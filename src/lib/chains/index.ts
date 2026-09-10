@@ -3,7 +3,7 @@
 // versa (the import() is the bundle-split boundary). The result is cached per
 // resolved network id.
 
-import type { ChainReadAdapter } from "./types";
+import type { ChainReadAdapter, NetworkDescriptor } from "./types";
 import { resolveNetwork } from "./resolve";
 
 export { resolveNetwork, resolveNetworkId } from "./resolve";
@@ -14,13 +14,12 @@ let cached: { id: string; adapter: Promise<ChainReadAdapter> } | null = null;
 export function getChain(): Promise<ChainReadAdapter> {
     const net = resolveNetwork();
     if (cached && cached.id === net.id) return cached.adapter;
-    const adapter = loadAdapter();
+    const adapter = loadAdapter(net);
     cached = { id: net.id, adapter };
     return adapter;
 }
 
-async function loadAdapter(): Promise<ChainReadAdapter> {
-    const net = resolveNetwork();
+export async function loadAdapter(net: NetworkDescriptor): Promise<ChainReadAdapter> {
     if (net.family === "svm") {
         const { createSolanaReadAdapter } = await import("./solana/read");
         return createSolanaReadAdapter(net);

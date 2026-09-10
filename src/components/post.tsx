@@ -5,6 +5,8 @@ import { formatPostMessage, safePostUrl } from "../lib/format";
 import { scrollToPost, highlightPost, showPostPreview, hidePostPreview } from "../lib/highlight";
 import { formatDate, timeAgo } from "../lib/time";
 import { resolveNetwork } from "../lib/chains/resolve";
+import { shareUrl } from "../lib/share";
+import ShareLink from "./share-link";
 
 export default function Post({
     txSig,
@@ -43,12 +45,10 @@ export default function Post({
     const net = resolveNetwork();
     const [expanded, setExpanded] = useState(false);
     const [menuOpen, setMenuOpen] = useState(false);
-    const [linkCopy, setLinkCopy] = useState<"idle" | "copied" | "failed">("idle");
     const menuRefMobile = useRef<HTMLSpanElement>(null);
     const menuRefDesktop = useRef<HTMLSpanElement>(null);
 
     useEffect(() => {
-        setLinkCopy("idle");
         if (!menuOpen) return;
         function handleClick(e: MouseEvent) {
             const target = e.target as Node;
@@ -103,7 +103,7 @@ export default function Post({
             ? <a href={replyLink} title="Reply to this post">{display}</a>
             : <a href={`${net.explorerTxUrl}${txSig}`} target="_blank" rel="noopener noreferrer" title={`View on ${net.explorerName}`}>{display}</a>;
 
-    const postUrl = () => `${window.location.origin}${window.location.pathname}#/${boardId}/${threadPda}:p${txSig}`;
+    const postUrl = () => shareUrl(window.location.origin, net.id, [boardId!, threadPda!, txSig]);
 
     const menuDropdown = menuOpen ? (
         <div className="dd-menu" style={{ position: "absolute", top: "100%", left: 0, background: "var(--panel)", border: "1px solid var(--edge)", zIndex: 9999, boxShadow: "1px 1px 2px rgba(0,0,0,0.15)", whiteSpace: "nowrap" }}>
@@ -142,20 +142,7 @@ export default function Post({
                 {boardId && threadPda && (
                     <>
                         <li style={{ padding: "3px 10px" }}>
-                            <button type="button" style={{ border: 0, padding: 0, background: "none", color: "inherit", font: "inherit", cursor: "pointer" }} onClick={async () => {
-                                try {
-                                    await navigator.clipboard.writeText(postUrl());
-                                    setLinkCopy("copied");
-                                } catch {
-                                    setLinkCopy("failed");
-                                }
-                            }}>
-                                {linkCopy === "copied" ? "Link copied!" : "Copy link to post"}
-                            </button>
-                            {linkCopy === "failed" && <div role="status" style={{ whiteSpace: "normal", width: 200 }}>
-                                Couldn’t copy. Select the link below:
-                                <input aria-label="Link to post" readOnly value={postUrl()} onFocus={(e) => e.currentTarget.select()} style={{ width: "100%", boxSizing: "border-box" }} />
-                            </div>}
+                            <ShareLink board={boardId} thread={threadPda} post={txSig} />
                         </li>
                         <li style={{ padding: "3px 10px", cursor: "pointer" }} onClick={() => {
                             const tweet = `https://twitter.com/intent/tweet?text=${encodeURIComponent(sub || `Check out this post on ${net.theme.siteName}`)}&url=${encodeURIComponent(postUrl())}`;

@@ -264,8 +264,12 @@
     font-weight: bold;
 }
 
+html[data-net="robinhood"] .c-teaser .name {
+    color: var(--subject);
+}
+
 .nameBlock .name {
-    color: #117743;
+    color: var(--name);
     font-weight: bold;
 }
 
@@ -693,7 +697,7 @@ blockquote.postMessage {
     }
 
     .postInfoM.mobile .nameBlock .name {
-        color: #117743;
+        color: var(--name);
         font-weight: bold;
     }
 
