@@ -2,6 +2,7 @@ import { expect, mock, test } from "bun:test";
 import { JSDOM } from "jsdom";
 import { act, StrictMode } from "react";
 import { EvmWalletProvider, useEvmWallet, type WalletOption } from "../src/lib/chains/evm/wallet";
+import EvmWalletModal from "../src/lib/chains/evm/wallet-modal-ui";
 
 const ADDRESS = `0x${"1".repeat(40)}`;
 const OTHER = `0x${"2".repeat(40)}`;
@@ -47,10 +48,7 @@ async function mount({ saved, wallets = [], legacy, blockedStorage = false, stri
     saved?: string; wallets?: WalletOption[]; legacy?: WalletOption["provider"]; blockedStorage?: boolean; strict?: boolean;
 } = {}) {
     wcInits = 0;
-    wc = { ...provider(), session: undefined, connects: 0, disconnects: 0,
-        async connect() { this.connects++; this.session = {}; },
-        async disconnect() { this.disconnects++; this.session = undefined; this.emit("disconnect"); },
-    };
+    Object.assign(wc, provider(), { session: undefined, connects: 0, disconnects: 0 });
     const dom = new JSDOM('<div id="root"></div>', { url: "https://hoodchan.xyz/" });
     const previous = new Map<string, PropertyDescriptor | undefined>();
     for (const [key, value] of Object.entries({ window: dom.window, document: dom.window.document,
@@ -71,7 +69,7 @@ async function mount({ saved, wallets = [], legacy, blockedStorage = false, stri
     const root = createRoot(document.getElementById("root")!);
     let key = 0;
     const remount = async () => { await act(async () => {
-        const tree = <EvmWalletProvider key={++key}><Consumer /></EvmWalletProvider>;
+        const tree = <EvmWalletProvider key={++key}><Consumer /><EvmWalletModal /></EvmWalletProvider>;
         root.render(strict ? <StrictMode>{tree}</StrictMode> : tree);
     }); };
     await remount();
@@ -265,5 +263,73 @@ test("an expired WalletConnect session does not open pairing UI on reload", asyn
         expect(wc.connects).toBe(0);
         expect(app.wallet.address).toBeNull();
         expect(app.wallet.modalOpen).toBe(false);
+    } finally { await app.close(); }
+});
+
+test("a WalletConnect-only browser uses the picker before starting a connection", async () => {
+    const app = await mount();
+    try {
+        await act(async () => app.wallet.connect());
+        expect(app.wallet.modalOpen).toBe(true);
+        expect(wcInits).toBe(0);
+        expect(wc.connects).toBe(0);
+        const connect = wc.connect;
+        try {
+            wc.connect = async () => { throw new Error("Pairing cancelled"); };
+            const button = [...document.querySelectorAll("button")].find(b => b.textContent?.includes("Robinhood Wallet"))!;
+            await act(async () => button.click());
+            expect(document.body.textContent).toContain("Pairing cancelled");
+            expect(app.wallet.address).toBeNull();
+            expect(app.wallet.connecting).toBe(false);
+        } finally { wc.connect = connect; }
+    } finally { await app.close(); }
+});
+
+test("disconnect during signer lookup prevents a stale signer from being returned", async () => {
+    const metamask = provider();
+    const app = await mount({ saved: "io.metamask", wallets: [option(metamask)] });
+    const request = metamask.request;
+    let release!: (accounts: string[]) => void;
+    let started!: () => void;
+    const reading = new Promise<void>(resolve => { started = resolve; });
+    metamask.request = async function (args) {
+        if (args.method === "eth_accounts") {
+            return new Promise<string[]>(resolve => { release = resolve; started(); });
+        }
+        return request.call(this, args);
+    };
+    try {
+        const pending = app.wallet.getSigner();
+        await reading;
+        await act(async () => app.wallet.disconnect());
+        release([ADDRESS]);
+        await expect(pending).rejects.toThrow("Wallet account changed");
+        expect(app.wallet.address).toBeNull();
+    } finally { await app.close(); }
+});
+
+test("the explicitly selected legacy wallet restores silently on reload", async () => {
+    const legacy = provider();
+    const app = await mount({ legacy });
+    try {
+        expect(legacy.calls).toEqual([]);
+        await act(async () => app.wallet.selectWallet(app.wallet.wallets.find(w => w.id === "injected")!));
+        expect(localStorage.getItem(KEY)).toBe("injected");
+        legacy.calls.length = 0;
+        await app.remount();
+        expect(app.wallet.address).toBe(ADDRESS);
+        expect(legacy.calls).toEqual(["eth_accounts"]);
+    } finally { await app.close(); }
+});
+
+test("signer lookup fails without requesting permission if the account is no longer authorized", async () => {
+    const metamask = provider();
+    const app = await mount({ saved: "io.metamask", wallets: [option(metamask)] });
+    try {
+        // Revocation can reach the wallet before its accountsChanged event reaches the app.
+        metamask.accounts = [];
+        await expect(app.wallet.getSigner()).rejects.toThrow();
+        expect(metamask.calls).not.toContain("eth_requestAccounts");
+        expect(metamask.calls).not.toContain("wallet_switchEthereumChain");
     } finally { await app.close(); }
 });

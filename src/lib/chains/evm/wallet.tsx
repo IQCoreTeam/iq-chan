@@ -32,13 +32,11 @@ interface Eip1193 {
 }
 
 export interface WalletOption {
-    id: string;      // EIP-6963 rdns, or "injected"
+    id: string;      // EIP-6963 rdns, "injected", or "walletconnect"
     name: string;
     icon?: string;   // data URI
-    provider: Eip1193;
+    provider: Eip1193 | null;
 }
-
-interface Eip6963Detail { info: { uuid: string; name: string; icon: string; rdns: string }; provider: Eip1193 }
 
 function legacyInjected(): WalletOption | null {
     if (typeof window === "undefined") return null;
@@ -46,15 +44,6 @@ function legacyInjected(): WalletOption | null {
     if (!eth) return null;
     const name = eth.isRobinhood ? "Robinhood Wallet" : eth.isMetaMask ? "MetaMask" : "Injected Wallet";
     return { id: "injected", name, provider: eth };
-}
-
-// The synthetic WalletConnect entry shown in the picker. On robinhood it reads
-// "Robinhood Wallet" (the wallet users will actually scan with); elsewhere it's
-// a generic WalletConnect entry. provider is a placeholder — selectWallet routes
-// this id to the WC init flow, not the injected request path.
-function wcOption(net: NetworkDescriptor): WalletOption {
-    const name = net.id === "robinhood" ? "Robinhood Wallet" : "WalletConnect";
-    return { id: WC_OPTION_ID, name, provider: {} as Eip1193 };
 }
 
 async function ensureChain(eth: Eip1193, net: NetworkDescriptor): Promise<void> {
@@ -177,7 +166,7 @@ export function EvmWalletProvider({ children }: { children: React.ReactNode }) {
         };
         const found = new Map<string, WalletOption>();
         const onAnnounce = (ev: Event) => {
-            const d = (ev as CustomEvent<Eip6963Detail>).detail;
+            const d = (ev as CustomEvent<{ info: { name: string; icon: string; rdns: string }; provider: Eip1193 }>).detail;
             if (!d?.info || !d.provider) return;
             found.set(d.info.rdns, { id: d.info.rdns, name: d.info.name, icon: d.info.icon, provider: d.provider });
             setWallets([...found.values()]);
@@ -187,7 +176,7 @@ export function EvmWalletProvider({ children }: { children: React.ReactNode }) {
         window.dispatchEvent(new Event("eip6963:requestProvider"));
         if (saved === "injected") {
             const legacy = legacyInjected();
-            if (legacy) restore(legacy.provider);
+            if (legacy?.provider) restore(legacy.provider);
         } else if (saved === WC_OPTION_ID) {
             void walletConnect().then((wc) => {
                 if (wc.session && attempt.current === currentAttempt) {
@@ -200,27 +189,29 @@ export function EvmWalletProvider({ children }: { children: React.ReactNode }) {
             window.removeEventListener("eip6963:announceProvider", onAnnounce as EventListener);
             stopListening.current?.();
         };
-    }, [activateWallet, walletConnect, net]);
+    }, [activateWallet, walletConnect]);
 
     const selectWallet = useCallback(async (opt: WalletOption) => {
         const currentAttempt = ++attempt.current;
         setConnecting(true);
         try {
             let accts: string[];
+            let eth = opt.provider;
             if (opt.id === WC_OPTION_ID) {
                 const wc = await walletConnect();
                 if (attempt.current !== currentAttempt) return;
                 if (!wc.session) await wc.connect();
-                opt = { ...opt, provider: wc };
+                eth = wc;
                 accts = wc.accounts;
             } else {
-                accts = await opt.provider.request({ method: "eth_requestAccounts" }) as string[];
+                if (!eth) throw new Error("Wallet provider unavailable. Please choose another wallet.");
+                accts = await eth.request({ method: "eth_requestAccounts" }) as string[];
             }
             if (attempt.current !== currentAttempt) return;
             if (!accts.length) throw new Error("No account selected. Choose an account in your wallet.");
-            await ensureChain(opt.provider, net);
+            await ensureChain(eth, net);
             if (attempt.current !== currentAttempt) return;
-            activateWallet(opt.provider, accts);
+            activateWallet(eth, accts);
             // Persist the provider identity only; accounts/permissions stay in the wallet.
             try { window.localStorage.setItem(WALLET_KEY, opt.id); } catch { /* Connection still works without storage. */ }
             setModalOpen(false);
@@ -229,15 +220,8 @@ export function EvmWalletProvider({ children }: { children: React.ReactNode }) {
         }
     }, [net, walletConnect, activateWallet]);
 
-    const connect = useCallback(() => {
-        // EIP-6963 injected wallets (or the legacy slot) plus the WalletConnect
-        // entry, which is always offered so mobile wallets work even with no
-        // injected provider. One option total -> connect straight away.
-        const injected = wallets.length ? wallets : ([legacyInjected()].filter(Boolean) as WalletOption[]);
-        const opts = [...injected, wcOption(net)];
-        if (opts.length === 1) { void selectWallet(opts[0]); return; }
-        setModalOpen(true);
-    }, [wallets, selectWallet, net]);
+    // All explicit connections use the picker, including its error handling.
+    const connect = useCallback(() => setModalOpen(true), []);
 
     const disconnect = useCallback(() => {
         resetWallet();
@@ -252,13 +236,20 @@ export function EvmWalletProvider({ children }: { children: React.ReactNode }) {
         const currentAttempt = attempt.current;
         await ensureChain(eth, net);
         if (chosen.current !== eth || attempt.current !== currentAttempt) throw new Error("Wallet connection changed. Please try again.");
-        return new BrowserProvider(eth).getSigner(address);
+        // listAccounts is read-only; getSigner can request permissions again
+        // when the formerly selected account is no longer authorized.
+        const signers = await new BrowserProvider(eth).listAccounts();
+        const signer = signers.find((s) => s.address.toLowerCase() === address.toLowerCase());
+        if (!signer || chosen.current !== eth || attempt.current !== currentAttempt) throw new Error("Wallet account changed. Please reconnect and try again.");
+        return signer;
     }, [net, address]);
 
     const closeModal = useCallback(() => setModalOpen(false), []);
 
     const injectedList = wallets.length ? wallets : ([legacyInjected()].filter(Boolean) as WalletOption[]);
-    const pickerWallets = [...injectedList, wcOption(net)];
+    const pickerWallets: WalletOption[] = [...injectedList, {
+        id: WC_OPTION_ID, name: net.id === "robinhood" ? "Robinhood Wallet" : "WalletConnect", provider: null,
+    }];
 
     return (
         <EvmWalletContext.Provider value={{
