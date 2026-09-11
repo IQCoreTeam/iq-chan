@@ -43,7 +43,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ segm
     let data;
     let status = 404;
     let unavailable = "Post unavailable in the current gateway read.";
-    const imageRequest = url.searchParams.get("image") === "1";
+    const imageRequest = url.pathname.startsWith("/share-image/") || url.searchParams.get("image") === "1";
     try {
         data = await getShareData(segments);
         if (data && imageRequest) {
@@ -71,7 +71,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ segm
     }
     const title = data.kind === "Home" ? data.title : `${data.title} | ${data.net.theme.siteName}`;
     const description = data.text.replace(/\s+/g, " ").slice(0, 200);
-    const image = `${canonical}?image=1`;
+    const image = canonical.replace("/share/", "/share-image/");
     const html = `<!doctype html><html lang="en" data-net="${data.net.id}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>${escapeHtml(title)}</title><meta name="description" content="${escapeHtml(description)}"><link rel="canonical" href="${escapeHtml(canonical)}">
 <meta property="og:type" content="${data.thread ? "article" : "website"}"><meta property="og:site_name" content="${escapeHtml(data.net.theme.siteName)}"><meta property="og:title" content="${escapeHtml(title)}"><meta property="og:description" content="${escapeHtml(description)}"><meta property="og:url" content="${escapeHtml(canonical)}"><meta property="og:image" content="${escapeHtml(image)}"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:type" content="image/png"><meta property="og:image:alt" content="${escapeHtml(description)}">
