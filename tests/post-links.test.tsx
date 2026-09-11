@@ -37,7 +37,7 @@ test("post copy reports success only after writing a URL and exposes the URL on 
     }
 });
 
-test("site, board and thread share controls copy URLs without navigating, and reset on target changes", async () => {
+test("post copy handles both networks without navigating and resets when the target changes", async () => {
     const dom = new JSDOM('<div id="root"></div>', { url: "https://hoodchan.xyz/#/iq" });
     Object.assign(globalThis, { window: dom.window, document: dom.window.document, IS_REACT_ACT_ENVIRONMENT: true });
     const original = Object.getOwnPropertyDescriptor(navigator, "clipboard");
@@ -49,18 +49,18 @@ test("site, board and thread share controls copy URLs without navigating, and re
     const { createRoot } = await import("react-dom/client");
     const root = createRoot(document.getElementById("root")!);
     try {
-        for (const [board, thread, kind, path] of [[undefined, undefined, "site", ""], ["iq", undefined, "board", "/iq"], ["iq", "iq-thread", "thread", "/iq/iq-thread"]]) {
-            await act(async () => root.render(<ShareLink board={board} thread={thread} />));
+        for (const url of ["https://hoodchan.xyz/share/robinhood/iq/iq-thread/0x1234", "https://blockchan.sol.site/share/solana/g/thread/reply"]) {
+            await act(async () => root.render(<ShareLink url={url} />));
             const button = document.querySelector<HTMLButtonElement>("button")!;
-            expect(button.textContent).toBe(`Share ${kind}`);
+            expect(button.textContent).toBe("Copy link to post");
             await act(async () => button.click());
-            expect(copied).toBe(`https://hoodchan.xyz/share/robinhood${path}`);
+            expect(copied).toBe(url);
             expect(button.textContent).toBe("Link copied!");
             expect(window.location.href).toBe("https://hoodchan.xyz/#/iq");
         }
         fail = true;
         await act(async () => document.querySelector<HTMLButtonElement>("button")!.click());
-        expect(document.querySelector<HTMLInputElement>('input[aria-label="Link to thread"]')!.value).toBe(copied);
+        expect(document.querySelector<HTMLInputElement>('input[aria-label="Link to post"]')!.value).toBe(copied);
         expect(document.body.textContent).not.toContain("Link copied!");
     } finally {
         await act(async () => root.unmount());
