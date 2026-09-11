@@ -8,6 +8,7 @@
 
 import { createContext, useContext, useState, useEffect, useRef, useCallback } from "react";
 import { BrowserProvider, type Signer } from "ethers";
+import type { EthereumProvider } from "@walletconnect/ethereum-provider";
 import { resolveNetwork } from "../resolve";
 import type { NetworkDescriptor } from "../types";
 
@@ -20,11 +21,12 @@ const WC_PROJECT_ID = process.env.NEXT_PUBLIC_WALLETCONNECT_ID || "7a1b344e1cb6a
 // Wallet" on hoodchan so ordinary users pick it without knowing what
 // WalletConnect is; it opens the WC QR / deep-link flow underneath.
 const WC_OPTION_ID = "walletconnect";
+const WALLET_KEY = "iqchan:evm-wallet";
 
 interface Eip1193 {
     request: (args: { method: string; params?: unknown[] }) => Promise<unknown>;
-    on?: (event: string, handler: (...args: unknown[]) => void) => void;
-    removeListener?: (event: string, handler: (...args: unknown[]) => void) => void;
+    on?: (event: "accountsChanged" | "disconnect", handler: (...args: unknown[]) => void) => void;
+    removeListener?: (event: "accountsChanged" | "disconnect", handler: (...args: unknown[]) => void) => void;
     isMetaMask?: boolean;
     isRobinhood?: boolean;
 }
@@ -57,6 +59,7 @@ function wcOption(net: NetworkDescriptor): WalletOption {
 
 async function ensureChain(eth: Eip1193, net: NetworkDescriptor): Promise<void> {
     if (!net.chainId) return;
+    if (Number(await eth.request({ method: "eth_chainId" })) === net.chainId) return;
     const hexId = "0x" + net.chainId.toString(16);
     try {
         await eth.request({ method: "wallet_switchEthereumChain", params: [{ chainId: hexId }] });
@@ -73,9 +76,13 @@ async function ensureChain(eth: Eip1193, net: NetworkDescriptor): Promise<void> 
                     blockExplorerUrls: explorer ? [explorer] : [],
                 }],
             });
+            await eth.request({ method: "wallet_switchEthereumChain", params: [{ chainId: hexId }] });
         } else {
             throw e;
         }
+    }
+    if (Number(await eth.request({ method: "eth_chainId" })) !== net.chainId) {
+        throw new Error(`Switch your wallet to ${net.theme.chainLabel} before posting.`);
     }
 }
 
@@ -101,55 +108,48 @@ export function EvmWalletProvider({ children }: { children: React.ReactNode }) {
     const [wallets, setWallets] = useState<WalletOption[]>([]);
     const [modalOpen, setModalOpen] = useState(false);
     const chosen = useRef<Eip1193 | null>(null);
+    const stopListening = useRef<(() => void) | null>(null);
+    const attempt = useRef(0);
+    const wcRef = useRef<ReturnType<typeof EthereumProvider.init> | null>(null);
 
-    // EIP-6963 discovery: ask installed wallets to announce themselves.
-    useEffect(() => {
-        if (typeof window === "undefined") return;
-        const found = new Map<string, WalletOption>();
-        const onAnnounce = (ev: Event) => {
-            const d = (ev as CustomEvent<Eip6963Detail>).detail;
-            if (!d?.info || !d.provider) return;
-            found.set(d.info.rdns, { id: d.info.rdns, name: d.info.name, icon: d.info.icon, provider: d.provider });
-            setWallets([...found.values()]);
-        };
-        window.addEventListener("eip6963:announceProvider", onAnnounce as EventListener);
-        window.dispatchEvent(new Event("eip6963:requestProvider"));
-        return () => window.removeEventListener("eip6963:announceProvider", onAnnounce as EventListener);
+    const resetWallet = useCallback(() => {
+        attempt.current++;
+        stopListening.current?.();
+        stopListening.current = null;
+        chosen.current = null;
+        setAddress(null);
+        setConnecting(false);
     }, []);
 
-    // Pick up an already-authorized account + react to wallet changes.
-    useEffect(() => {
-        const eth = legacyInjected()?.provider;
-        if (!eth) return;
-        eth.request({ method: "eth_accounts" })
-            .then((a) => { const l = a as string[]; if (l?.length) { setAddress(l[0]); chosen.current = eth; } })
-            .catch(() => {});
+    // Account changes must come from the selected wallet, not window.ethereum.
+    const activateWallet = useCallback((eth: Eip1193, accounts: string[]) => {
+        stopListening.current?.();
+        chosen.current = eth;
+        setAddress(accounts[0] ?? null);
         const onAccounts = (...args: unknown[]) => {
-            const l = args[0] as string[];
-            setAddress(l?.length ? l[0] : null);
+            if (chosen.current === eth) setAddress((args[0] as string[])[0] ?? null);
         };
+        const onDisconnect = () => { if (chosen.current === eth) resetWallet(); };
         eth.on?.("accountsChanged", onAccounts);
-        return () => eth.removeListener?.("accountsChanged", onAccounts);
-    }, []);
+        eth.on?.("disconnect", onDisconnect);
+        stopListening.current = () => {
+            eth.removeListener?.("accountsChanged", onAccounts);
+            eth.removeListener?.("disconnect", onDisconnect);
+        };
+    }, [resetWallet]);
 
-    const wcRef = useRef<{ disconnect: () => Promise<void> } | null>(null);
-
-    // WalletConnect path: lazy-loaded so it stays out of the initial bundle.
-    // Opens the WC QR / deep-link modal; the resulting session provider is
-    // EIP-1193, so the rest of the app (getSigner, ensureChain) is unchanged.
-    const connectWalletConnect = useCallback(async () => {
-        setConnecting(true);
-        try {
+    // One lazy initialization, shared by manual connect and saved-session restore.
+    const walletConnect = useCallback(() => {
+        if (!wcRef.current) wcRef.current = (async () => {
             const { EthereumProvider } = await import("@walletconnect/ethereum-provider");
-            const cid = net.chainId ?? 4663;
-            const chains: [number, ...number[]] = [cid];
-            const origin = typeof window !== "undefined" ? window.location.origin : "https://hoodchan.xyz";
-            const wc = await EthereumProvider.init({
+            const chains: [number, ...number[]] = [net.chainId ?? 4663];
+            const origin = window.location.origin;
+            return EthereumProvider.init({
                 projectId: WC_PROJECT_ID,
                 chains,
                 optionalChains: chains,
                 showQrModal: true,
-                rpcMap: net.rpcUrl ? { [cid]: net.rpcUrl } : undefined,
+                rpcMap: net.rpcUrl ? { [chains[0]]: net.rpcUrl } : undefined,
                 metadata: {
                     name: net.theme.siteName,
                     description: `${net.theme.siteName} onchain imageboard on ${net.theme.chainLabel}`,
@@ -157,35 +157,77 @@ export function EvmWalletProvider({ children }: { children: React.ReactNode }) {
                     icons: [origin + (net.theme.logo || "/favicon.ico")],
                 },
             });
-            await wc.connect();
-            const accts = (wc.accounts || []) as string[];
-            chosen.current = wc as unknown as Eip1193;
-            wcRef.current = wc as unknown as { disconnect: () => Promise<void> };
-            setAddress(accts.length ? accts[0] : null);
-            setModalOpen(false);
-            wc.on?.("accountsChanged", (...a: unknown[]) => {
-                const l = a[0] as string[];
-                setAddress(l?.length ? l[0] : null);
-            });
-            wc.on?.("disconnect", () => { setAddress(null); chosen.current = null; wcRef.current = null; });
-        } finally {
-            setConnecting(false);
-        }
+        })().catch((error) => { wcRef.current = null; throw error; });
+        return wcRef.current;
     }, [net]);
 
+    // Restore only the remembered provider: zero wallet RPCs for new visitors,
+    // one eth_accounts read for a saved injected wallet, and no polling/prompts.
+    useEffect(() => {
+        let saved: string | null = null;
+        try { saved = window.localStorage.getItem(WALLET_KEY); } catch { /* Storage may be disabled. */ }
+        const currentAttempt = ++attempt.current;
+        let restoring = false;
+        const restore = (eth: Eip1193) => {
+            if (restoring || attempt.current !== currentAttempt) return;
+            restoring = true;
+            void eth.request({ method: "eth_accounts" }).then((accounts) => {
+                if (attempt.current === currentAttempt) activateWallet(eth, accounts as string[]);
+            }).catch(() => {});
+        };
+        const found = new Map<string, WalletOption>();
+        const onAnnounce = (ev: Event) => {
+            const d = (ev as CustomEvent<Eip6963Detail>).detail;
+            if (!d?.info || !d.provider) return;
+            found.set(d.info.rdns, { id: d.info.rdns, name: d.info.name, icon: d.info.icon, provider: d.provider });
+            setWallets([...found.values()]);
+            if (d.info.rdns === saved) restore(d.provider);
+        };
+        window.addEventListener("eip6963:announceProvider", onAnnounce as EventListener);
+        window.dispatchEvent(new Event("eip6963:requestProvider"));
+        if (saved === "injected") {
+            const legacy = legacyInjected();
+            if (legacy) restore(legacy.provider);
+        } else if (saved === WC_OPTION_ID) {
+            void walletConnect().then((wc) => {
+                if (wc.session && attempt.current === currentAttempt) {
+                    activateWallet(wc, wc.accounts);
+                }
+            }).catch(() => {});
+        }
+        return () => {
+            attempt.current++;
+            window.removeEventListener("eip6963:announceProvider", onAnnounce as EventListener);
+            stopListening.current?.();
+        };
+    }, [activateWallet, walletConnect, net]);
+
     const selectWallet = useCallback(async (opt: WalletOption) => {
-        if (opt.id === WC_OPTION_ID) { await connectWalletConnect(); return; }
+        const currentAttempt = ++attempt.current;
         setConnecting(true);
         try {
-            const accts = (await opt.provider.request({ method: "eth_requestAccounts" })) as string[];
+            let accts: string[];
+            if (opt.id === WC_OPTION_ID) {
+                const wc = await walletConnect();
+                if (attempt.current !== currentAttempt) return;
+                if (!wc.session) await wc.connect();
+                opt = { ...opt, provider: wc };
+                accts = wc.accounts;
+            } else {
+                accts = await opt.provider.request({ method: "eth_requestAccounts" }) as string[];
+            }
+            if (attempt.current !== currentAttempt) return;
+            if (!accts.length) throw new Error("No account selected. Choose an account in your wallet.");
             await ensureChain(opt.provider, net);
-            chosen.current = opt.provider;
-            setAddress(accts?.length ? accts[0] : null);
+            if (attempt.current !== currentAttempt) return;
+            activateWallet(opt.provider, accts);
+            // Persist the provider identity only; accounts/permissions stay in the wallet.
+            try { window.localStorage.setItem(WALLET_KEY, opt.id); } catch { /* Connection still works without storage. */ }
             setModalOpen(false);
         } finally {
-            setConnecting(false);
+            if (attempt.current === currentAttempt) setConnecting(false);
         }
-    }, [net, connectWalletConnect]);
+    }, [net, walletConnect, activateWallet]);
 
     const connect = useCallback(() => {
         // EIP-6963 injected wallets (or the legacy slot) plus the WalletConnect
@@ -198,18 +240,20 @@ export function EvmWalletProvider({ children }: { children: React.ReactNode }) {
     }, [wallets, selectWallet, net]);
 
     const disconnect = useCallback(() => {
-        void wcRef.current?.disconnect().catch(() => {});
+        resetWallet();
+        try { window.localStorage.removeItem(WALLET_KEY); } catch { /* Storage may be disabled. */ }
+        void wcRef.current?.then((wc) => wc.disconnect()).catch(() => {});
         wcRef.current = null;
-        setAddress(null);
-        chosen.current = null;
-    }, []);
+    }, [resetWallet]);
 
     const getSigner = useCallback(async (): Promise<Signer> => {
-        const eth = chosen.current ?? legacyInjected()?.provider;
-        if (!eth) throw new Error("No EVM wallet connected");
+        const eth = chosen.current;
+        if (!eth || !address) throw new Error("No EVM wallet connected");
+        const currentAttempt = attempt.current;
         await ensureChain(eth, net);
-        return new BrowserProvider(eth as never).getSigner();
-    }, [net]);
+        if (chosen.current !== eth || attempt.current !== currentAttempt) throw new Error("Wallet connection changed. Please try again.");
+        return new BrowserProvider(eth).getSigner(address);
+    }, [net, address]);
 
     const closeModal = useCallback(() => setModalOpen(false), []);
 
