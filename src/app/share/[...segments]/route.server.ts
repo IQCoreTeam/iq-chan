@@ -1,4 +1,5 @@
 import { ImageResponse } from "next/og";
+import { unstable_cache } from "next/cache";
 import { createElement } from "react";
 import { getShareData, shareThumbnail, SharePostNotFound } from "../../../lib/share-data";
 import { parseSharePath, shareUrl } from "../../../lib/share";
@@ -9,6 +10,16 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const escapeHtml = (value: string) => value.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
+
+// Cost on a miss: one bounded attachment read, one local logo read, one PNG
+// render. Reuse the completed image for 60s; changed card data uses a new key.
+const renderShareImage = unstable_cache(async (data: NonNullable<Awaited<ReturnType<typeof getShareData>>>) => {
+    const [thumbnail, logo] = await Promise.all([shareThumbnail(data.posts[0]?.img || ""), shareThumbnail(data.net.theme.logo || "/blockchan.webp")]);
+    const image = new ImageResponse(createElement(ShareCard, { data, thumbnail, logo }), { width: 1200, height: 630 });
+    // Next's Data Cache stores JSON. Only cache a fully rendered PNG, never a
+    // Response stream that can fail after success headers have been sent.
+    return Buffer.from(await image.arrayBuffer()).toString("base64");
+}, ["share-image-v1"], { revalidate: 60 });
 
 export async function GET(request: Request, { params }: { params: Promise<{ segments: string[] }> }) {
     const { segments } = await params;
@@ -32,8 +43,20 @@ export async function GET(request: Request, { params }: { params: Promise<{ segm
     let data;
     let status = 404;
     let unavailable = "Post unavailable in the current gateway read.";
-    try { data = await getShareData(segments); }
+    const imageRequest = url.searchParams.get("image") === "1";
+    try {
+        data = await getShareData(segments);
+        if (data && imageRequest) {
+            const png = Buffer.from(await renderShareImage(data), "base64");
+            return new Response(png, { headers: {
+                "Content-Type": "image/png",
+                "Content-Length": String(png.length),
+                "Cache-Control": "public, max-age=60, s-maxage=60",
+            } });
+        }
+    }
     catch (error) {
+        data = null;
         if (!(error instanceof SharePostNotFound)) {
             status = 503;
             unavailable = "Preview temporarily unavailable. Please try again.";
@@ -41,17 +64,9 @@ export async function GET(request: Request, { params }: { params: Promise<{ segm
     }
     if (!data) {
         // Missing metadata must not prevent a person from opening the app.
-        const imageRequest = url.searchParams.get("image") === "1";
         return new Response(imageRequest ? unavailable : `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>${unavailable}</title></head><body>${navigation}</body></html>`, {
             status,
             headers: { "Content-Type": imageRequest ? "text/plain; charset=utf-8" : "text/html; charset=utf-8", "Cache-Control": "no-store", ...(status === 503 ? { "Retry-After": "30" } : {}) },
-        });
-    }
-    if (url.searchParams.get("image") === "1") {
-        const [thumbnail, logo] = await Promise.all([shareThumbnail(data.posts[0]?.img || ""), shareThumbnail(data.net.theme.logo || "/blockchan.webp")]);
-        return new ImageResponse(createElement(ShareCard, { data, thumbnail, logo }), {
-            width: 1200, height: 630,
-            headers: { "Cache-Control": "public, max-age=60, s-maxage=60" },
         });
     }
     const title = data.kind === "Home" ? data.title : `${data.title} | ${data.net.theme.siteName}`;

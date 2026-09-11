@@ -9,6 +9,39 @@ const { shareThumbnail } = await import("../../src/lib/share-data");
 const tx = `0x${"b".repeat(64)}`;
 const route = ["robinhood", "iq", "iq-thread", tx];
 
+test("image responses contain a completed PNG with its exact byte length", async () => {
+    for (const network of ["solana", "robinhood"]) {
+        const res = await GET(new Request(`https://example.com/share/${network}?image=1`), { params: Promise.resolve({ segments: [network] }) });
+        const bytes = Buffer.from(await res.arrayBuffer());
+        expect(res.status).toBe(200);
+        expect(res.headers.get("content-type")).toBe("image/png");
+        expect(res.headers.get("content-length")).toBe(String(bytes.length));
+        expect(bytes.subarray(0, 8).toString("hex")).toBe("89504e470d0a1a0a");
+        expect(bytes.readUInt32BE(16)).toBe(1200);
+        expect(bytes.readUInt32BE(20)).toBe(630);
+    }
+});
+
+test("PNG stream failures return a non-cacheable error and allow a retry", async () => {
+    const { ImageResponse } = await import("next/og");
+    const original = ImageResponse.prototype.arrayBuffer;
+    ImageResponse.prototype.arrayBuffer = async function () {
+        await this.body?.cancel();
+        throw new Error("PNG render failed");
+    };
+    try {
+        const res = await GET(new Request("https://hoodchan.xyz/share/robinhood?image=1"), { params: Promise.resolve({ segments: ["robinhood"] }) });
+        expect(res.status).toBe(503);
+        expect(res.headers.get("cache-control")).toBe("no-store");
+        expect(res.headers.get("retry-after")).toBe("30");
+        expect(res.headers.get("content-type")).toStartWith("text/plain");
+        expect(await res.text()).not.toContain("<script>");
+    } finally { ImageResponse.prototype.arrayBuffer = original; }
+    const retry = await GET(new Request("https://hoodchan.xyz/share/robinhood?image=1"), { params: Promise.resolve({ segments: ["robinhood"] }) });
+    expect(retry.status).toBe(200);
+    expect((await retry.arrayBuffer()).byteLength).toBeGreaterThan(0);
+});
+
 test("reply metadata uses the selected reply, escapes content, and preserves its anchor", async () => {
     const original = globalThis.fetch;
     globalThis.fetch = (async () => Response.json({ op: { com: "OP text", name: "OP", time: 1, __txHash: `0x${"a".repeat(64)}` }, replies: [{ com: '<script>alert("x")</script> > gm', name: "Anonymous", time: 2, __txHash: tx }], totalReplies: 1 })) as unknown as typeof fetch;
