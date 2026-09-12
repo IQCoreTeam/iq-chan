@@ -103,7 +103,7 @@ export default function Post({
             ? <a href={replyLink} title="Reply to this post">{display}</a>
             : <a href={`${net.explorerTxUrl}${txSig}`} target="_blank" rel="noopener noreferrer" title={`View on ${net.explorerName}`}>{display}</a>;
 
-    const postUrl = () => shareUrl(window.location.origin, net.id, [boardId!, threadPda!, txSig]);
+    const postUrl = menuOpen && boardId && threadPda ? shareUrl(window.location.origin, net.id, [boardId, threadPda, txSig]) : "";
 
     const menuDropdown = menuOpen ? (
         <div className="dd-menu" style={{ position: "absolute", top: "100%", left: 0, background: "var(--panel)", border: "1px solid var(--edge)", zIndex: 9999, boxShadow: "1px 1px 2px rgba(0,0,0,0.15)", whiteSpace: "nowrap" }}>
@@ -139,13 +139,13 @@ export default function Post({
                         Copy wallet address
                     </li>
                 )}
-                {boardId && threadPda && (
+                {postUrl && (
                     <>
                         <li style={{ padding: "3px 10px" }}>
-                            <ShareLink board={boardId} thread={threadPda} post={txSig} />
+                            <ShareLink url={postUrl} />
                         </li>
                         <li style={{ padding: "3px 10px", cursor: "pointer" }} onClick={() => {
-                            const tweet = `https://twitter.com/intent/tweet?text=${encodeURIComponent(sub || `Check out this post on ${net.theme.siteName}`)}&url=${encodeURIComponent(postUrl())}`;
+                            const tweet = `https://twitter.com/intent/tweet?text=${encodeURIComponent(sub || `Check out this post on ${net.theme.siteName}`)}&url=${encodeURIComponent(postUrl)}`;
                             window.open(tweet, "_blank", "noopener,noreferrer");
                             setMenuOpen(false);
                         }}>

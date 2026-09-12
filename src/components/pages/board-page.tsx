@@ -1,7 +1,5 @@
 "use client";
 
-import ShareLink from "../share-link";
-
 import { useState, useMemo, useCallback } from "react";
 import HashLink from "../hash-link";
 import { useThreads } from "../../hooks/use-threads";
@@ -96,7 +94,6 @@ export default function BoardPage({ boardId }: { boardId: string }) {
                     </div>
                 )}
                 <div className="boardTitle">{boardTitle}</div>
-                <ShareLink board={boardId} />
             </div>
 
             {gate.gateMint && <GateNotice gate={gate} />}

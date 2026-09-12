@@ -1,7 +1,5 @@
 "use client";
 
-import ShareLink from "../share-link";
-
 import { useState, useCallback, useEffect, useRef } from "react";
 import HashLink from "../hash-link";
 import { usePaginatedReplies } from "../../hooks/use-paginated-replies";
@@ -131,7 +129,6 @@ export default function ThreadPage({ boardId, threadId: threadPda, scrollTo }: {
                     </div>
                 )}
                 <div className="boardTitle">{boardTitle}</div>
-                <ShareLink board={boardId} thread={threadPda} />
             </div>
 
             {gate.gateMint && <GateNotice gate={gate} />}

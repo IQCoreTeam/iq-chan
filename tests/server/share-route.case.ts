@@ -5,9 +5,47 @@ import { runInNewContext } from "node:vm";
 // adapter and transport against gateway responses without a Next process.
 mock.module("next/cache", () => ({ unstable_cache: (fn: unknown) => fn }));
 const { GET } = await import("../../src/app/share/[...segments]/route.server");
+const { GET: GET_IMAGE } = await import("../../src/app/share-image/[...segments]/route.server");
 const { shareThumbnail } = await import("../../src/lib/share-data");
 const tx = `0x${"b".repeat(64)}`;
 const route = ["robinhood", "iq", "iq-thread", tx];
+
+test("image responses contain a completed PNG with its exact byte length", async () => {
+    for (const network of ["solana", "robinhood"]) {
+        const res = await GET(new Request(`https://example.com/share/${network}?image=1`), { params: Promise.resolve({ segments: [network] }) });
+        const bytes = Buffer.from(await res.arrayBuffer());
+        expect(res.status).toBe(200);
+        expect(res.headers.get("content-type")).toBe("image/png");
+        expect(res.headers.get("content-length")).toBe(String(bytes.length));
+        expect(bytes.subarray(0, 8).toString("hex")).toBe("89504e470d0a1a0a");
+        expect(bytes.readUInt32BE(16)).toBe(1200);
+        expect(bytes.readUInt32BE(20)).toBe(630);
+        const dedicated = await GET_IMAGE(new Request(`https://example.com/share-image/${network}`), { params: Promise.resolve({ segments: [network] }) });
+        expect(dedicated.status).toBe(200);
+        expect(dedicated.headers.get("content-type")).toBe("image/png");
+        expect(Buffer.from(await dedicated.arrayBuffer())).toEqual(bytes);
+    }
+});
+
+test("PNG stream failures return a non-cacheable error and allow a retry", async () => {
+    const { ImageResponse } = await import("next/og");
+    const original = ImageResponse.prototype.arrayBuffer;
+    ImageResponse.prototype.arrayBuffer = async function () {
+        await this.body?.cancel();
+        throw new Error("PNG render failed");
+    };
+    try {
+        const res = await GET(new Request("https://hoodchan.xyz/share/robinhood?image=1"), { params: Promise.resolve({ segments: ["robinhood"] }) });
+        expect(res.status).toBe(503);
+        expect(res.headers.get("cache-control")).toBe("no-store");
+        expect(res.headers.get("retry-after")).toBe("30");
+        expect(res.headers.get("content-type")).toStartWith("text/plain");
+        expect(await res.text()).not.toContain("<script>");
+    } finally { ImageResponse.prototype.arrayBuffer = original; }
+    const retry = await GET(new Request("https://hoodchan.xyz/share/robinhood?image=1"), { params: Promise.resolve({ segments: ["robinhood"] }) });
+    expect(retry.status).toBe(200);
+    expect((await retry.arrayBuffer()).byteLength).toBeGreaterThan(0);
+});
 
 test("reply metadata uses the selected reply, escapes content, and preserves its anchor", async () => {
     const original = globalThis.fetch;
@@ -21,7 +59,7 @@ test("reply metadata uses the selected reply, escapes content, and preserves its
         expect(html).not.toContain("OP text");
         expect(html).toContain(`/#/iq/iq-thread:p${tx}`);
         expect(html).toContain('content="summary_large_image"');
-        expect(html).toContain(`https://hoodchan.xyz/share/${route.join("/")}?image=1`);
+        expect(html).toContain(`https://hoodchan.xyz/share-image/${route.join("/")}`);
         expect(res.headers.get("location")).toBeNull();
         expect(html).not.toMatch(/<h1|<img|<style|http-equiv="refresh"/i);
         let opened = "";
@@ -43,6 +81,10 @@ test("missing replies and gateway outages do not produce misleading cached cards
         expect(missing.status).toBe(404);
         expect(missing.headers.get("cache-control")).toBe("no-store");
         expect(await missing.text()).toContain(`location.replace("https://hoodchan.xyz/#/iq/iq-thread:p${tx}")`);
+        const missingImage = await GET_IMAGE(new Request(`https://hoodchan.xyz/share-image/${route.join("/")}`), { params: Promise.resolve({ segments: route }) });
+        expect(missingImage.status).toBe(404);
+        expect(missingImage.headers.get("cache-control")).toBe("no-store");
+        expect(missingImage.headers.get("content-type")).toStartWith("text/plain");
         globalThis.fetch = (async () => { throw new Error("offline"); }) as unknown as typeof fetch;
         const failed = await GET(new Request("https://hoodchan.xyz/share"), { params: Promise.resolve({ segments: route }) });
         expect(failed.status).toBe(503);
@@ -53,6 +95,10 @@ test("missing replies and gateway outages do not produce misleading cached cards
         const failedImage = await GET(new Request("https://hoodchan.xyz/share?image=1"), { params: Promise.resolve({ segments: route }) });
         expect(failedImage.status).toBe(503);
         expect(await failedImage.text()).not.toContain("<script>");
+        const failedDedicatedImage = await GET_IMAGE(new Request(`https://hoodchan.xyz/share-image/${route.join("/")}`), { params: Promise.resolve({ segments: route }) });
+        expect(failedDedicatedImage.status).toBe(503);
+        expect(failedDedicatedImage.headers.get("retry-after")).toBe("30");
+        expect(failedDedicatedImage.headers.get("cache-control")).toBe("no-store");
     } finally { globalThis.fetch = original; }
 });
 
@@ -64,7 +110,7 @@ test("browsers and social crawlers receive the same server-rendered metadata", a
             const html = await res.text();
             expect(res.status).toBe(200);
             expect(res.headers.get("location")).toBeNull();
-            expect(html).toContain(`property="og:image" content="https://${host}/share/${network}?image=1"`);
+            expect(html).toContain(`property="og:image" content="https://${host}/share-image/${network}"`);
             expect(html).toContain('name="twitter:card" content="summary_large_image"');
             expect(html).toContain(`location.replace("https://${host}/#/")`);
             if (expected) expect(html).toBe(expected);
@@ -98,7 +144,7 @@ test("share metadata and image links use the incoming host behind a container pr
         const res = await GET(new Request(`http://localhost:3007/share/${network}`, { headers: { Host: host } }), { params: Promise.resolve({ segments: [network] }) });
         const html = await res.text();
         expect(res.status).toBe(200);
-        expect(html).toContain(`content="${expectedOrigin}/share/${network}?image=1"`);
+        expect(html).toContain(`content="${expectedOrigin}/share-image/${network}"`);
         expect(html).not.toContain("localhost:3007");
     }
 });
