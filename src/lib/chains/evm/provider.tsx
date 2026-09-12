@@ -15,7 +15,7 @@ function EvmWiring({ children }: { children: React.ReactNode }) {
     const chainWallet: ChainWallet = {
         address: w.address,
         connecting: w.connecting,
-        connect: () => { void w.connect(); },
+        connect: w.connect,
         disconnect: w.disconnect,
         family: "evm",
     };
