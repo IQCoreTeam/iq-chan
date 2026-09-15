@@ -55,6 +55,13 @@ export async function getTokenInfo(provider: Provider, ca: string): Promise<Toke
     return { address: getAddress(ca), symbol, decimals: Number(decimals) };
 }
 
+export async function getTokenBalance(provider: Provider, ca: string, owner: string): Promise<{ raw: bigint; text: string; info: TokenInfo }> {
+    const info = await getTokenInfo(provider, ca);
+    const token = new Contract(info.address, ERC20_ABI, provider);
+    const raw: bigint = await token.balanceOf(getAddress(owner));
+    return { raw, text: formatUnits(raw, info.decimals), info };
+}
+
 /** First fee tier that has a WETH pool for this token, or null if none exists. */
 export async function findFeeTier(provider: Provider, ca: string): Promise<number | null> {
     const factory = new Contract(ROBINHOOD_DEX.factory, FACTORY_ABI, provider);
@@ -97,7 +104,7 @@ export async function quoteSell(provider: Provider, ca: string, tokenIn: string,
     return { fee: tier, amountOut: out, amountOutText: formatEther(out), token: info };
 }
 
-const minusSlippage = (amount: bigint, bps: number) => (amount * BigInt(10000 - bps)) / 10000n;
+const minusSlippage = (amount: bigint, bps: number) => (amount * BigInt(10000 - bps)) / BigInt(10000);
 
 /** Buy: swap `ethIn` ETH for the token, tokens sent to the signer. Returns the tx hash. */
 export async function buyToken(signer: Signer, ca: string, ethIn: string, slippageBps = DEFAULT_SLIPPAGE_BPS): Promise<string> {

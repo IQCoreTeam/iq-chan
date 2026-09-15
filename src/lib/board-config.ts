@@ -31,9 +31,18 @@ export const BOARD_METADATA: Record<string, { seed: string; title: string; descr
     y2k:   { seed: "y2k",   title: "Community For Y2kDotCom",  description: "Community For Y2kDotCom",  image: "/boards/y2k.webp" },
     retardio: { seed: "retardio", title: "Only for Retardio", description: "Only for Retardio", image: "/boards/retardio.webp" },
     dominance: { seed: "dominance", title: "Market Dominance", description: "Market Dominance", image: "/boards/dominance.webp" },
+    tranches: { seed: "tranches", title: "Tranches", description: "Drop a CA, get a live chart and one-tap buy/sell", image: "" },
 };
 
 export const OFFICIAL_BOARDS: string[] = ["iq", "po", "biz", "a", "g"];
+
+// Optional UI grouping for the board list. Boards not listed fall under "General".
+export const BOARD_CATEGORIES: { category: string; boards: string[] }[] = [
+    { category: "Investment", boards: ["tranches"] },
+];
+export const CATEGORY_OF: Record<string, string> = Object.fromEntries(
+    BOARD_CATEGORIES.flatMap((c) => c.boards.map((b) => [b, c.category])),
+);
 
 export function getRandomBanner(): string {
     const themed = BANNERS_BY_DIR[resolveNetwork().theme.bannerDir ?? ""];

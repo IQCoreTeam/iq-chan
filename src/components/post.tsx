@@ -7,6 +7,10 @@ import { formatDate, timeAgo } from "../lib/time";
 import { resolveNetwork } from "../lib/chains/resolve";
 import { shareUrl } from "../lib/share";
 import ShareLink from "./share-link";
+import TokenCard from "./token-card";
+
+// A bare EVM contract address in a Tranches post becomes a trading card.
+const CA_RE = /0x[a-fA-F0-9]{40}/;
 
 export default function Post({
     txSig,
@@ -43,6 +47,7 @@ export default function Post({
 }) {
     const display = txSig.slice(0, 8);
     const net = resolveNetwork();
+    const tokenCa = net.family === "evm" && boardId === "tranches" ? (com.match(CA_RE)?.[0] ?? null) : null;
     const [expanded, setExpanded] = useState(false);
     const [menuOpen, setMenuOpen] = useState(false);
     const menuRefMobile = useRef<HTMLSpanElement>(null);
@@ -272,6 +277,7 @@ export default function Post({
                         <blockquote className="postMessage" id={`m${txSig}`}>
                             {formatPostMessage(com)}
                         </blockquote>
+                        {tokenCa && <TokenCard ca={tokenCa} />}
                         {backlinksBlock}
                     </>
                 )}
