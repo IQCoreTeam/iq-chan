@@ -2,7 +2,6 @@
 
 import { lazy, Suspense } from "react";
 import { useHashRoute } from "../hooks/use-hash-router";
-import { BoardsProvider } from "../hooks/use-boards";
 import ErrorBoundary from "../components/error-boundary";
 import HomePage from "../components/pages/home-page";
 import BoardPage from "../components/pages/board-page";
@@ -28,9 +27,7 @@ function AppRouter() {
 export default function App() {
     return (
         <ErrorBoundary>
-            <BoardsProvider>
-                <AppRouter />
-            </BoardsProvider>
+            <AppRouter />
         </ErrorBoundary>
     );
 }

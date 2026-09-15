@@ -3,6 +3,7 @@
 import { createContext, useContext } from "react";
 import { OFFICIAL_BOARDS, BOARD_METADATA } from "../lib/constants";
 import type { BoardMeta } from "../lib/types";
+import { resolveNetworkId } from "../lib/chains/resolve";
 
 const officialBoards: BoardMeta[] = OFFICIAL_BOARDS
     .filter((id) => id in BOARD_METADATA)
@@ -23,8 +24,11 @@ const BoardsContext = createContext<{
 }>({ boards: officialBoards, resolveMeta });
 
 export function BoardsProvider({ children }: { children: React.ReactNode }) {
+    const boards = resolveNetworkId() === "robinhood"
+        ? officialBoards.flatMap((board) => board.id === "iq" ? [board, resolveMeta("tranches")!] : [board])
+        : officialBoards;
     return (
-        <BoardsContext.Provider value={{ boards: officialBoards, resolveMeta }}>
+        <BoardsContext.Provider value={{ boards, resolveMeta }}>
             {children}
         </BoardsContext.Provider>
     );
