@@ -16,6 +16,7 @@ const csp = [
     // user-swappable at runtime (localStorage blockchan_gateway).
     "img-src * data: blob:",
     "connect-src *",
+    "frame-src 'self' https://dexscreener.com",
     "font-src 'self' data:",
     "base-uri 'self'",
     "form-action 'self'",

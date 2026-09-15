@@ -65,3 +65,27 @@ for (const kind of ["standard", "quick"] as const) {
         assert.equal(closes, kind === "quick" ? 1 : 0);
     });
 }
+
+test("quick reply opens disconnected and connects without submitting", async () => {
+    const dom = new JSDOM('<div id="root"></div>', { url: "https://hoodchan.xyz/" });
+    Object.assign(globalThis, { window: dom.window, document: dom.window.document, IS_REACT_ACT_ENVIRONMENT: true });
+    const { createRoot } = await import("react-dom/client");
+    const root = createRoot(document.getElementById("root")!);
+    let connections = 0, submissions = 0;
+    try {
+        await act(async () => root.render(
+            <ChainWalletContext.Provider value={{ address: null, connecting: false, family: "evm", connect() { connections++; }, disconnect() {} }}>
+                <QuickReply threadSig="op" initialQuote="op" loading={false} onClose={() => {}} onSubmit={async () => { submissions++; }} />
+            </ChainWalletContext.Provider>
+        ));
+        assert.ok(document.querySelector("#quickReply"));
+        assert.equal(document.querySelector<HTMLInputElement>('input[type="submit"]')!.value, "Connect wallet");
+        await act(async () => document.querySelector<HTMLFormElement>("form")!.dispatchEvent(new dom.window.Event("submit", { bubbles: true, cancelable: true })));
+        assert.equal(connections, 1);
+        assert.equal(submissions, 0);
+        assert.equal(document.querySelector<HTMLTextAreaElement>("textarea")!.value, ">>op\n");
+    } finally {
+        await act(async () => root.unmount());
+        dom.window.close();
+    }
+});
