@@ -213,8 +213,8 @@ export default function SolanaTrade({ mint, symbol }: { mint: string; symbol: st
                         Receive ≈ {formatUnits(quote.order.outAmount, quote.buy ? quote.decimals : 9)}{" "}
                         {quote.buy ? symbol : "SOL"}
                     </div>
-                    <div>Includes {quote.order.feeBps / 100}% swap fee</div>
-                    <details>
+                    {quote.order.feeBps > 0 && <div>Includes {quote.order.feeBps / 100}% swap fee</div>}
+                    <details style={{ margin: "8px 0" }}>
                         <summary>Details</summary>
                         <div>
                             Minimum: {formatUnits(quote.order.otherAmountThreshold, quote.buy ? quote.decimals : 9)}{" "}
