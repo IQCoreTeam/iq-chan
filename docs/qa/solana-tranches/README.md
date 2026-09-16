@@ -50,3 +50,5 @@ These show the earlier presets and expanded details before the compact-quote upd
 - [Jupiter Order and Execute](https://developers.jup.ag/docs/swap/order-and-execute)
 - [Jupiter rate limits](https://developers.jup.ag/docs/portal/rate-limits)
 - [DexScreener API](https://docs.dexscreener.com/api/reference)
+
+Quote refresh update: an open quote refreshes after 30 seconds while the tab is visible, or on return to the tab. Cancellation, wallet changes and unmount clear the refresh timer. A stale confirmation requests a new quote without signing; wallet approval still requires a separate click. Focused regression coverage verifies timed refresh makes no signing or execution calls.

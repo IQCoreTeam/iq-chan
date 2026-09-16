@@ -1,4 +1,4 @@
-import { test, expect } from "bun:test";
+import { test, expect, spyOn } from "bun:test";
 import React, { act } from "react";
 import { JSDOM } from "jsdom";
 import { Connection, Keypair, TransactionMessage, VersionedTransaction } from "@solana/web3.js";
@@ -51,8 +51,16 @@ test("native trades expire before signing, discard stale wallet quotes and never
     } as unknown as WalletContextState;
     const originalFetch = globalThis.fetch,
         originalNow = Date.now;
+    let quoteRequests = 0;
+    let refreshQuote: (() => void) | undefined;
+    const originalTimeout = globalThis.setTimeout;
+    const timeoutSpy = spyOn(globalThis, "setTimeout").mockImplementation(((callback: () => void, delay?: number, ...args: unknown[]) => {
+        if (delay !== undefined && delay > 29000 && delay <= 30000) refreshQuote = callback;
+        return originalTimeout(callback, delay, ...args);
+    }) as typeof setTimeout);
     globalThis.fetch = (async (url: unknown) => {
         if (String(url).includes("/execute")) executes++;
+        else quoteRequests++;
         return Response.json(order);
     }) as unknown as typeof fetch;
     const render = (w: WalletContextState) => (
@@ -77,9 +85,17 @@ test("native trades expire before signing, discard stale wallet quotes and never
         expect(document.body.textContent).toContain("Minimum: 0.99");
         const now = originalNow();
         Date.now = () => now + 31000;
-        await click("Confirm in wallet");
+        expect(refreshQuote).toBeDefined();
+        await act(async () => refreshQuote!());
+        expect(quoteRequests).toBe(2);
         expect(signs).toBe(0);
-        expect(document.body.textContent).toContain("expired");
+        expect(executes).toBe(0);
+        Date.now = () => now + 62000;
+        await click("Confirm in wallet");
+        expect(quoteRequests).toBe(3);
+        expect(signs).toBe(0);
+        expect(document.body.textContent).toContain("Confirm in wallet");
+        expect(document.body.textContent).not.toContain("expired");
         Date.now = originalNow;
         await click("Buy 0.1 SOL");
         await click("Confirm in wallet");
@@ -126,6 +142,7 @@ test("native trades expire before signing, discard stale wallet quotes and never
         expect(signs).toBe(1);
         expect(executes).toBe(0);
     } finally {
+        timeoutSpy.mockRestore();
         Date.now = originalNow;
         globalThis.fetch = originalFetch;
         await act(async () => root.unmount());

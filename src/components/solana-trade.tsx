@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { PublicKey, VersionedTransaction } from "@solana/web3.js";
 import { formatUnits, parseUnits } from "ethers";
@@ -63,19 +63,7 @@ export default function SolanaTrade({ mint, symbol }: { mint: string; symbol: st
         };
     }, [address, mint, connection, balanceRefresh]);
 
-    useEffect(() => {
-        if (!quote) return;
-        const timer = setTimeout(
-            () => {
-                setQuote(null);
-                setStatus("Quote expired. Request a new quote.");
-            },
-            Math.max(0, quote.expires - Date.now()),
-        );
-        return () => clearTimeout(timer);
-    }, [quote]);
-
-    async function getQuote(buy: boolean, amount: string) {
+    const getQuote = useCallback(async (buy: boolean, amount: string) => {
         if (!address || busy) return;
         const id = ++operation.current;
         setBusy(true);
@@ -97,13 +85,31 @@ export default function SolanaTrade({ mint, symbol }: { mint: string; symbol: st
         } finally {
             if (id === operation.current) setBusy(false);
         }
-    }
+    }, [address, busy, connection, mint, balance]);
+
+    useEffect(() => {
+        if (!quote || busy) return;
+        const refresh = () => {
+            if (document.visibilityState !== "hidden" && Date.now() >= quote.expires)
+                void getQuote(quote.buy, quote.order.inAmount);
+        };
+        const timer = setTimeout(refresh, Math.max(0, quote.expires - Date.now()));
+        document.addEventListener("visibilitychange", refresh);
+        return () => {
+            clearTimeout(timer);
+            document.removeEventListener("visibilitychange", refresh);
+        };
+    }, [quote, busy, getQuote]);
 
     async function confirm() {
         if (!quote || busy || !wallet.signTransaction) return;
-        if (quote.address !== currentAddress.current || Date.now() >= quote.expires) {
+        if (quote.address !== currentAddress.current) {
             setQuote(null);
-            setStatus("Quote expired or wallet changed. Request a new quote.");
+            setStatus("Wallet changed. Request a new quote.");
+            return;
+        }
+        if (Date.now() >= quote.expires) {
+            await getQuote(quote.buy, quote.order.inAmount);
             return;
         }
         const id = ++operation.current;
