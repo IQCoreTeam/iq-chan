@@ -43,11 +43,9 @@ Gateway URLs are set in `src/lib/config.ts` and can be overridden at runtime in 
 localStorage.setItem("blockchan_gateway", "http://localhost:3000");
 ```
 
-Default gateways:
-- `https://gateway.solanainternet.com` (primary)
-- `https://gateway.iqlabs.dev` (backup)
+The default primary gateway is `https://gateway.iqlabs.dev`. Override it at build time with `NEXT_PUBLIC_GATEWAY_URL`.
 
-The frontend automatically falls back through the list if one is down.
+The fallback list is defined by `GATEWAY_FALLBACKS` in `src/lib/config.ts` and can be overridden with the `blockchan_fallbacks` localStorage key (a JSON array of URLs). The frontend tries the configured fallback list when a gateway is unavailable.
 
 ## Deployment
 
