@@ -5,7 +5,7 @@ import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { PublicKey, VersionedTransaction } from "@solana/web3.js";
 import { formatUnits, parseUnits } from "ethers";
 import { useWalletModal } from "../lib/wallet-modal";
-import { executeJupiterOrder, getJupiterOrder, SOL_MINT, type JupiterOrder } from "../lib/chains/solana/swap";
+import { executeJupiterOrder, checkSwapStatus, SwapExecutionError, getJupiterOrder, SOL_MINT, type JupiterOrder } from "../lib/chains/solana/swap";
 
 export default function SolanaTrade({ mint, symbol }: { mint: string; symbol: string }) {
     const { connection } = useConnection();
@@ -23,6 +23,7 @@ export default function SolanaTrade({ mint, symbol }: { mint: string; symbol: st
         buy: boolean;
         decimals: number;
     } | null>(null);
+    const [pendingSignature, setPendingSignature] = useState<string | null>(null);
     const [busy, setBusy] = useState(false);
     const [status, setStatus] = useState("");
     const [signature, setSignature] = useState("");
@@ -35,6 +36,7 @@ export default function SolanaTrade({ mint, symbol }: { mint: string; symbol: st
         setBusy(false);
         setStatus("");
         setSignature("");
+        setPendingSignature(null);
         return () => {
             operation.current++;
         };
@@ -64,7 +66,8 @@ export default function SolanaTrade({ mint, symbol }: { mint: string; symbol: st
     }, [address, mint, connection, balanceRefresh]);
 
     const getQuote = useCallback(async (buy: boolean, amount: string) => {
-        if (!address || busy) return;
+        if (!address || busy || pendingSignature !== null) return;
+        setSignature("");
         const id = ++operation.current;
         setBusy(true);
         setStatus("");
@@ -87,7 +90,7 @@ export default function SolanaTrade({ mint, symbol }: { mint: string; symbol: st
         } finally {
             if (id === operation.current) setBusy(false);
         }
-    }, [address, busy, connection, mint, balance]);
+    }, [address, busy, connection, mint, balance, pendingSignature]);
 
     useEffect(() => {
         if (!quote || busy) return;
@@ -118,7 +121,7 @@ export default function SolanaTrade({ mint, symbol }: { mint: string; symbol: st
         setBusy(true);
         setStatus("");
         setQuote(null);
-        let submitted = false;
+
         try {
             const signed = await wallet.signTransaction(
                 VersionedTransaction.deserialize(Buffer.from(quote.order.transaction, "base64")),
@@ -126,7 +129,6 @@ export default function SolanaTrade({ mint, symbol }: { mint: string; symbol: st
             if (id !== operation.current || currentAddress.current !== quote.address) return;
             if (Date.now() >= quote.expires)
                 throw new Error("Quote expired while awaiting approval. Request a new quote.");
-            submitted = true;
             const sig = await executeJupiterOrder(quote.order, signed);
             if (id === operation.current) {
                 setSignature(sig);
@@ -134,16 +136,32 @@ export default function SolanaTrade({ mint, symbol }: { mint: string; symbol: st
                 setBalanceRefresh((n) => n + 1);
             }
         } catch (e) {
-            if (id === operation.current)
-                setStatus(
-                    submitted
-                        ? "Swap status is uncertain. Check your wallet before retrying."
-                        : e instanceof Error
-                          ? e.message
-                          : "Swap cancelled",
-                );
+            if (id === operation.current) {
+                setStatus(e instanceof Error ? e.message : "Swap cancelled");
+                if (e instanceof SwapExecutionError && e.uncertain) {
+                    setSignature(e.signature || "");
+                    setPendingSignature(e.signature || "");
+                    if (e.signature) await resolvePending(e.signature, id);
+                }
+            }
         } finally {
             if (id === operation.current) setBusy(false);
+        }
+    }
+
+    async function resolvePending(sig: string, id = operation.current) {
+        try {
+            const result = await checkSwapStatus(connection, sig);
+            if (id !== operation.current) return;
+            if (result === "unknown") {
+                setStatus("Still awaiting confirmation. Check status before trading again.");
+                return;
+            }
+            setPendingSignature(null);
+            setStatus(result === "confirmed" ? "Swap confirmed." : "Swap failed on-chain. Request a new quote.");
+            setBalanceRefresh((n) => n + 1);
+        } catch {
+            if (id === operation.current) setStatus("Status check unavailable. Try checking again shortly.");
         }
     }
 
@@ -173,7 +191,7 @@ export default function SolanaTrade({ mint, symbol }: { mint: string; symbol: st
                             <button
                                 key={amount}
                                 style={button}
-                                disabled={busy}
+                                disabled={busy || pendingSignature !== null}
                                 onClick={() => getQuote(true, parseUnits(amount, 9).toString())}
                             >
                                 Buy {amount} SOL
@@ -186,7 +204,7 @@ export default function SolanaTrade({ mint, symbol }: { mint: string; symbol: st
                                 key={percent}
                                 style={button}
                                 disabled={
-                                    busy || !balance || (balance.raw * BigInt(percent)) / BigInt(100) <= BigInt(0)
+                                    busy || pendingSignature !== null || !balance || (balance.raw * BigInt(percent)) / BigInt(100) <= BigInt(0)
                                 }
                                 onClick={() =>
                                     getQuote(false, ((balance!.raw * BigInt(percent)) / BigInt(100)).toString())
@@ -211,6 +229,14 @@ export default function SolanaTrade({ mint, symbol }: { mint: string; symbol: st
                 </>
             )}
             {busy && <div role="status">{quote ? "Updating quote…" : "Waiting for Jupiter or wallet…"}</div>}
+            {pendingSignature !== null && pendingSignature && (
+                <button disabled={busy} onClick={async () => {
+                    const id = operation.current;
+                    setBusy(true);
+                    await resolvePending(pendingSignature, id);
+                    if (id === operation.current) setBusy(false);
+                }}>Check status</button>
+            )}
             {quote && (
                 <div>
                     <div>
@@ -258,7 +284,7 @@ export default function SolanaTrade({ mint, symbol }: { mint: string; symbol: st
             {status && <div role="status">{status}</div>}
             {signature && (
                 <a href={`https://solscan.io/tx/${signature}`} target="_blank" rel="noreferrer">
-                    View confirmed swap
+                    View transaction
                 </a>
             )}
         </div>

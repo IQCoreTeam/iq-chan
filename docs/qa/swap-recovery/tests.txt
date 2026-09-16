@@ -1,0 +1,83 @@
+bun test v1.3.14 (d1632b29)
+
+tests/solana-tranches.test.tsx:
+47 |         logMissingProviderError('read', 'publicKey');
+48 |         return null;
+49 |     },
+50 | });
+51 | function logMissingProviderError(action, property) {
+52 |     const error = new Error(`You have tried to ${action} "${property}" on a WalletContext without providing one. ` +
+                           ^
+error: You have tried to read "publicKey" on a WalletContext without providing one. Make sure to render a WalletProvider as an ancestor of the component that uses WalletContext.
+      at logMissingProviderError (/Users/nubs/Git/iq-chan-tranches-review-20260915/node_modules/@solana/wallet-adapter-react/lib/esm/useWallet.js:52:23)
+      at get (/Users/nubs/Git/iq-chan-tranches-review-20260915/node_modules/@solana/wallet-adapter-react/lib/esm/useWallet.js:47:9)
+      at SolanaTrade (/Users/nubs/Git/iq-chan-swap-recovery-20260916/src/components/solana-trade.tsx:14:21)
+      at react_stack_bottom_frame (/Users/nubs/Git/iq-chan-tranches-review-20260915/node_modules/react-dom/cjs/react-dom-client.development.js:25904:20)
+      at renderWithHooks (/Users/nubs/Git/iq-chan-tranches-review-20260915/node_modules/react-dom/cjs/react-dom-client.development.js:7662:22)
+      at updateFunctionComponent (/Users/nubs/Git/iq-chan-tranches-review-20260915/node_modules/react-dom/cjs/react-dom-client.development.js:10166:19)
+      at runWithFiberInDEV (/Users/nubs/Git/iq-chan-tranches-review-20260915/node_modules/react-dom/cjs/react-dom-client.development.js:874:13)
+      at performUnitOfWork (/Users/nubs/Git/iq-chan-tranches-review-20260915/node_modules/react-dom/cjs/react-dom-client.development.js:17641:22)
+      at workLoopSync (/Users/nubs/Git/iq-chan-tranches-review-20260915/node_modules/react-dom/cjs/react-dom-client.development.js:17469:41)
+      at renderRootSync (/Users/nubs/Git/iq-chan-tranches-review-20260915/node_modules/react-dom/cjs/react-dom-client.development.js:17450:11)
+
+(pass) Solana chart ignores signatures, requires an indexed mint and chooses the deepest matching pool [67.68ms]
+(pass) Tranches follows IQ on Solana and Robinhood, without appearing on other chains [6.01ms]
+
+tests/posting-forms.test.tsx:
+(pass) standard posting preserves drafts on failure, prevents duplicate submits, and clears only on success [44.43ms]
+(pass) quick posting preserves drafts on failure, prevents duplicate submits, and clears only on success [20.85ms]
+(pass) quick reply opens disconnected and connects without submitting [12.22ms]
+
+tests/solana-trade.test.tsx:
+(pass) native trades expire before signing, discard stale wallet quotes and never execute a rejected signature [42.39ms]
+
+tests/notify-gateway.test.ts:
+Gateway notification failed (503); the post is already confirmed.
+Gateway notification unavailable; the post is already confirmed.
+(pass) notification reports HTTP and network failures without rejecting a confirmed write [0.35ms]
+Gateway notification unavailable; the post is already confirmed.
+(pass) a stalled notification is aborted within the deadline [4002.00ms]
+
+tests/share-links.test.ts:
+(pass) share URLs retain localhost and route static mirrors to the right public chain [0.15ms]
+(pass) share targets validate both chain identities and reject injected paths [0.15ms]
+(pass) preview palettes match the existing app stylesheet [0.41ms]
+
+tests/jupiter-swap.test.ts:
+(pass) Jupiter orders reject mismatched tokens, amounts, wallets and zero minimums [0.71ms]
+(pass) execution requires the reviewed message and a confirmed success response [1.40ms]
+(pass) optional referral charges exactly 125 bps and rejects silent fee fallback [0.62ms]
+(pass) timeouts preserve the signed receipt; status checks never execute again [1.54ms]
+(pass) Jupiter rejection is distinct from ambiguous errors and malformed responses [0.59ms]
+
+tests/post-links.test.tsx:
+(pass) post copy reports success only after writing a URL and exposes the URL on failure [17.91ms]
+(pass) post copy handles both networks without navigating and resets when the target changes [4.72ms]
+(pass) IQ Profile is Solana-only and Reply uses the existing quote handler [14.37ms]
+
+tests/evm-wallet.test.tsx:
+(pass) first load never calls the default wallet router or asks any wallet to connect [8.58ms]
+(pass) selected MetaMask survives reload without calling Phantom or requesting permissions again [8.18ms]
+(pass) late EIP-6963 discovery restores only the saved wallet and ignores duplicate announcements [2.99ms]
+(pass) locked or revoked accounts stay disconnected without permission prompts [3.85ms]
+(pass) Disconnect clears the preference, removes listeners and prevents reload reconnection [8.29ms]
+(pass) a delayed account read cannot reconnect after Disconnect [4.03ms]
+(pass) switching selected wallets removes the previous wallet's account listeners [3.76ms]
+(pass) permission rejection is not persisted, while disabled storage still allows explicit connection [3.29ms]
+(pass) a different chain switches only on explicit connect, including add-then-switch [6.38ms]
+(pass) WalletConnect restores an existing session without another pairing request [4.00ms]
+(pass) an expired WalletConnect session does not open pairing UI on reload [2.77ms]
+(pass) a WalletConnect-only browser uses the picker before starting a connection [6.39ms]
+(pass) disconnect during signer lookup prevents a stale signer from being returned [9.14ms]
+(pass) the explicitly selected legacy wallet restores silently on reload [4.34ms]
+(pass) signer lookup fails without requesting permission if the account is no longer authorized [4.96ms]
+
+tests/post-refresh.test.tsx:
+(pass) confirmed reply survives stale/error reads, reconciles once, and does not leak to another thread [5.27ms]
+(pass) new threads and board quick replies remain visible through stale refreshes [3.08ms]
+(pass) an older board refresh cannot overwrite the current board [2.87ms]
+
+ 37 pass
+ 0 fail
+ 231 expect() calls
+Ran 37 tests across 9 files. [4.95s]

@@ -1,0 +1,16 @@
+bun test v1.3.14 (d1632b29)
+
+tests/solana-trade.test.tsx:
+(pass) native trades expire before signing, discard stale wallet quotes and never execute a rejected signature [79.17ms]
+
+tests/jupiter-swap.test.ts:
+(pass) Jupiter orders reject mismatched tokens, amounts, wallets and zero minimums [0.54ms]
+(pass) execution requires the reviewed message and a confirmed success response [0.96ms]
+(pass) optional referral charges exactly 125 bps and rejects silent fee fallback [0.40ms]
+(pass) timeouts preserve the signed receipt; status checks never execute again [1.09ms]
+(pass) Jupiter rejection is distinct from ambiguous errors and malformed responses [0.43ms]
+
+ 6 pass
+ 0 fail
+ 68 expect() calls
+Ran 6 tests across 2 files. [502.00ms]

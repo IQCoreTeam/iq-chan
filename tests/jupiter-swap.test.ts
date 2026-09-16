@@ -1,6 +1,6 @@
 import { test, expect } from "bun:test";
 import { Keypair, SystemProgram, TransactionMessage, VersionedTransaction } from "@solana/web3.js";
-import { getJupiterOrder, executeJupiterOrder, SOL_MINT } from "../src/lib/chains/solana/swap";
+import { getJupiterOrder, executeJupiterOrder, checkSwapStatus, SwapExecutionError, SOL_MINT } from "../src/lib/chains/solana/swap";
 
 // Local fixtures only. No connection or transaction broadcast occurs.
 const wallet = Keypair.generate();
@@ -63,18 +63,18 @@ test("execution requires the reviewed message and a confirmed success response",
     try {
         globalThis.fetch = (async () => {
             calls++;
-            return Response.json({ status: "Success", signature: "local-signature" });
+            return Response.json({ status: "Success", signature: "4".repeat(88) });
         }) as unknown as typeof fetch;
         const changed = VersionedTransaction.deserialize(tx.serialize());
         changed.message.recentBlockhash = Keypair.generate().publicKey.toBase58();
         await expect(executeJupiterOrder(order, changed)).rejects.toThrow("changed");
         expect(calls).toBe(0);
-        expect(await executeJupiterOrder(order, tx)).toBe("local-signature");
+        expect(await executeJupiterOrder(order, tx)).toBe("4".repeat(88));
         globalThis.fetch = (async () =>
-            Response.json({ status: "Failed", error: "expired" })) as unknown as typeof fetch;
+            Response.json({ status: "Failed", code: -2003, error: "expired" })) as unknown as typeof fetch;
         await expect(executeJupiterOrder(order, tx)).rejects.toThrow("expired");
         globalThis.fetch = (async () => new Response("", { status: 503 })) as unknown as typeof fetch;
-        await expect(executeJupiterOrder(order, tx)).rejects.toThrow("unknown");
+        await expect(executeJupiterOrder(order, tx)).rejects.toThrow("Confirmation unavailable");
     } finally {
         globalThis.fetch = original;
     }
@@ -111,4 +111,49 @@ test("optional referral charges exactly 125 bps and rejects silent fee fallback"
         if (previous === undefined) delete process.env.NEXT_PUBLIC_JUPITER_REFERRAL_ACCOUNT;
         else process.env.NEXT_PUBLIC_JUPITER_REFERRAL_ACCOUNT = previous;
     }
+});
+
+
+test("timeouts preserve the signed receipt; status checks never execute again", async () => {
+    const original = globalThis.fetch;
+    const signed = VersionedTransaction.deserialize(tx.serialize());
+    signed.sign([wallet]);
+    let calls = 0;
+    globalThis.fetch = (async () => { calls++; throw new Error("timeout"); }) as unknown as typeof fetch;
+    try {
+        let failure: SwapExecutionError | undefined;
+        try { await executeJupiterOrder(order, signed); } catch (e) { failure = e as SwapExecutionError; }
+        expect(failure?.uncertain).toBe(true);
+        expect(failure?.signature?.length).toBeGreaterThan(63);
+        for (const [status, expected] of [
+            [null, "unknown"],
+            [{ err: null, confirmationStatus: "processed" }, "unknown"],
+            [{ err: null, confirmationStatus: "finalized" }, "confirmed"],
+            [{ err: { InstructionError: [0, "Custom"] }, confirmationStatus: "confirmed" }, "failed"],
+        ] as const) {
+            const connection = { getSignatureStatuses: async (s: string[], opts: unknown) => {
+                expect(s).toEqual([failure!.signature!]);
+                expect(opts).toEqual({ searchTransactionHistory: true });
+                return { value: [status] };
+            } };
+            expect(await checkSwapStatus(connection as any, failure!.signature!)).toBe(expected);
+        }
+        expect(calls).toBe(1);
+    } finally { globalThis.fetch = original; }
+});
+
+test("Jupiter rejection is distinct from ambiguous errors and malformed responses", async () => {
+    const original = globalThis.fetch;
+    try {
+        for (const [body, uncertain] of [
+            [{ status: "Failed", code: -2003, error: "Quote expired" }, false],
+            [{ status: "Failed", code: -1003, error: "Transaction not fully signed" }, false],
+            [{ status: "Failed", code: -1001, error: "Unknown error" }, true],
+            [null, true],
+        ] as const) {
+            globalThis.fetch = (async () => Response.json(body)) as unknown as typeof fetch;
+            try { await executeJupiterOrder(order, tx); throw Error("Expected rejection"); }
+            catch (e) { expect(e).toBeInstanceOf(SwapExecutionError); expect((e as SwapExecutionError).uncertain).toBe(uncertain); }
+        }
+    } finally { globalThis.fetch = original; }
 });

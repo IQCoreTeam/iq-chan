@@ -1,0 +1,42 @@
+   ▲ Next.js 15.5.25
+
+   Creating an optimized production build ...
+ ⚠ Compiled with warnings in 3.3s
+
+../iq-chan-tranches-review-20260915/node_modules/pino/lib/tools.js
+Module not found: Can't resolve 'pino-pretty' in '/Users/nubs/Git/iq-chan-tranches-review-20260915/node_modules/pino/lib'
+
+Import trace for requested module:
+../iq-chan-tranches-review-20260915/node_modules/pino/lib/tools.js
+../iq-chan-tranches-review-20260915/node_modules/pino/pino.js
+../iq-chan-tranches-review-20260915/node_modules/@walletconnect/logger/dist/index.es.js
+../iq-chan-tranches-review-20260915/node_modules/@walletconnect/universal-provider/dist/index.es.js
+../iq-chan-tranches-review-20260915/node_modules/@walletconnect/ethereum-provider/dist/index.es.js
+./src/lib/chains/evm/wallet.tsx
+./src/lib/chains/evm/provider.tsx
+./src/app/providers.tsx
+
+ ✓ Compiled successfully in 5.6s
+   Linting and checking validity of types ...
+   Collecting page data ...
+   Generating static pages (0/4) ...
+   Generating static pages (1/4) 
+   Generating static pages (2/4) 
+   Generating static pages (3/4) 
+ ✓ Generating static pages (4/4)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                                 Size  First Load JS
+┌ ƒ /                                     123 kB         409 kB
+├ ƒ /_not-found                            129 B         103 kB
+├ ƒ /share-image/[...segments]               0 B            0 B
+└ ƒ /share/[...segments]                     0 B            0 B
++ First Load JS shared by all             103 kB
+  ├ chunks/860ab72b-cf7271545a57924d.js  54.2 kB
+  ├ chunks/959-dc0ef46ea6c26956.js         46 kB
+  └ other shared chunks (total)          2.31 kB
+
+
+ƒ  (Dynamic)  server-rendered on demand
+
