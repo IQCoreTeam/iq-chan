@@ -20,64 +20,64 @@ error: You have tried to read "publicKey" on a WalletContext without providing o
       at workLoopSync (/Users/nubs/Git/iq-chan-tranches-review-20260915/node_modules/react-dom/cjs/react-dom-client.development.js:17469:41)
       at renderRootSync (/Users/nubs/Git/iq-chan-tranches-review-20260915/node_modules/react-dom/cjs/react-dom-client.development.js:17450:11)
 
-(pass) Solana chart ignores signatures, requires an indexed mint and chooses the deepest matching pool [67.68ms]
-(pass) Tranches follows IQ on Solana and Robinhood, without appearing on other chains [6.01ms]
+(pass) Solana chart ignores signatures, requires an indexed mint and chooses the deepest matching pool [56.36ms]
+(pass) Tranches follows IQ on Solana and Robinhood, without appearing on other chains [4.93ms]
 
 tests/posting-forms.test.tsx:
-(pass) standard posting preserves drafts on failure, prevents duplicate submits, and clears only on success [44.43ms]
-(pass) quick posting preserves drafts on failure, prevents duplicate submits, and clears only on success [20.85ms]
-(pass) quick reply opens disconnected and connects without submitting [12.22ms]
+(pass) standard posting preserves drafts on failure, prevents duplicate submits, and clears only on success [25.83ms]
+(pass) quick posting preserves drafts on failure, prevents duplicate submits, and clears only on success [16.15ms]
+(pass) quick reply opens disconnected and connects without submitting [6.00ms]
 
 tests/solana-trade.test.tsx:
-(pass) native trades expire before signing, discard stale wallet quotes and never execute a rejected signature [42.39ms]
+(pass) native trades expire before signing, discard stale wallet quotes and never execute a rejected signature [35.59ms]
 
 tests/notify-gateway.test.ts:
 Gateway notification failed (503); the post is already confirmed.
 Gateway notification unavailable; the post is already confirmed.
-(pass) notification reports HTTP and network failures without rejecting a confirmed write [0.35ms]
+(pass) notification reports HTTP and network failures without rejecting a confirmed write [0.31ms]
 Gateway notification unavailable; the post is already confirmed.
-(pass) a stalled notification is aborted within the deadline [4002.00ms]
+(pass) a stalled notification is aborted within the deadline [4001.39ms]
 
 tests/share-links.test.ts:
-(pass) share URLs retain localhost and route static mirrors to the right public chain [0.15ms]
-(pass) share targets validate both chain identities and reject injected paths [0.15ms]
-(pass) preview palettes match the existing app stylesheet [0.41ms]
+(pass) share URLs retain localhost and route static mirrors to the right public chain [0.17ms]
+(pass) share targets validate both chain identities and reject injected paths [0.17ms]
+(pass) preview palettes match the existing app stylesheet [0.30ms]
 
 tests/jupiter-swap.test.ts:
-(pass) Jupiter orders reject mismatched tokens, amounts, wallets and zero minimums [0.71ms]
-(pass) execution requires the reviewed message and a confirmed success response [1.40ms]
-(pass) optional referral charges exactly 125 bps and rejects silent fee fallback [0.62ms]
-(pass) timeouts preserve the signed receipt; status checks never execute again [1.54ms]
-(pass) Jupiter rejection is distinct from ambiguous errors and malformed responses [0.59ms]
+(pass) Jupiter orders reject mismatched tokens, amounts, wallets and zero minimums [0.76ms]
+(pass) execution requires the reviewed message and a confirmed success response [0.97ms]
+(pass) optional referral charges exactly 125 bps and rejects silent fee fallback [0.57ms]
+(pass) timeouts preserve the signed receipt; status checks never execute again [1.58ms]
+(pass) Jupiter rejection is distinct from ambiguous errors and malformed responses [0.61ms]
 
 tests/post-links.test.tsx:
-(pass) post copy reports success only after writing a URL and exposes the URL on failure [17.91ms]
-(pass) post copy handles both networks without navigating and resets when the target changes [4.72ms]
-(pass) IQ Profile is Solana-only and Reply uses the existing quote handler [14.37ms]
+(pass) post copy reports success only after writing a URL and exposes the URL on failure [15.72ms]
+(pass) post copy handles both networks without navigating and resets when the target changes [5.02ms]
+(pass) IQ Profile is Solana-only and Reply uses the existing quote handler [11.30ms]
 
 tests/evm-wallet.test.tsx:
-(pass) first load never calls the default wallet router or asks any wallet to connect [8.58ms]
-(pass) selected MetaMask survives reload without calling Phantom or requesting permissions again [8.18ms]
-(pass) late EIP-6963 discovery restores only the saved wallet and ignores duplicate announcements [2.99ms]
-(pass) locked or revoked accounts stay disconnected without permission prompts [3.85ms]
-(pass) Disconnect clears the preference, removes listeners and prevents reload reconnection [8.29ms]
-(pass) a delayed account read cannot reconnect after Disconnect [4.03ms]
-(pass) switching selected wallets removes the previous wallet's account listeners [3.76ms]
-(pass) permission rejection is not persisted, while disabled storage still allows explicit connection [3.29ms]
-(pass) a different chain switches only on explicit connect, including add-then-switch [6.38ms]
-(pass) WalletConnect restores an existing session without another pairing request [4.00ms]
-(pass) an expired WalletConnect session does not open pairing UI on reload [2.77ms]
-(pass) a WalletConnect-only browser uses the picker before starting a connection [6.39ms]
-(pass) disconnect during signer lookup prevents a stale signer from being returned [9.14ms]
-(pass) the explicitly selected legacy wallet restores silently on reload [4.34ms]
-(pass) signer lookup fails without requesting permission if the account is no longer authorized [4.96ms]
+(pass) first load never calls the default wallet router or asks any wallet to connect [4.56ms]
+(pass) selected MetaMask survives reload without calling Phantom or requesting permissions again [7.46ms]
+(pass) late EIP-6963 discovery restores only the saved wallet and ignores duplicate announcements [5.44ms]
+(pass) locked or revoked accounts stay disconnected without permission prompts [2.65ms]
+(pass) Disconnect clears the preference, removes listeners and prevents reload reconnection [2.99ms]
+(pass) a delayed account read cannot reconnect after Disconnect [2.76ms]
+(pass) switching selected wallets removes the previous wallet's account listeners [2.92ms]
+(pass) permission rejection is not persisted, while disabled storage still allows explicit connection [5.76ms]
+(pass) a different chain switches only on explicit connect, including add-then-switch [2.77ms]
+(pass) WalletConnect restores an existing session without another pairing request [3.14ms]
+(pass) an expired WalletConnect session does not open pairing UI on reload [2.35ms]
+(pass) a WalletConnect-only browser uses the picker before starting a connection [4.94ms]
+(pass) disconnect during signer lookup prevents a stale signer from being returned [7.08ms]
+(pass) the explicitly selected legacy wallet restores silently on reload [3.53ms]
+(pass) signer lookup fails without requesting permission if the account is no longer authorized [4.06ms]
 
 tests/post-refresh.test.tsx:
-(pass) confirmed reply survives stale/error reads, reconciles once, and does not leak to another thread [5.27ms]
-(pass) new threads and board quick replies remain visible through stale refreshes [3.08ms]
-(pass) an older board refresh cannot overwrite the current board [2.87ms]
+(pass) confirmed reply survives stale/error reads, reconciles once, and does not leak to another thread [5.86ms]
+(pass) new threads and board quick replies remain visible through stale refreshes [2.80ms]
+(pass) an older board refresh cannot overwrite the current board [1.55ms]
 
  37 pass
  0 fail
- 231 expect() calls
-Ran 37 tests across 9 files. [4.95s]
+ 239 expect() calls
+Ran 37 tests across 9 files. [4.66s]
