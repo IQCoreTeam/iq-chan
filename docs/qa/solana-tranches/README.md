@@ -22,7 +22,7 @@ A functioning `NEXT_PUBLIC_RPC_ENDPOINT` supporting token-account queries is req
 
 Jupiter's documented keyless API access is rate limited. A preset click starts quotes, which refresh every 30 seconds while open and visible; HTTP 429 produces a retry message. Production traffic may require a separately configured authenticated API service. No API key is embedded by this change.
 
-Actual wallet-signed buy/sell settlement, a deployed-site smoke test, and production RPC/API capacity remain unverified. Do not interpret mocked execution tests or unsigned simulation as proof of those paths.
+User-approved mainnet buy and sell settlement is now verified below. Deployed swap UI, sustained RPC/API capacity and optional referral collection remain unverified. Do not interpret mocked execution tests or unsigned simulation as proof of those paths.
 
 ## Optional referral fee
 
@@ -52,3 +52,14 @@ Captured from the current implementation at commit `ea152ed`. These replace the 
 - [DexScreener API](https://docs.dexscreener.com/api/reference)
 
 Quote refresh update: an open quote refreshes after 30 seconds while the tab is visible, or on return to the tab. Cancellation, wallet changes and unmount clear the refresh timer. A stale confirmation requests a new quote without signing; wallet approval still requires a separate click. Focused regression coverage verifies timed refresh makes no signing or execution calls.
+
+## User-approved mainnet round trip
+
+Both transactions finalized without an on-chain error:
+
+- [Buy: 0.1 SOL to 45.347212 JUP](https://solscan.io/tx/2o7aVut81tUYjDGRRy7kEinwUKKehJZUiTNasLZd2ZvtvMPtYNPS35WXDM77MjZmz1WviXPuUdrzpvUY6XmT8dHa). The app displayed Swap confirmed and the updated token balance.
+- [Sell: 45.347212 JUP back to SOL](https://solscan.io/tx/5ASovE6tuQkQQNc5L3AJTS41TdBK9sNoACAsNgVJEvprsuJfyrExwzehf2ePN6M9t7vuR91YjFiz4ghVzPjyJ6XU). On-chain JUP balance returned to zero. The sell increased the wallet's SOL balance by 0.099778115 SOL net within that transaction. This is not a guarantee of future prices or fees.
+
+The deployed site's currently bundled RPC also passed getLatestBlockhash and getTokenAccountsByOwner with HTTP 200 and no RPC errors. This replaces the earlier failed-RPC observation for that deployed endpoint, but is not a load test.
+
+![Confirmed buy](buy-confirmed.png)
