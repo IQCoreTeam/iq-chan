@@ -2,8 +2,8 @@
 
 Local QA on September 15, 2026 (America/New_York). Screenshots show a clearly labeled local post fixture using the real components, live DexScreener chart, live Jupiter quote and connected wallet. The fixture is not included in the application routes or published to a board.
 
-- 45 tests, 350 assertions passed. Coverage includes indexed-token filtering, pool selection, Solana/Robinhood navigation, invalid quote responses, transaction-message preservation, expired quotes, rejected signatures, wallet changes during requests, and precise percentage sells above JavaScript's safe integer range.
-- TypeScript, the production server build, and both Solana and Robinhood static exports pass.
+- 46 tests, 358 assertions passed. Coverage includes indexed-token filtering, pool selection, Solana/Robinhood navigation, invalid quote responses, transaction-message preservation, expired quotes, rejected signatures, wallet changes during requests, and precise percentage sells above JavaScript's safe integer range.
+- TypeScript passes on the current head. The preceding native-swap head passed the production server build and both network static exports.
 - Native controls use Jupiter Swap API v2, not the Jupiter UI plugin. No new dependencies or external scripts.
 - A 0.01 SOL to JUP unsigned transaction from Jupiter simulated successfully on mainnet (151,321 CU). No swap was signed or submitted. The simulation is not evidence of settled buy/sell trades.
 - Browser QA verified live quotes, zero-balance sell disabling, quote cancellation, chart rendering and mobile layout. DexScreener sometimes took a long time to load.
@@ -24,7 +24,22 @@ Jupiter's documented keyless API access is rate limited. Quotes are requested on
 
 Actual wallet-signed buy/sell settlement, a deployed-site smoke test, and production RPC/API capacity remain unverified. Do not interpret mocked execution tests or unsigned simulation as proof of those paths.
 
-## Screenshots
+## Optional referral fee
+
+Leave `NEXT_PUBLIC_JUPITER_REFERRAL_ACCOUNT` unset until the maintainer creates a Jupiter Swap referral account and the required fee-token accounts. This setting is a referral account address, not a wallet. Verify its on-chain partner is `C3EPAsjHq6DHLDzG2bXySFpUYmQ5AUqDXDfEiEsCekrH`, its project is `DkiqsTrw1u1bYFumumC7sCG2S8K25qc2vemJFHyW2wJc`, and the partner share is 80% before configuring and rebuilding the app.
+
+When enabled, orders request 125 basis points total: 1% to the partner and 0.25% to Jupiter, subject to token rounding. The response must match both the configured referral account and exactly 125 bps. Missing-fee fallback, unexpected charges and mismatched recipients are rejected before signing. No referral accounts have been created or funded by this change; collection remains unverified.
+
+The compact quote keeps Pay, Receive and the actual total fee visible. Minimum received, slippage and network costs are under Details. Buy presets are 0.1, 0.5 and 1 SOL.
+
+## Current compact quote
+
+![Compact quote, referral not configured](compact-quote.png)
+
+## Earlier screenshots
+
+These show the earlier presets and expanded details before the compact-quote update.
+
 
 ![Empty board](board-empty.png)
 ![Desktop quote](native-quote-desktop.png)

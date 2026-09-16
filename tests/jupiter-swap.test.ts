@@ -79,3 +79,36 @@ test("execution requires the reviewed message and a confirmed success response",
         globalThis.fetch = original;
     }
 });
+
+
+test("optional referral charges exactly 125 bps and rejects silent fee fallback", async () => {
+    const original = globalThis.fetch;
+    const previous = process.env.NEXT_PUBLIC_JUPITER_REFERRAL_ACCOUNT;
+    const referral = Keypair.generate().publicKey.toBase58();
+    let requested = "";
+    let result = { ...order, referralAccount: referral, feeBps: 125 };
+    globalThis.fetch = (async (url: string) => {
+        requested = url;
+        return Response.json(result);
+    }) as unknown as typeof fetch;
+    try {
+        process.env.NEXT_PUBLIC_JUPITER_REFERRAL_ACCOUNT = referral;
+        expect((await getJupiterOrder(params)).feeBps).toBe(125);
+        expect(new URL(requested).searchParams.get("referralFee")).toBe("125");
+        expect(new URL(requested).searchParams.get("referralAccount")).toBe(referral);
+        result = { ...result, feeBps: 10 };
+        await expect(getJupiterOrder(params)).rejects.toThrow("Referral fee is unavailable");
+        result = { ...result, feeBps: 126 };
+        await expect(getJupiterOrder(params)).rejects.toThrow("Referral fee is unavailable");
+        result = { ...result, feeBps: 125, referralAccount: wallet.publicKey.toBase58() };
+        await expect(getJupiterOrder(params)).rejects.toThrow("Referral fee is unavailable");
+        delete process.env.NEXT_PUBLIC_JUPITER_REFERRAL_ACCOUNT;
+        result = { ...order, referralAccount: "", feeBps: 0 };
+        expect((await getJupiterOrder(params)).feeBps).toBe(0);
+        expect(new URL(requested).searchParams.has("referralFee")).toBe(false);
+    } finally {
+        globalThis.fetch = original;
+        if (previous === undefined) delete process.env.NEXT_PUBLIC_JUPITER_REFERRAL_ACCOUNT;
+        else process.env.NEXT_PUBLIC_JUPITER_REFERRAL_ACCOUNT = previous;
+    }
+});

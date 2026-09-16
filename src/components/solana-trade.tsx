@@ -213,25 +213,29 @@ export default function SolanaTrade({ mint, symbol }: { mint: string; symbol: st
                         Receive ≈ {formatUnits(quote.order.outAmount, quote.buy ? quote.decimals : 9)}{" "}
                         {quote.buy ? symbol : "SOL"}
                     </div>
-                    <div>
-                        Minimum: {formatUnits(quote.order.otherAmountThreshold, quote.buy ? quote.decimals : 9)}{" "}
-                        {quote.buy ? symbol : "SOL"}
-                    </div>
-                    <div>
-                        Slippage: {quote.order.slippageBps / 100}% · Jupiter fee: {quote.order.feeBps / 100}%
-                    </div>
-                    <div>
-                        Network fee + rent:{" "}
-                        {formatUnits(
-                            BigInt(
-                                quote.order.signatureFeeLamports +
-                                    quote.order.prioritizationFeeLamports +
-                                    quote.order.rentFeeLamports,
-                            ),
-                            9,
-                        )}{" "}
-                        SOL
-                    </div>
+                    <div>Includes {quote.order.feeBps / 100}% swap fee</div>
+                    <details>
+                        <summary>Details</summary>
+                        <div>
+                            Minimum: {formatUnits(quote.order.otherAmountThreshold, quote.buy ? quote.decimals : 9)}{" "}
+                            {quote.buy ? symbol : "SOL"}
+                        </div>
+                        <div>
+                            Slippage: {quote.order.slippageBps / 100}%
+                        </div>
+                        <div>
+                            Network fee + rent:{" "}
+                            {formatUnits(
+                                BigInt(
+                                    quote.order.signatureFeeLamports +
+                                        quote.order.prioritizationFeeLamports +
+                                        quote.order.rentFeeLamports,
+                                ),
+                                9,
+                            )}{" "}
+                            SOL
+                        </div>
+                    </details>
                     <button disabled={busy || !wallet.signTransaction} onClick={confirm}>
                         Confirm in wallet
                     </button>{" "}
@@ -244,7 +248,6 @@ export default function SolanaTrade({ mint, symbol }: { mint: string; symbol: st
                     View confirmed swap
                 </a>
             )}
-            <div>Swaps route through Jupiter. Review the quote before signing.</div>
         </div>
     );
 }

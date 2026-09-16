@@ -1,4 +1,4 @@
-import { VersionedTransaction } from "@solana/web3.js";
+import { PublicKey, VersionedTransaction } from "@solana/web3.js";
 
 export const SOL_MINT = "So11111111111111111111111111111111111111112";
 
@@ -23,7 +23,13 @@ export async function getJupiterOrder(params: {
     amount: string;
     taker: string;
 }): Promise<JupiterOrder> {
-    const response = await fetch(`https://api.jup.ag/swap/v2/order?${new URLSearchParams(params)}`, {
+    const query = new URLSearchParams(params);
+    const referralAccount = process.env.NEXT_PUBLIC_JUPITER_REFERRAL_ACCOUNT;
+    if (referralAccount) {
+        query.set("referralAccount", new PublicKey(referralAccount).toBase58());
+        query.set("referralFee", "125");
+    }
+    const response = await fetch(`https://api.jup.ag/swap/v2/order?${query}`, {
         signal: AbortSignal.timeout(15000),
     });
     if (!response.ok)
@@ -61,6 +67,8 @@ export async function getJupiterOrder(params: {
     ) {
         throw new Error("Jupiter returned an invalid quote");
     }
+    if (referralAccount && (order.referralAccount !== referralAccount || order.feeBps !== 125))
+        throw new Error("Referral fee is unavailable. Please try again later.");
     const tx = VersionedTransaction.deserialize(Buffer.from(order.transaction, "base64"));
     if (
         !tx.message.staticAccountKeys
