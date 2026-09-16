@@ -69,3 +69,26 @@ test("post copy handles both networks without navigating and resets when the tar
         dom.window.close();
     }
 });
+
+test("IQ Profile is Solana-only and Reply uses the existing quote handler", async () => {
+    const dom = new JSDOM('<div id="root"></div>', { url: "https://hoodchan.xyz/#/iq" });
+    Object.assign(globalThis, { window: dom.window, document: dom.window.document, IS_REACT_ACT_ENVIRONMENT: true });
+    const { createRoot } = await import("react-dom/client");
+    const root = createRoot(document.getElementById("root")!);
+    const quoted: string[] = [];
+    try {
+        for (const host of ["hoodchan.xyz", "blockchan.sol.site"]) {
+            dom.reconfigure({ url: `https://${host}/#/iq` });
+            await act(async () => root.render(<Post key={host} txSig="test-sig" signer="test-wallet" name="Anon" com="Post" time={1} isOp replyLink="#/iq/thread" onQuote={(sig) => quoted.push(sig)} />));
+            await act(async () => document.querySelector<HTMLAnchorElement>(".postInfo.desktop .postMenuBtn")!.click());
+            expect(document.body.textContent!.includes("Go to the IQ Profile")).toBe(host === "blockchan.sol.site");
+            expect(document.body.textContent).toContain("Copy wallet address");
+            await act(async () => document.querySelector<HTMLAnchorElement>(".replylink")!.click());
+            expect(window.location.hash).toBe("#/iq");
+        }
+        expect(quoted).toEqual(["test-sig", "test-sig"]);
+    } finally {
+        await act(async () => root.unmount());
+        dom.window.close();
+    }
+});

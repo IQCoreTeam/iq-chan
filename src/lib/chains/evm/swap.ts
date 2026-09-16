@@ -162,8 +162,3 @@ export async function sellToken(signer: Signer, ca: string, tokenIn: string, sli
     const tx = await router.multicall([swapData, unwrapData]);
     return tx.hash;
 }
-
-/** DexScreener embed URL for the in-card chart (pair auto-resolved by token address). */
-export function dexScreenerEmbed(ca: string, theme: "dark" | "light" = "dark"): string {
-    return `https://dexscreener.com/robinhood/${getAddress(ca)}?embed=1&theme=${theme}&info=0&trades=0`;
-}

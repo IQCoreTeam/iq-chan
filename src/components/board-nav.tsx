@@ -3,35 +3,18 @@
 import HashLink from "./hash-link";
 import { useBoards } from "../hooks/use-boards";
 import { resolveNetwork } from "../lib/chains/resolve";
-import { BOARD_CATEGORIES, CATEGORY_OF } from "../lib/board-config";
-
-function BoardGroup({ boards }: { boards: { id: string; title: string }[] }) {
+export function BoardList() {
+    const { boards } = useBoards();
     return (
-        <>
+        <span className="boardList">
             [
             {boards.map((b, i) => (
                 <span key={b.id}>
                     {i > 0 && " / "}
-                    <HashLink href={`/${b.id}`} title={b.title}>{b.id}</HashLink>
+                    <HashLink href={`/${b.id}`} title={b.title}>{b.id === "tranches" ? "trchs" : b.id}</HashLink>
                 </span>
             ))}
             ]
-        </>
-    );
-}
-
-export function BoardList() {
-    const { boards } = useBoards();
-    const general = boards.filter((b) => !CATEGORY_OF[b.id]);
-    const categorized = BOARD_CATEGORIES
-        .map((c) => ({ category: c.category, boards: boards.filter((b) => c.boards.includes(b.id)) }))
-        .filter((c) => c.boards.length > 0);
-    return (
-        <span className="boardList">
-            <BoardGroup boards={general} />
-            {categorized.map((c) => (
-                <span key={c.category}> {c.category}: <BoardGroup boards={c.boards} /></span>
-            ))}
         </span>
     );
 }

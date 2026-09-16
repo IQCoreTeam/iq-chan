@@ -8,6 +8,7 @@ import { resolveNetwork } from "../lib/chains/resolve";
 import { shareUrl } from "../lib/share";
 import ShareLink from "./share-link";
 import TokenCard from "./token-card";
+import SolanaTokenCard from "./solana-token-card";
 
 // A bare EVM contract address in a Tranches post becomes a trading card.
 const CA_RE = /0x[a-fA-F0-9]{40}/;
@@ -128,7 +129,7 @@ export default function Post({
                 <li style={{ padding: "3px 10px", cursor: "pointer" }} onClick={() => { window.open(`${net.explorerTxUrl}${txSig}`, "_blank"); setMenuOpen(false); }}>
                     View on {net.explorerName}
                 </li>
-                {signer && (
+                {signer && net.id === "solana" && (
                     <li style={{ padding: "3px 10px", cursor: "pointer" }} onClick={() => {
                         window.open(`https://profile.iqlabs.dev/${signer}`, "_blank", "noopener,noreferrer");
                         setMenuOpen(false);
@@ -230,7 +231,11 @@ export default function Post({
                 >No.</a>
                 {digitsLink}
                 {isOp && replyLink && (
-                    <> &nbsp; <span>[<a href={replyLink} className="replylink">Reply</a>]</span></>
+                    <> &nbsp; <span>[<a href={replyLink} className="replylink" onClick={(e) => {
+                        if (!onQuote || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+                        e.preventDefault();
+                        onQuote(txSig);
+                    }}>Reply</a>]</span></>
                 )}
             </span>
             <span ref={menuRefDesktop} style={{ position: "relative", display: "inline" }}>
@@ -278,6 +283,7 @@ export default function Post({
                             {formatPostMessage(com)}
                         </blockquote>
                         {tokenCa && <TokenCard ca={tokenCa} />}
+                        {net.id === "solana" && boardId === "tranches" && <SolanaTokenCard text={com} />}
                         {backlinksBlock}
                     </>
                 )}
