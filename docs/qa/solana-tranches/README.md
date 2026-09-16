@@ -20,7 +20,7 @@ The existing Create Board flow created the ungated `tranches` table. This is the
 
 A functioning `NEXT_PUBLIC_RPC_ENDPOINT` supporting token-account queries is required. The repository's configured RPC returned 403 during local QA. PublicNode supported board creation but rejected indexed token-account requests. Quote/balance QA therefore used a local read-only proxy to Solana's public mainnet RPC; this proxy is not part of the application or deployment.
 
-Jupiter's documented keyless API access is rate limited. Quotes are requested only on an explicit button click; HTTP 429 produces a retry message. Production traffic may require a separately configured authenticated API service. No API key is embedded by this change.
+Jupiter's documented keyless API access is rate limited. A preset click starts quotes, which refresh every 30 seconds while open and visible; HTTP 429 produces a retry message. Production traffic may require a separately configured authenticated API service. No API key is embedded by this change.
 
 Actual wallet-signed buy/sell settlement, a deployed-site smoke test, and production RPC/API capacity remain unverified. Do not interpret mocked execution tests or unsigned simulation as proof of those paths.
 
@@ -30,28 +30,20 @@ Leave `NEXT_PUBLIC_JUPITER_REFERRAL_ACCOUNT` unset until the maintainer creates 
 
 When enabled, orders request 125 basis points total: 1% to the partner and 0.25% to Jupiter, subject to token rounding. The response must match both the configured referral account and exactly 125 bps. Missing-fee fallback, unexpected charges and mismatched recipients are rejected before signing. No referral accounts have been created or funded by this change; collection remains unverified.
 
-The compact quote keeps Pay, Receive and the actual total fee visible. Minimum received, slippage and network costs are under Details. Buy presets are 0.1, 0.5 and 1 SOL.
+The compact quote keeps Pay and Receive visible, plus the actual total fee when nonzero. Minimum received, slippage and network costs are under Details. Buy presets are 0.1, 0.5 and 1 SOL.
 
 ## Final refresh and mobile evidence
 
 The live browser issued two order requests 30.34 seconds apart without a second preset click; no execute request was made. The quote stays visible during refresh and confirmation is disabled until the replacement arrives. Cancellation invalidates an in-flight refresh. Regression tests cover timed refresh, stale confirmation, rejected signatures, wallet changes and cancelling a pending refresh.
 
-![Final mobile quote](final-mobile.png)
+![Current desktop quote](current-desktop.png)
+![Current mobile quote](current-mobile.png)
+
+Captured from the current implementation at commit `ea152ed`. These replace the earlier quote screenshots. Quote prices are live snapshots, not fixed expected values.
 
 [Observed order requests](live-refresh.json)
 
-## Earlier compact quote
-
-![Compact quote, referral not configured](compact-quote.png)
-
-## Earlier screenshots
-
-These show the earlier presets and expanded details before the compact-quote update.
-
-
 ![Empty board](board-empty.png)
-![Desktop quote](native-quote-desktop.png)
-![Mobile quote](native-quote-mobile.png)
 
 ## References
 
