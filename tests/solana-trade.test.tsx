@@ -154,6 +154,35 @@ test("native trades expire before signing, discard stale wallet quotes and never
         expect(document.body.textContent).toContain("Pay 2251799813.685248 QA");
         expect(signs).toBe(1);
         expect(executes).toBe(0);
+        await click("Cancel");
+        Date.now = originalNow;
+        let statusReads = 0;
+        connection.getSignatureStatuses = async () => ({
+            context: { slot: 1 },
+            value: [++statusReads === 1 ? null : {
+                slot: 1, confirmations: null, confirmationStatus: "finalized", err: null,
+            }],
+        });
+        const signingWallet = { ...wallet, signTransaction: async (t: VersionedTransaction) => {
+            t.signatures[0].fill(1); // local receipt fixture; never broadcast
+            return t;
+        } } as unknown as WalletContextState;
+        globalThis.fetch = (async (url: unknown) => {
+            if (String(url).includes("/execute")) { executes++; throw Error("Lost response"); }
+            return Response.json(order);
+        }) as unknown as typeof fetch;
+        await act(async () => root.render(render(signingWallet)));
+        await click("Buy 0.1 SOL");
+        await click("Confirm in wallet");
+        expect(document.body.textContent).toContain("Still awaiting confirmation");
+        expect([...document.querySelectorAll("button")].filter(b => /^(Buy|Sell)/.test(b.textContent!)).every(b => b.disabled)).toBe(true);
+        expect(document.body.textContent).toContain("View transaction");
+        expect(document.body.textContent).not.toContain("View confirmed swap");
+        await click("Check status");
+        expect(document.body.textContent).toContain("Swap confirmed.");
+        expect(executes).toBe(1);
+        expect(statusReads).toBe(2);
+        expect([...document.querySelectorAll("button")].find(b => b.textContent === "Buy 0.1 SOL")!.disabled).toBe(false);
     } finally {
         timeoutSpy.mockRestore();
         Date.now = originalNow;

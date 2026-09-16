@@ -1,0 +1,19 @@
+bun test v1.3.14 (d1632b29)
+
+tests/server/share-route.case.ts:
+(pass) image responses contain a completed PNG with its exact byte length [554.07ms]
+(pass) PNG stream failures return a non-cacheable error and allow a retry [180.87ms]
+(pass) reply metadata uses the selected reply, escapes content, and preserves its anchor [4.36ms]
+(pass) missing replies and gateway outages do not produce misleading cached cards [0.79ms]
+(pass) browsers and social crawlers receive the same server-rendered metadata [0.49ms]
+(pass) the browser handoff preserves existing Solana deep links when metadata is unavailable [134.67ms]
+(pass) share metadata and image links use the incoming host behind a container proxy [0.33ms]
+(pass) card image requests reject arbitrary hosts, local paths and redirect destinations [0.28ms]
+(pass) both actual logos decode to bounded PNG thumbnails [8.30ms]
+(pass) invalid and oversized attachments fall back without retaining the response stream [92.32ms]
+(pass) an image body that stalls after headers is aborted by its deadline [3000.43ms]
+
+ 11 pass
+ 0 fail
+ 160 expect() calls
+Ran 11 tests across 1 file. [4.00s]
