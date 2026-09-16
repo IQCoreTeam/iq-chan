@@ -96,6 +96,19 @@ test("native trades expire before signing, discard stale wallet quotes and never
         expect(signs).toBe(0);
         expect(document.body.textContent).toContain("Confirm in wallet");
         expect(document.body.textContent).not.toContain("expired");
+        // A refresh remains visible and cancellable; its late response cannot reopen it.
+        let resolveRefresh!: (value: Response) => void;
+        const immediateFetch = globalThis.fetch;
+        globalThis.fetch = (() => new Promise<Response>((r) => { resolveRefresh = r; })) as unknown as typeof fetch;
+        Date.now = () => now + 93000;
+        await act(async () => refreshQuote!());
+        expect(document.body.textContent).toContain("Updating quote");
+        expect([...document.querySelectorAll("button")].find(b => b.textContent === "Confirm in wallet")!.disabled).toBe(true);
+        await click("Cancel");
+        await act(async () => resolveRefresh(Response.json(order)));
+        expect(document.body.textContent).not.toContain("Confirm in wallet");
+        expect(signs).toBe(0);
+        globalThis.fetch = immediateFetch;
         Date.now = originalNow;
         await click("Buy 0.1 SOL");
         await click("Confirm in wallet");

@@ -67,7 +67,6 @@ export default function SolanaTrade({ mint, symbol }: { mint: string; symbol: st
         if (!address || busy) return;
         const id = ++operation.current;
         setBusy(true);
-        setQuote(null);
         setStatus("");
         try {
             const decimals = buy
@@ -81,7 +80,10 @@ export default function SolanaTrade({ mint, symbol }: { mint: string; symbol: st
             });
             if (id === operation.current) setQuote({ order, expires: Date.now() + 30000, address, buy, decimals });
         } catch (e) {
-            if (id === operation.current) setStatus(e instanceof Error ? e.message : "Quote failed");
+            if (id === operation.current) {
+                setQuote(null);
+                setStatus(e instanceof Error ? e.message : "Quote failed");
+            }
         } finally {
             if (id === operation.current) setBusy(false);
         }
@@ -208,7 +210,7 @@ export default function SolanaTrade({ mint, symbol }: { mint: string; symbol: st
                     </div>
                 </>
             )}
-            {busy && <div role="status">{quote ? "Preparing swap…" : "Waiting for Jupiter or wallet…"}</div>}
+            {busy && <div role="status">{quote ? "Updating quote…" : "Waiting for Jupiter or wallet…"}</div>}
             {quote && (
                 <div>
                     <div>
@@ -245,7 +247,12 @@ export default function SolanaTrade({ mint, symbol }: { mint: string; symbol: st
                     <button disabled={busy || !wallet.signTransaction} onClick={confirm}>
                         Confirm in wallet
                     </button>{" "}
-                    <button onClick={() => setQuote(null)}>Cancel</button>
+                    <button onClick={() => {
+                        operation.current++;
+                        setQuote(null);
+                        setBusy(false);
+                        setStatus("");
+                    }}>Cancel</button>
                 </div>
             )}
             {status && <div role="status">{status}</div>}

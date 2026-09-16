@@ -2,8 +2,8 @@
 
 Local QA on September 15, 2026 (America/New_York). Screenshots show a clearly labeled local post fixture using the real components, live DexScreener chart, live Jupiter quote and connected wallet. The fixture is not included in the application routes or published to a board.
 
-- 46 tests, 358 assertions passed. Coverage includes indexed-token filtering, pool selection, Solana/Robinhood navigation, invalid quote responses, transaction-message preservation, expired quotes, rejected signatures, wallet changes during requests, and precise percentage sells above JavaScript's safe integer range.
-- TypeScript passes on the current head. The preceding native-swap head passed the production server build and both network static exports.
+- 46 tests, 368 assertions passed. Coverage includes indexed-token filtering, pool selection, Solana/Robinhood navigation, invalid quote responses, transaction-message preservation, expired quotes, rejected signatures, wallet changes during requests, and precise percentage sells above JavaScript's safe integer range.
+- TypeScript, the production server build, and both Solana and Robinhood static exports pass on the final implementation. Builds ran from an isolated source copy with no local QA routes.
 - Native controls use Jupiter Swap API v2, not the Jupiter UI plugin. No new dependencies or external scripts.
 - A 0.01 SOL to JUP unsigned transaction from Jupiter simulated successfully on mainnet (151,321 CU). No swap was signed or submitted. The simulation is not evidence of settled buy/sell trades.
 - Browser QA verified live quotes, zero-balance sell disabling, quote cancellation, chart rendering and mobile layout. DexScreener sometimes took a long time to load.
@@ -32,7 +32,15 @@ When enabled, orders request 125 basis points total: 1% to the partner and 0.25%
 
 The compact quote keeps Pay, Receive and the actual total fee visible. Minimum received, slippage and network costs are under Details. Buy presets are 0.1, 0.5 and 1 SOL.
 
-## Current compact quote
+## Final refresh and mobile evidence
+
+The live browser issued two order requests 30.34 seconds apart without a second preset click; no execute request was made. The quote stays visible during refresh and confirmation is disabled until the replacement arrives. Cancellation invalidates an in-flight refresh. Regression tests cover timed refresh, stale confirmation, rejected signatures, wallet changes and cancelling a pending refresh.
+
+![Final mobile quote](final-mobile.png)
+
+[Observed order requests](live-refresh.json)
+
+## Earlier compact quote
 
 ![Compact quote, referral not configured](compact-quote.png)
 
