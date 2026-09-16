@@ -23,16 +23,25 @@ import {
 import iqlabs from "iqlabs-sdk";
 import { BOARD_COLUMNS, DB_ROOT_ID, DB_ROOT_ID_BYTES, DB_ROOT_KEY } from "../src/lib/constants";
 
-const idl = require("iqlabs-sdk/idl/code_in.json");
+// The sdk's exports map does not expose ./idl/*, so read the file directly.
+const idl = JSON.parse(
+    fs.readFileSync(new URL("../node_modules/iqlabs-sdk/idl/code_in.json", import.meta.url), "utf8"),
+);
 
 const RPC_URL = "https://api.mainnet-beta.solana.com";
 
-const BOARDS: { id: string; title: string }[] = [
+const ALL_BOARDS: { id: string; title: string }[] = [
     { id: "po", title: "Politically Incorrect" },
     { id: "biz", title: "Business & Finance" },
     { id: "a", title: "Anime & Manga" },
     { id: "g", title: "Technology" },
+    { id: "tranches", title: "Tranches" },
 ];
+
+// BOARD_FILTER=tranches onboards one new board without re-sending
+// update/creator transactions for the boards that are already live.
+const BOARD_FILTER = process.env.BOARD_FILTER;
+const BOARDS = BOARD_FILTER ? ALL_BOARDS.filter((b) => b.id === BOARD_FILTER) : ALL_BOARDS;
 
 const NEW_TABLE_CREATOR = new PublicKey("B8d355pft6DfrQNetCqXNumRk8WoEs21waqeuPP3HUJC");
 
@@ -138,7 +147,11 @@ async function main() {
                     db_root: DB_ROOT_KEY,
                 }, {
                     db_root_id: Buffer.from(iqlabs.utils.toSeedBytes(DB_ROOT_ID)),
-                    table_seed: Buffer.from(iqlabs.utils.toSeedBytes(board.id)),
+                    // Plain utf8, NOT toSeedBytes: the program compares this
+                    // against global_table_seeds, which stores the raw hint
+                    // string pushed at create time ("tranches", "po", ...).
+                    // toSeedBytes now hashes to 32 bytes and never matches.
+                    table_seed: Buffer.from(board.id),
                 }),
             );
             console.log(`[${board.id}] Onboarded`);
@@ -152,7 +165,13 @@ async function main() {
         }
     }
 
-    // Step 4: Set table creators (deploy.json wallet + B8d355... wallet)
+    // Step 4: Set table creators (deploy.json wallet + B8d355... wallet).
+    // Skipped under BOARD_FILTER: this instruction REPLACES the whole creator
+    // list, so a single-board run must not clobber creators added since.
+    if (BOARD_FILTER) {
+        console.log("\nBOARD_FILTER set — leaving table creators untouched. Done!");
+        return;
+    }
     const creators = [payer.publicKey, NEW_TABLE_CREATOR];
     console.log(`\nSetting table creators to [${creators.map((c) => c.toBase58()).join(", ")}]...`);
     await sendTx(

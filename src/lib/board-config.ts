@@ -19,7 +19,7 @@ export const THREADS_PER_PAGE = 20;
 export const BUMP_LIMIT = 300;
 export const FEED_SEED_PREFIX = "feedmY}AGBJiqLabs";
 
-// Fallback board metadata for known boards (used until on-chain metadata is loaded) //this board is not onboarded yet
+// Fallback board metadata for known boards (used until on-chain metadata is loaded)
 export const BOARD_METADATA: Record<string, { seed: string; title: string; description: string; image: string }> = {
     iq:  { seed: "iq",  title: "IQ Labs Community", description: "IQ token holders only", image: "/boards/iqbanner.webp" },
     po:  { seed: "po",  title: "Politically Incorrect", description: "Political discussion", image: "" },
