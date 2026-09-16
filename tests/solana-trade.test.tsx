@@ -25,7 +25,7 @@ test("native trades expire before signing, discard stale wallet quotes and never
         requestId: "local",
         inputMint: SOL_MINT,
         outputMint: mint,
-        inAmount: "10000000",
+        inAmount: "100000000",
         outAmount: "1000000",
         otherAmountThreshold: "990000",
         slippageBps: 100,
@@ -73,7 +73,7 @@ test("native trades expire before signing, discard stale wallet quotes and never
                 .filter((b) => b.textContent?.startsWith("Sell"))
                 .every((b) => b.disabled),
         ).toBe(true);
-        await click("Buy 0.01 SOL");
+        await click("Buy 0.1 SOL");
         expect(document.body.textContent).toContain("Minimum: 0.99");
         const now = originalNow();
         Date.now = () => now + 31000;
@@ -81,7 +81,7 @@ test("native trades expire before signing, discard stale wallet quotes and never
         expect(signs).toBe(0);
         expect(document.body.textContent).toContain("expired");
         Date.now = originalNow;
-        await click("Buy 0.01 SOL");
+        await click("Buy 0.1 SOL");
         await click("Confirm in wallet");
         expect(signs).toBe(1);
         expect(executes).toBe(0);
@@ -91,7 +91,7 @@ test("native trades expire before signing, discard stale wallet quotes and never
             new Promise<Response>((r) => {
                 resolve = r;
             })) as unknown as typeof fetch;
-        await click("Buy 0.01 SOL");
+        await click("Buy 0.1 SOL");
         await act(async () => root.render(render({ ...wallet, publicKey: Keypair.generate().publicKey })));
         await act(async () => resolve(Response.json(order)));
         expect(document.body.textContent).not.toContain("Confirm in wallet");

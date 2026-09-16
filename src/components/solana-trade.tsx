@@ -161,7 +161,7 @@ export default function SolanaTrade({ mint, symbol }: { mint: string; symbol: st
             ) : (
                 <>
                     <div style={{ display: "flex", gap: 6 }}>
-                        {["0.01", "0.05", "0.1"].map((amount) => (
+                        {["0.1", "0.5", "1"].map((amount) => (
                             <button
                                 key={amount}
                                 style={button}
