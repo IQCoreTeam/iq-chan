@@ -27,7 +27,7 @@ export default function QuickReply({
     onClearStatus?: () => void;
     mode?: "reply" | "thread";
 }) {
-    const { address } = useChainWallet();
+    const { address, connect } = useChainWallet();
     const isError = !!statusText?.startsWith("Error:");
     const showOverlay = !!statusText && (loading || isError);
 
@@ -91,6 +91,7 @@ export default function QuickReply({
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
+        if (!address) { connect(); return; }
         if (!com.trim() || loading || submitting.current) return;
         submitting.current = true;
         try {
@@ -112,8 +113,6 @@ export default function QuickReply({
             submitting.current = false;
         }
     }
-
-    if (!address) return null;
 
     return (
         <>
@@ -223,7 +222,7 @@ export default function QuickReply({
                     />
                     <input
                         type="submit"
-                        value={loading ? (statusText || "Posting...") : "Post"}
+                        value={!address ? "Connect wallet" : loading ? (statusText || "Posting...") : "Post"}
                         disabled={loading || !com.trim()}
                         style={{ marginLeft: 5, background: "#f0e0d6", border: "1px solid #c0a89a", padding: "1px 6px", fontSize: 12, cursor: "pointer" }}
                     />

@@ -3,7 +3,6 @@
 import HashLink from "./hash-link";
 import { useBoards } from "../hooks/use-boards";
 import { resolveNetwork } from "../lib/chains/resolve";
-
 export function BoardList() {
     const { boards } = useBoards();
     return (
@@ -12,7 +11,7 @@ export function BoardList() {
             {boards.map((b, i) => (
                 <span key={b.id}>
                     {i > 0 && " / "}
-                    <HashLink href={`/${b.id}`} title={b.title}>{b.id}</HashLink>
+                    <HashLink href={`/${b.id}`} title={b.title}>{b.id === "tranches" ? "trchs" : b.id}</HashLink>
                 </span>
             ))}
             ]

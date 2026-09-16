@@ -7,7 +7,6 @@ import type { ThreadEntry } from "../lib/types";
 import Post from "./post";
 import QuickReply from "./quick-reply";
 import { usePost } from "../hooks/use-post";
-import { useChainWallet } from "../lib/chains/context";
 
 export default function ThreadList({
     threads,
@@ -24,12 +23,10 @@ export default function ThreadList({
     const [hiddenPosts, setHiddenPosts] = useState<Set<string>>(new Set());
     const [qrThread, setQrThread] = useState<{ pda: string; seed: string; opSig: string } | null>(null);
     const { postReply, loading: postLoading, status: postStatus, step: postStep, totalSteps: postTotalSteps, clearStatus } = usePost();
-    const { address, connect } = useChainWallet();
 
     const handleQuoteOnBoard = useCallback((threadPda: string, threadSeed: string, opSig: string) => (_txSig: string) => {
-        if (!address) { connect(); return; }
         setQrThread({ pda: threadPda, seed: threadSeed, opSig });
-    }, [address, connect]);
+    }, []);
 
     function toggleThread(pda: string) {
         setHiddenThreads((prev) => {

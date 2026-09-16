@@ -15,3 +15,8 @@ html, body {
 body {
     margin: 0;
 }
+
+.solana-trade button:disabled {
+    opacity: 0.5;
+    cursor: default;
+}

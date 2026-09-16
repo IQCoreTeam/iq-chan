@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { headers } from "next/headers";
 import Header from "../components/header";
 import Providers from "./providers";
+import { BoardsProvider } from "../hooks/use-boards";
 import { NETWORKS, HOSTNAME_MAP, DEFAULT_NETWORK_ID } from "../lib/chains/networks";
 import "./theme.css";
 import "./globals.css";
@@ -57,10 +58,12 @@ export default function RootLayout({
         <html lang="en">
             <body className="yotsuba-b">
                 <Providers>
-                    <Header />
-                    <main style={{ padding: "0 5px" }}>
-                        {children}
-                    </main>
+                    <BoardsProvider>
+                        <Header />
+                        <main style={{ padding: "0 5px" }}>
+                            {children}
+                        </main>
+                    </BoardsProvider>
                 </Providers>
             </body>
         </html>
