@@ -24,7 +24,7 @@ const BoardsContext = createContext<{
 }>({ boards: officialBoards, resolveMeta });
 
 export function BoardsProvider({ children }: { children: React.ReactNode }) {
-    const boards = resolveNetworkId() === "robinhood"
+    const boards = ["solana", "robinhood"].includes(resolveNetworkId())
         ? officialBoards.flatMap((board) => board.id === "iq" ? [board, resolveMeta("tranches")!] : [board])
         : officialBoards;
     return (

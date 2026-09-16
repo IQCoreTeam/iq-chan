@@ -8,6 +8,7 @@ import { resolveNetwork } from "../lib/chains/resolve";
 import { shareUrl } from "../lib/share";
 import ShareLink from "./share-link";
 import TokenCard from "./token-card";
+import SolanaTokenCard from "./solana-token-card";
 
 // A bare EVM contract address in a Tranches post becomes a trading card.
 const CA_RE = /0x[a-fA-F0-9]{40}/;
@@ -282,6 +283,7 @@ export default function Post({
                             {formatPostMessage(com)}
                         </blockquote>
                         {tokenCa && <TokenCard ca={tokenCa} />}
+                        {net.id === "solana" && boardId === "tranches" && <SolanaTokenCard text={com} />}
                         {backlinksBlock}
                     </>
                 )}

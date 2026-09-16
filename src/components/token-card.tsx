@@ -6,6 +6,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { JsonRpcProvider, formatUnits } from "ethers";
 import { resolveNetwork } from "../lib/chains/resolve";
+import { dexScreenerEmbed } from "../lib/dexscreener";
 import { useEvmWallet } from "../lib/chains/evm/wallet";
 import {
     buyToken,
@@ -13,7 +14,6 @@ import {
     getTokenInfo,
     getTokenBalance,
     findFeeTier,
-    dexScreenerEmbed,
     type TokenInfo,
 } from "../lib/chains/evm/swap";
 
@@ -104,7 +104,7 @@ export default function TokenCard({ ca }: { ca: string }) {
                 </a>
             </div>
 
-            <iframe title="chart" src={dexScreenerEmbed(ca)} style={{ width: "100%", height: 260, border: "none", display: "block" }} loading="lazy" />
+            <iframe title="chart" src={dexScreenerEmbed("robinhood", ca)} style={{ width: "100%", height: 260, border: "none", display: "block" }} loading="lazy" />
 
             <div style={{ padding: 10, display: "flex", flexDirection: "column", gap: 8 }}>
                 {!address ? (

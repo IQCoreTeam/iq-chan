@@ -31,7 +31,7 @@ export const BOARD_METADATA: Record<string, { seed: string; title: string; descr
     y2k:   { seed: "y2k",   title: "Community For Y2kDotCom",  description: "Community For Y2kDotCom",  image: "/boards/y2k.webp" },
     retardio: { seed: "retardio", title: "Only for Retardio", description: "Only for Retardio", image: "/boards/retardio.webp" },
     dominance: { seed: "dominance", title: "Market Dominance", description: "Market Dominance", image: "/boards/dominance.webp" },
-    tranches: { seed: "tranches", title: "Tranches", description: "Drop a CA, get a live chart and one-tap buy/sell", image: "" },
+    tranches: { seed: "tranches", title: "Tranches", description: "Token discussion, charts and swaps", image: "" },
 };
 
 export const OFFICIAL_BOARDS: string[] = ["iq", "po", "biz", "a", "g"];
