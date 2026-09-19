@@ -7,7 +7,7 @@
     "prebuild": "node scripts/gen-image-lists.js",
     "build": "next build",
     "start": "next start",
-    "test": "bun test tests && bun test ./tests/server/share-route.case.ts"
+    "test": "bun test tests && bun test ./tests/server/share-route.case.ts && bun test ./tests/server/gateway-fallback.case.ts"
   },
   "dependencies": {
     "@iqlabs-official/ethereum-sdk": "^0.4.0",

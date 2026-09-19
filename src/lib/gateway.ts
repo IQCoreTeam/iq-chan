@@ -1,5 +1,5 @@
 import { notifyGateway } from "./notify-gateway";
-import { getGatewayUrl, getFallbacks } from "./config";
+import { getGatewayUrl, getFallbacks, SOLANA_GATEWAY } from "./config";
 import type { Post, Reply } from "./types";
 
 const isDev = process.env.NODE_ENV === "development";
@@ -21,7 +21,11 @@ export async function gwFetch(path: string, init: RequestInit = {}): Promise<Res
         if (res.ok || res.status === 404 || res.status === 304) return res;
     } catch {}
 
+    // The restored Solana Internet deployment only serves Solana. Use the
+    // request's network, including server-side reads, rather than browser state.
+    const network = new URL(path, "https://gateway.invalid").searchParams.get("network");
     for (const fallback of getFallbacks()) {
+        if (fallback.replace(/\/$/, "") === SOLANA_GATEWAY && network && network !== "solana") continue;
         if (tried.has(fallback)) continue;
         tried.add(fallback);
         try {

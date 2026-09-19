@@ -1,12 +1,11 @@
 export const RPC_ENDPOINT =
-    process.env.NEXT_PUBLIC_RPC_ENDPOINT ?? "https://mainnet.helius-rpc.com/?api-key=fbb113ce-eeb4-4277-8c44-7153632d175a";
+    process.env.NEXT_PUBLIC_RPC_ENDPOINT ?? "https://api.mainnet-beta.solana.com";
 
 const PRIMARY_GATEWAY = process.env.NEXT_PUBLIC_GATEWAY_URL ?? "https://gateway.iqlabs.dev";
 const BACKUP_GATEWAY = "https://gateway.iqlabs.dev";
 
-const AKASH_DIRECT = "https://fem4pe7sthdm5f9fkhc1fnmpos.ingress.akashprovid.com";
-
-export const GATEWAY_FALLBACKS = [PRIMARY_GATEWAY, AKASH_DIRECT, BACKUP_GATEWAY];
+export const SOLANA_GATEWAY = "https://gateway.solanainternet.com";
+export const GATEWAY_FALLBACKS = [PRIMARY_GATEWAY, SOLANA_GATEWAY, BACKUP_GATEWAY];
 
 export const EXPLORER_TX_URL = "https://solscan.io/tx/";
 

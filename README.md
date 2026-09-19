@@ -35,7 +35,7 @@ Open `http://localhost:3000`. Connect your wallet and start posting.
 
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
-| `NEXT_PUBLIC_RPC_ENDPOINT` | No | `https://api.mainnet-beta.solana.com` | Solana RPC for writes. A paid RPC (Helius, Quicknode) will be faster |
+| `NEXT_PUBLIC_RPC_ENDPOINT` | No | `https://api.mainnet-beta.solana.com` | Solana RPC for wallet operations and writes; override with your own endpoint. No automatic RPC failover |
 
 Gateway URLs are set in `src/lib/config.ts` and can be overridden at runtime in your browser console:
 
@@ -45,7 +45,7 @@ localStorage.setItem("blockchan_gateway", "http://localhost:3000");
 
 The default primary gateway is `https://gateway.iqlabs.dev`. Override it at build time with `NEXT_PUBLIC_GATEWAY_URL`.
 
-The fallback list is defined by `GATEWAY_FALLBACKS` in `src/lib/config.ts` and can be overridden with the `blockchan_fallbacks` localStorage key (a JSON array of URLs). The frontend tries the configured fallback list when a gateway is unavailable.
+The fallback list is defined by `GATEWAY_FALLBACKS` in `src/lib/config.ts` and can be overridden with the `blockchan_fallbacks` localStorage key (a JSON array of URLs). The frontend tries the configured fallback list when a gateway is unavailable. The restored `https://gateway.solanainternet.com` is included for Solana reads; the retired Akash ingress has been removed; EVM requests skip it because that deployment is Solana-only. Existing saved fallback lists remain unchanged; use Settings to reset to the defaults or add it manually. This is a read gateway, not a Solana JSON-RPC endpoint.
 
 ## Deployment
 
