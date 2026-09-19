@@ -8,11 +8,12 @@ import "./theme.css";
 import "./globals.css";
 import "./chan.css";
 
-// One artifact serves every chain's domain, so the link-preview (OG) metadata
-// is derived per request from the Host header rather than baked at build time.
-// blockchan.sol.site -> BlockChan, hoodchan.xyz -> HoodChan, etc.
+// Server deployments derive metadata from the request hostname. Static exports
+// have no request headers and use the configured network or the default instead.
 export async function generateMetadata(): Promise<Metadata> {
-    const host = ((await headers()).get("host") || "").toLowerCase().replace(/^www\./, "").split(":")[0];
+    const host = process.env.STATIC_EXPORT === "1"
+        ? ""
+        : ((await headers()).get("host") || "").toLowerCase().replace(/^www\./, "").split(":")[0];
     const envNet = process.env.NEXT_PUBLIC_NETWORK;
     const netId = HOSTNAME_MAP[host]
         ?? (envNet && envNet in NETWORKS ? envNet : DEFAULT_NETWORK_ID);
