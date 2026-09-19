@@ -35,7 +35,7 @@ Open `http://localhost:3000`. Connect your wallet and start posting.
 
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
-| `NEXT_PUBLIC_RPC_ENDPOINT` | No | `https://api.mainnet-beta.solana.com` | Solana RPC for writes. A paid RPC (Helius, Quicknode) will be faster |
+| `NEXT_PUBLIC_RPC_ENDPOINT` | No | `https://api.mainnet-beta.solana.com` | Solana RPC for wallet operations and writes; override with your own endpoint. No automatic RPC failover |
 
 Gateway URLs are set in `src/lib/config.ts` and can be overridden at runtime in your browser console:
 
@@ -45,9 +45,33 @@ localStorage.setItem("blockchan_gateway", "http://localhost:3000");
 
 The default primary gateway is `https://gateway.iqlabs.dev`. Override it at build time with `NEXT_PUBLIC_GATEWAY_URL`.
 
-The fallback list is defined by `GATEWAY_FALLBACKS` in `src/lib/config.ts` and can be overridden with the `blockchan_fallbacks` localStorage key (a JSON array of URLs). The frontend tries the configured fallback list when a gateway is unavailable.
+The fallback list is defined by `GATEWAY_FALLBACKS` in `src/lib/config.ts` and can be overridden with the `blockchan_fallbacks` localStorage key (a JSON array of URLs). The frontend tries the configured fallback list when a gateway is unavailable. The restored `https://gateway.solanainternet.com` is included for Solana reads; the retired Akash ingress has been removed; EVM requests skip it because that deployment is Solana-only. Existing saved fallback lists remain unchanged; use Settings to reset to the defaults or add it manually. This is a read gateway, not a Solana JSON-RPC endpoint.
 
 ## Deployment
+
+### IQ Git Pages (Solana)
+
+Build a static frontend with relative JavaScript/CSS URLs, so IQ Pages can serve
+it beneath a repository path. The export includes `iqpages.json` pointing to
+`index.html`. Publish only the contents of `out/`, never this source checkout.
+
+```bash
+STATIC_EXPORT=1 NEXT_PUBLIC_NETWORK=solana npm run build
+cd out
+# The following commands spend SOL; review the build and budget first.
+iqgit init
+iqgit create blockchan --public
+iqgit add .
+iqgit commit -m "Publish BlockChan"
+iqgit push
+iqgit pages deploy
+```
+
+Retain the output checkout's `.iqgit` state for updates. After rebuilding, sync
+the new export into that checkout without removing `.iqgit`, then add, commit,
+and push. Pages follows the repository's latest commit; do not run `pages deploy`
+again for an already registered repository. Upload and transaction fees still
+apply to updates. Historical IQBrowser manifests use the separate workflow below.
 
 ### On-Chain via Iqoogle (Solana Permanent Web)
 

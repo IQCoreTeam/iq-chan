@@ -7,17 +7,17 @@
     "prebuild": "node scripts/gen-image-lists.js",
     "build": "next build",
     "start": "next start",
-    "test": "bun test tests && bun test ./tests/server/share-route.case.ts && bun test ./tests/server/attachment-route.case.ts"
+    "test": "bun test tests && bun test ./tests/server/share-route.case.ts && bun test ./tests/server/gateway-fallback.case.ts && bun test ./tests/server/attachment-route.case.ts"
   },
   "dependencies": {
     "@iqlabs-official/ethereum-sdk": "^0.4.0",
     "@solana/spl-token": "^0.4.14",
     "@solana/wallet-adapter-base": "^0.9.23",
     "@solana/wallet-adapter-react": "^0.15.35",
-    "@solana/web3.js": "^1.98.0",
+    "@solana/web3.js": "^1.99.0",
     "@walletconnect/ethereum-provider": "~2.17.0",
     "ethers": "^6.16.0",
-    "iqlabs-sdk": "npm:@iqlabs-official/solana-sdk@^0.1.27",
+    "iqlabs-sdk": "npm:@iqlabs-official/solana-sdk@^0.3.0",
     "next": "^15.3.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
