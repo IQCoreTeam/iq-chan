@@ -1,6 +1,7 @@
 import { test, expect } from "bun:test";
 import React, { act } from "react";
 import { JSDOM } from "jsdom";
+import Post from "../src/components/post";
 import SolanaTokenCard from "../src/components/solana-token-card";
 import { dexScreenerEmbed } from "../src/lib/dexscreener";
 import { BoardsProvider, useBoards } from "../src/hooks/use-boards";
@@ -87,6 +88,41 @@ test("Tranches follows IQ on Solana and Robinhood, without appearing on other ch
         }
     } finally {
         await act(async () => root.unmount());
+        Reflect.deleteProperty(globalThis, "localStorage");
+        dom.window.close();
+    }
+});
+
+test("Solana token chart renders on a Technology post, not only Tranches", async () => {
+    const dom = new JSDOM('<div id="root"></div>', { url: "https://blockchan.sol.site/#/g/thread" });
+    Object.assign(globalThis, {
+        window: dom.window,
+        document: dom.window.document,
+        localStorage: dom.window.localStorage,
+        IS_REACT_ACT_ENVIRONMENT: true,
+    });
+    const original = globalThis.fetch;
+    globalThis.fetch = (async () => Response.json([{
+        chainId: "solana",
+        baseToken: { address: mint, symbol: "JUP" },
+        pairAddress: pair,
+        liquidity: { usd: 100 },
+    }])) as typeof fetch;
+    const { createRoot } = await import("react-dom/client");
+    const root = createRoot(document.getElementById("root")!);
+    try {
+        await act(async () => root.render(<Post txSig="test-post" name="Anon" com={`Token ${mint}`} time={1} boardId="g" threadPda="thread" />));
+        expect(document.querySelector("iframe")?.src).toBe(dexScreenerEmbed("solana", pair));
+        expect(document.body.textContent).toContain("Connect wallet to trade");
+        await act(async () => root.render(<Post txSig="test-post" name="Anon" com="Ordinary technology discussion" time={1} boardId="g" threadPda="thread" />));
+        expect(document.querySelector("iframe")).toBeNull();
+        dom.window.localStorage.setItem("blockchan_network", "robinhood");
+        await act(async () => root.render(<Post txSig="robinhood-post" name="Anon" com={`Token ${mint}`} time={1} boardId="g" threadPda="thread" />));
+        expect(document.querySelector("iframe")).toBeNull();
+        expect(document.body.textContent).not.toContain("Connect wallet to trade");
+    } finally {
+        await act(async () => root.unmount());
+        globalThis.fetch = original;
         Reflect.deleteProperty(globalThis, "localStorage");
         dom.window.close();
     }
