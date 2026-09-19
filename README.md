@@ -49,6 +49,30 @@ The fallback list is defined by `GATEWAY_FALLBACKS` in `src/lib/config.ts` and c
 
 ## Deployment
 
+### IQ Git Pages (Solana)
+
+Build a static frontend with relative JavaScript/CSS URLs, so IQ Pages can serve
+it beneath a repository path. The export includes `iqpages.json` pointing to
+`index.html`. Publish only the contents of `out/`, never this source checkout.
+
+```bash
+STATIC_EXPORT=1 NEXT_PUBLIC_NETWORK=solana npm run build
+cd out
+# The following commands spend SOL; review the build and budget first.
+iqgit init
+iqgit create blockchan --public
+iqgit add .
+iqgit commit -m "Publish BlockChan"
+iqgit push
+iqgit pages deploy
+```
+
+Retain the output checkout's `.iqgit` state for updates. After rebuilding, sync
+the new export into that checkout without removing `.iqgit`, then add, commit,
+and push. Pages follows the repository's latest commit; do not run `pages deploy`
+again for an already registered repository. Upload and transaction fees still
+apply to updates. Historical IQBrowser manifests use the separate workflow below.
+
 ### On-Chain via Iqoogle (Solana Permanent Web)
 
 Host the entire site on Solana. Served via any IQ Gateway at `/site/{manifestSig}`.
