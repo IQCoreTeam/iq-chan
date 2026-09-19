@@ -1,3 +1,4 @@
+import { readResponseBytes } from "./read-response";
 import { unstable_cache } from "next/cache";
 import { BOARD_METADATA, OFFICIAL_BOARDS } from "./board-config";
 import { loadAdapter } from "./chains";
@@ -75,20 +76,7 @@ export async function shareThumbnail(raw: string) {
                 await res.body?.cancel();
                 return;
             }
-            const reader = res.body?.getReader();
-            if (!reader) return;
-            const chunks: Uint8Array[] = [];
-            let size = 0;
-            try {
-                while (true) {
-                    const { done, value } = await reader.read();
-                    if (done) break;
-                    size += value.length;
-                    if (size > 2_000_000) return;
-                    chunks.push(value);
-                }
-                bytes = Buffer.concat(chunks);
-            } finally { await reader.cancel(); }
+            bytes = await readResponseBytes(res, 2_000_000);
         }
         const { default: sharp } = await import("sharp");
         const png = await sharp(bytes, { limitInputPixels: 16_000_000 })

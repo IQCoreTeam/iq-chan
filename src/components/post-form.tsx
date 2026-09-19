@@ -1,5 +1,7 @@
 "use client";
 
+import Attachment from "./attachment";
+
 import { useState, useRef } from "react";
 import { useChainWallet } from "../lib/chains/context";
 import { resolveNetwork } from "../lib/chains/resolve";
@@ -164,7 +166,7 @@ export default function PostForm({
                         </td>
                     </tr>
                     <tr data-type="File">
-                        <td>Image URL</td>
+                        <td>Attachment URL</td>
                         <td>
                             <input
                                 name="img"
@@ -181,12 +183,7 @@ export default function PostForm({
                         <tr>
                             <td></td>
                             <td>
-                                <img
-                                    src={img.trim()}
-                                    alt="preview"
-                                    className="imgPreview"
-                                    onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-                                />
+                                <Attachment key={img.trim()} url={img.trim()} name="Attachment preview" />
                                 {" "}
                                 <button
                                     type="button"

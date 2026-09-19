@@ -82,7 +82,13 @@ const INLINE_RE = /(>>[A-Za-z0-9]{6,}|\bmagnet:\?[^\s<>"]+|\bhttps?:\/\/[^\s<>"]
 export function safePostUrl(url: string | undefined): string | null {
     if (!url) return null;
     const trimmed = url.trim();
-    return /^https?:\/\//i.test(trimmed) ? trimmed : null;
+    if (!/^https?:\/\//i.test(trimmed)) return null;
+    try {
+        new URL(trimmed);
+        return trimmed;
+    } catch {
+        return null;
+    }
 }
 
 export function formatPostMessage(text: string): React.ReactNode[] {

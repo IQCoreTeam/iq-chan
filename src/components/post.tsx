@@ -7,6 +7,7 @@ import { formatDate, timeAgo } from "../lib/time";
 import { resolveNetwork } from "../lib/chains/resolve";
 import { shareUrl } from "../lib/share";
 import ShareLink from "./share-link";
+import Attachment from "./attachment";
 import TokenCard from "./token-card";
 import SolanaTokenCard from "./solana-token-card";
 
@@ -49,7 +50,6 @@ export default function Post({
     const display = txSig.slice(0, 8);
     const net = resolveNetwork();
     const tokenCa = net.family === "evm" && boardId === "tranches" ? (com.match(CA_RE)?.[0] ?? null) : null;
-    const [expanded, setExpanded] = useState(false);
     const [menuOpen, setMenuOpen] = useState(false);
     const menuRefMobile = useRef<HTMLSpanElement>(null);
     const menuRefDesktop = useRef<HTMLSpanElement>(null);
@@ -81,25 +81,7 @@ export default function Post({
             <div className="fileText" id={`fT${txSig}`}>
                 File: <a href={safeImg} target="_blank" rel="noopener noreferrer">{fileName}</a>
             </div>
-            <a
-                className={`fileThumb${expanded ? " fileThumbExpanded" : ""}`}
-                href={safeImg}
-                onClick={(e) => { e.preventDefault(); setExpanded((v) => !v); }}
-            >
-                <img
-                    src={safeImg}
-                    alt={fileName}
-                    style={expanded
-                        ? { maxWidth: "100%", maxHeight: "none" }
-                        : { maxHeight: isOp ? 250 : 125, maxWidth: isOp ? 250 : 125 }
-                    }
-                    loading="lazy"
-                    onError={(e) => { (e.target as HTMLImageElement).src = "/404.webp"; }}
-                />
-                <div className="mFileInfo mobile">
-                    {expanded && <div className="mFileName">{fileName}</div>}
-                </div>
-            </a>
+            <Attachment key={safeImg} url={safeImg} name={fileName} isOp={isOp} />
         </div>
     ) : null;
 
