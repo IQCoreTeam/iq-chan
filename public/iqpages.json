@@ -1,0 +1,6 @@
+{
+  "name": "blockchan",
+  "version": "2.1.0",
+  "description": "On-chain imageboard on Solana",
+  "entry": "index.html"
+}
