@@ -54,18 +54,36 @@ export default function SolanaTokenCard({ text }: { text: string }) {
 
     if (!pair || pair.mint !== mint) return null;
     return (
-        <div style={{ border: "1px solid currentColor", margin: "8px 0", maxWidth: 480 }}>
+        <div style={{
+            clear: "both",
+            display: "flow-root",
+            boxSizing: "border-box",
+            border: "1px solid currentColor",
+            margin: "8px 0",
+            width: "100%",
+            maxWidth: 480,
+        }}>
             <div style={{ display: "flex", justifyContent: "space-between", gap: 8, padding: "6px 10px" }}>
-                <b style={{ overflowWrap: "anywhere" }}>${pair.symbol}</b>
-                <a href={`https://solscan.io/token/${mint}`} target="_blank" rel="noreferrer">
+                <b style={{ minWidth: 0, overflowWrap: "anywhere" }}>${pair.symbol}</b>
+                <a
+                    href={`https://solscan.io/token/${mint}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{ whiteSpace: "nowrap", flexShrink: 0 }}
+                >
                     {mint.slice(0, 6)}…{mint.slice(-4)}
+                </a>
+            </div>
+            <div style={{ padding: "0 10px 6px", fontSize: 12 }}>
+                <a href={`https://dexscreener.com/solana/${pair.address}`} target="_blank" rel="noreferrer">
+                    Open chart on DexScreener ↗
                 </a>
             </div>
             <iframe
                 title={`${pair.symbol} price chart`}
                 src={dexScreenerEmbed("solana", pair.address)}
                 style={{ width: "100%", height: 300, border: 0, display: "block" }}
-                loading="lazy"
+                loading="eager"
             />
             <SolanaTrade key={mint} mint={mint} symbol={pair.symbol} />
         </div>

@@ -283,7 +283,7 @@ export default function Post({
                             {formatPostMessage(com)}
                         </blockquote>
                         {tokenCa && <TokenCard ca={tokenCa} />}
-                        {net.id === "solana" && boardId === "tranches" && <SolanaTokenCard text={com} />}
+                        {net.id === "solana" && <SolanaTokenCard text={com} />}
                         {backlinksBlock}
                     </>
                 )}
