@@ -215,7 +215,7 @@ export default function QuickReply({
                         name="img"
                         disabled={loading}
                         type="url"
-                        placeholder="Image URL"
+                        placeholder="Attachment URL"
                         value={img}
                         onChange={(e) => setImg(e.target.value)}
                         style={{ width: 200, fontSize: 12, padding: "1px 3px", border: "1px solid #aaa", outline: "none" }}
