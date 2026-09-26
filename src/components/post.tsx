@@ -8,6 +8,7 @@ import { resolveNetwork } from "../lib/chains/resolve";
 import { shareUrl } from "../lib/share";
 import ShareLink from "./share-link";
 import Attachment from "./attachment";
+import { parseInscription, inscriptionSiteUrl } from "../lib/attachment";
 import TokenCard from "./token-card";
 import SolanaTokenCard from "./solana-token-card";
 
@@ -69,6 +70,9 @@ export default function Post({
     // Drop any non-http(s) image url instead of linking it: the field is
     // attacker-controlled on-chain data and lands in an href below.
     const safeImg = safePostUrl(img);
+    const inscription = img ? parseInscription(img, net) : null;
+    const attachment = inscription ? img!.trim() : safeImg;
+    const fileUrl = inscription ? inscriptionSiteUrl(inscription.network, inscription.id) || `${inscription.network.explorerTxUrl}${inscription.id}` : safeImg;
 
     let fileName = "";
     if (safeImg) {
@@ -76,12 +80,12 @@ export default function Post({
         catch { fileName = "image"; }
     }
 
-    const fileBlock = safeImg ? (
+    const fileBlock = attachment ? (
         <div className="file" id={`f${txSig}`}>
             <div className="fileText" id={`fT${txSig}`}>
-                File: <a href={safeImg} target="_blank" rel="noopener noreferrer">{fileName}</a>
+                File: {fileUrl && <a href={fileUrl} target="_blank" rel="noopener noreferrer">{inscription ? "On-chain media" : fileName}</a>}
             </div>
-            <Attachment key={safeImg} url={safeImg} name={fileName} isOp={isOp} />
+            <Attachment key={attachment} url={attachment} name={fileName || "On-chain media"} isOp={isOp} />
         </div>
     ) : null;
 
@@ -103,8 +107,8 @@ export default function Post({
                             : (isOp ? "Hide thread" : "Hide post")}
                     </li>
                 )}
-                {img && (
-                    <li style={{ padding: "3px 10px", cursor: "pointer" }} onClick={() => { window.open(img, "_blank"); setMenuOpen(false); }}>
+                {fileUrl && (
+                    <li style={{ padding: "3px 10px", cursor: "pointer" }} onClick={() => { window.open(fileUrl, "_blank", "noopener,noreferrer"); setMenuOpen(false); }}>
                         Open original file
                     </li>
                 )}

@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useChainWallet } from "../lib/chains/context";
 import PostingOverlay from "./posting-overlay";
+import AttachmentField from "./attachment-field";
 
 export default function QuickReply({
     threadSig,
@@ -35,6 +36,7 @@ export default function QuickReply({
     const [sub, setSub] = useState("");
     const [com, setCom] = useState(initialQuote ? `>>${initialQuote}\n` : "");
     const [img, setImg] = useState("");
+    const [attachmentPending, setAttachmentPending] = useState(false);
     const [options, setOptions] = useState("");
     const [pos, setPos] = useState({ x: 0, y: 0 });
     const [dragging, setDragging] = useState(false);
@@ -92,7 +94,7 @@ export default function QuickReply({
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
         if (!address) { connect(); return; }
-        if (!com.trim() || loading || submitting.current) return;
+        if (!com.trim() || loading || attachmentPending || submitting.current) return;
         submitting.current = true;
         try {
             await onSubmit({
@@ -211,19 +213,11 @@ export default function QuickReply({
                     Your reply is permanently stored on the blockchain and cannot be deleted.
                 </div>
                 <div style={{ marginBottom: 3 }}>
-                    <input
-                        name="img"
-                        disabled={loading}
-                        type="url"
-                        placeholder="Attachment URL"
-                        value={img}
-                        onChange={(e) => setImg(e.target.value)}
-                        style={{ width: 200, fontSize: 12, padding: "1px 3px", border: "1px solid #aaa", outline: "none" }}
-                    />
+                    <AttachmentField value={img} onChange={setImg} disabled={loading} onPendingChange={setAttachmentPending} />
                     <input
                         type="submit"
-                        value={!address ? "Connect wallet" : loading ? (statusText || "Posting...") : "Post"}
-                        disabled={loading || !com.trim()}
+                        value={!address ? "Connect wallet" : attachmentPending ? "Finish attachment first" : loading ? (statusText || "Posting...") : "Post"}
+                        disabled={loading || attachmentPending || !com.trim()}
                         style={{ marginLeft: 5, background: "#f0e0d6", border: "1px solid #c0a89a", padding: "1px 6px", fontSize: 12, cursor: "pointer" }}
                     />
                 </div>
