@@ -32,6 +32,7 @@ export default function PostForm({
     const [com, setCom] = useState("");
     const [name, setName] = useState("");
     const [img, setImg] = useState("");
+    const [attachmentPending, setAttachmentPending] = useState(false);
     const [options, setOptions] = useState("");
     const submitting = useRef(false);
 
@@ -56,7 +57,7 @@ export default function PostForm({
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
-        if (!com.trim() || loading || submitting.current) return;
+        if (!com.trim() || loading || attachmentPending || submitting.current) return;
         submitting.current = true;
         try {
             await onSubmit({
@@ -120,8 +121,8 @@ export default function PostForm({
                             {mode === "reply" && (
                                 <input
                                     type="submit"
-                                    value={loading ? (statusText || "Posting...") : "Post"}
-                                    disabled={loading || !com.trim()}
+                                    value={attachmentPending ? "Finish attachment first" : loading ? (statusText || "Posting...") : "Post"}
+                                    disabled={loading || attachmentPending || !com.trim()}
                                     tabIndex={10}
                                 />
                             )}
@@ -142,8 +143,8 @@ export default function PostForm({
                                 />
                                 <input
                                     type="submit"
-                                    value={loading ? (statusText || "Posting...") : "Post"}
-                                    disabled={loading || !com.trim()}
+                                    value={attachmentPending ? "Finish attachment first" : loading ? (statusText || "Posting...") : "Post"}
+                                    disabled={loading || attachmentPending || !com.trim()}
                                     tabIndex={10}
                                 />
                             </td>
@@ -166,9 +167,9 @@ export default function PostForm({
                         </td>
                     </tr>
                     <tr data-type="File">
-                        <td>Attachment URL</td>
+                        <td>Attachment</td>
                         <td>
-                            <AttachmentField value={img} onChange={setImg} disabled={loading} />
+                            <AttachmentField value={img} onChange={setImg} disabled={loading} onPendingChange={setAttachmentPending} />
                         </td>
                     </tr>
                     <tr className="rules">

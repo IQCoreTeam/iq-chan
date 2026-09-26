@@ -7,7 +7,7 @@
     "prebuild": "node scripts/gen-image-lists.js",
     "build": "next build",
     "start": "next start",
-    "test": "bun test tests && bun test ./tests/server/share-route.case.ts && bun test ./tests/server/gateway-fallback.case.ts && bun test ./tests/server/attachment-route.case.ts && bun test ./tests/home-progress.case.tsx && bun test ./tests/inscription-attachment.case.tsx && bun test ./tests/attachment-handoff.case.tsx"
+    "test": "bun test tests && bun test ./tests/server/share-route.case.ts && bun test ./tests/server/gateway-fallback.case.ts && bun test ./tests/server/attachment-route.case.ts && bun test ./tests/home-progress.case.tsx && bun test ./tests/inscription-attachment.case.tsx && bun test ./tests/attachment-handoff.case.tsx && bun test ./tests/local-inscription-reference.case.ts"
   },
   "dependencies": {
     "@iqlabs-official/ethereum-sdk": "^0.4.1",

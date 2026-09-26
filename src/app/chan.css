@@ -1232,3 +1232,8 @@ blockquote.postMessage {
     background: #000;
 }
 .attachmentAudio { display: block; max-width: 100%; margin: 5px 0; }
+
+/* Quiet, keyboard-accessible identity for verified inscription previews. */
+.inscriptionMedia { width: fit-content; max-width: 100%; border: 1px solid var(--accent); }
+.inscriptionBadge { display: block; width: fit-content; padding: 2px 4px; font-size: 11px; }
+.inscriptionMedia:hover, .inscriptionMedia:focus-within { box-shadow: 0 0 4px var(--accent); }
