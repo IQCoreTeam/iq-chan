@@ -54,3 +54,17 @@ test('ordinary audio URLs retain native playback without gateway lookups', async
     try {expect(calls).toHaveLength(0); expect(document.querySelector('audio')?.getAttribute('src')).toBe('https://example.com/music.mp3');}
     finally {await view.close();}
 });
+test('oversized streaming media is cancelled before the whole body downloads', async () => {
+    let chunks = 0, cancelled = false;
+    reply = async () => new Response(new ReadableStream({
+        pull(controller) { chunks++; controller.enqueue(new Uint8Array(1024 * 1024)); },
+        cancel() { cancelled = true; },
+    }), {headers: {'Content-Type': 'audio/wav'}});
+    const view = await mount('2'.repeat(88));
+    try {
+        expect(cancelled).toBe(true);
+        expect(chunks).toBeLessThanOrEqual(8);
+        expect(document.querySelector('audio')).toBeNull();
+        expect(document.body.textContent).toContain('unavailable');
+    } finally { await view.close(); }
+});

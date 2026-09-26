@@ -11,7 +11,7 @@ export async function GET(request: Request) {
             await response.body?.cancel();
             throw new Error("Not a page");
         }
-        const html = (await readResponseBytes(response, 512_000)).toString("utf8");
+        const html = new TextDecoder().decode(await readResponseBytes(response, 512_000));
         const tags = html.match(/<meta\b[^>]*>/gi) || [];
         for (const tag of tags) {
             if (!/\bproperty\s*=\s*["']og:video["']/i.test(tag)) continue;

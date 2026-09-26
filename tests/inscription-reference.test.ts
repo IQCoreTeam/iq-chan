@@ -19,3 +19,20 @@ test("unknown hosts, devnet links and executable URLs are not inscription refere
         expect(inscriptionMediaPath(value, NETWORKS.solana)).toBeNull();
     }
 });
+
+test("only the explicitly configured local uploader is accepted for devnet previews", () => {
+    const previous = process.env.NEXT_PUBLIC_INSCRIPTION_URL;
+    process.env.NEXT_PUBLIC_INSCRIPTION_URL = "http://localhost:3219/";
+    try {
+        expect(inscriptionMediaPath(`http://localhost:3219/?menu=codein&post=${signature}`, NETWORKS.solana)).toBe(`/media/${signature}?network=solana`);
+        expect(inscriptionMediaPath(`http://localhost:9999/?menu=codein&post=${signature}`, NETWORKS.solana)).toBeNull();
+        expect(inscriptionMediaPath(`http://evil.invalid/?menu=codein&post=${signature}`, NETWORKS.solana)).toBeNull();
+    } finally {
+        if (previous === undefined) delete process.env.NEXT_PUBLIC_INSCRIPTION_URL;
+        else process.env.NEXT_PUBLIC_INSCRIPTION_URL = previous;
+    }
+});
+
+test("Hood In share links resolve on Solana pages without changing their chain", () => {
+    expect(inscriptionMediaPath(`https://iq6900.com/?menu=hoodin&post=${hash}`, NETWORKS.solana)).toBe(`/media/${hash}?network=robinhood`);
+});
