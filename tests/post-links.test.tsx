@@ -92,3 +92,23 @@ test("IQ Profile is Solana-only and Reply uses the existing quote handler", asyn
         dom.window.close();
     }
 });
+
+test("raw inscription IDs produce usable file links and menu actions", async () => {
+    const dom = new JSDOM('<div id="root"></div>', {url:'https://hoodchan.xyz/'});
+    Object.assign(globalThis,{window:dom.window,document:dom.window.document,IS_REACT_ACT_ENVIRONMENT:true});
+    const {createRoot}=await import('react-dom/client');
+    const root=createRoot(document.getElementById('root')!);
+    const opened:string[]=[];window.open=((url:string)=>{opened.push(url);return null;}) as never;
+    const original=globalThis.fetch;globalThis.fetch=(async()=>new Response('',{status:404})) as unknown as typeof fetch;
+    try {
+        const hash='0x'+'a'.repeat(64),url='https://iqlabs.dev/?menu=hoodin&post='+hash;
+        await act(async()=>root.render(<Post txSig="post" name="Anon" com="QA" time={1} img={hash}/>));
+        expect(document.querySelector('.fileText a')?.getAttribute('href')).toBe(url);
+        await act(async()=>document.querySelector<HTMLAnchorElement>('.postInfo.desktop .postMenuBtn')!.click());
+        await act(async()=>[...document.querySelectorAll<HTMLElement>('.postInfo.desktop .dd-menu li')].find(x=>x.textContent==='Open original file')!.click());
+        expect(opened).toEqual([url]);
+        await act(async()=>root.render(<Post txSig="post" name="Anon" com="QA" time={1} img="javascript:alert(1)"/>));
+        expect(document.querySelector('.fileText a')).toBeNull();
+        expect(document.body.textContent).not.toContain('Open original file');
+    } finally {await act(async()=>root.unmount());globalThis.fetch=original;dom.window.close();}
+});

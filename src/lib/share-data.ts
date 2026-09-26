@@ -76,7 +76,7 @@ export async function shareThumbnail(raw: string) {
                 await res.body?.cancel();
                 return;
             }
-            bytes = await readResponseBytes(res, 2_000_000);
+            bytes = Buffer.from(await readResponseBytes(res, 2_000_000));
         }
         const { default: sharp } = await import("sharp");
         const png = await sharp(bytes, { limitInputPixels: 16_000_000 })

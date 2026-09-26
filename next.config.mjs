@@ -15,7 +15,7 @@ const csp = [
     // Open by design: posts link images on arbitrary hosts, and the gateway is
     // user-swappable at runtime (localStorage blockchan_gateway).
     "img-src * data: blob:",
-    "media-src https: http:",
+    "media-src https: http: blob:",
     "connect-src *",
     "frame-src 'self' https://dexscreener.com",
     "font-src 'self' data:",
