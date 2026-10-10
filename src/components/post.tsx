@@ -8,6 +8,9 @@ import { resolveNetwork } from "../lib/chains/resolve";
 import { shareUrl } from "../lib/share";
 import ShareLink from "./share-link";
 import Attachment from "./attachment";
+import InscriptionAttachment from "./inscription-attachment";
+import { parseInscriptionRef, inscriptionSrcCandidates } from "../lib/inscription";
+import { getFallbacks } from "../lib/config";
 import TokenCard from "./token-card";
 import SolanaTokenCard from "./solana-token-card";
 
@@ -66,9 +69,12 @@ export default function Post({
         return () => document.removeEventListener("mousedown", handleClick);
     }, [menuOpen]);
 
-    // Drop any non-http(s) image url instead of linking it: the field is
-    // attacker-controlled on-chain data and lands in an href below.
-    const safeImg = safePostUrl(img);
+    // The img field may hold a bare inscription signature (on-chain media) or a
+    // plain attachment url. Detect the inscription first; otherwise drop any
+    // non-http(s) url instead of linking it, since the field is attacker-
+    // controlled on-chain data that lands in an href below.
+    const inscriptionSig = parseInscriptionRef(img);
+    const safeImg = inscriptionSig ? null : safePostUrl(img);
 
     let fileName = "";
     if (safeImg) {
@@ -76,7 +82,11 @@ export default function Post({
         catch { fileName = "image"; }
     }
 
-    const fileBlock = safeImg ? (
+    const fileBlock = inscriptionSig ? (
+        <div className="file" id={`f${txSig}`}>
+            <InscriptionAttachment sig={inscriptionSig} isOp={isOp} />
+        </div>
+    ) : safeImg ? (
         <div className="file" id={`f${txSig}`}>
             <div className="fileText" id={`fT${txSig}`}>
                 File: <a href={safeImg} target="_blank" rel="noopener noreferrer">{fileName}</a>
@@ -104,7 +114,13 @@ export default function Post({
                     </li>
                 )}
                 {img && (
-                    <li style={{ padding: "3px 10px", cursor: "pointer" }} onClick={() => { window.open(img, "_blank"); setMenuOpen(false); }}>
+                    <li style={{ padding: "3px 10px", cursor: "pointer" }} onClick={() => {
+                        const target = inscriptionSig
+                            ? inscriptionSrcCandidates(inscriptionSig, getFallbacks(), net.gatewayNetworkParam)[0]
+                            : img;
+                        window.open(target, "_blank");
+                        setMenuOpen(false);
+                    }}>
                         Open original file
                     </li>
                 )}
