@@ -43,3 +43,13 @@ export function inscriptionSrcCandidates(sig: string, gateways: string[], networ
     const render = gateways.map((gateway) => `${gateway}/render/${sig}${query}`);
     return [...img, ...render];
 }
+
+/**
+ * The gateway viewer page for a sig, where the user sees the inscription with
+ * how-to-check and explorer buttons. Unlike the raw /img render, this is a human
+ * page, so "open on gateway" points here.
+ */
+export function inscriptionViewUrl(sig: string, gateway: string, networkParam?: string): string {
+    const query = networkParam ? `?network=${networkParam}` : "";
+    return `${gateway}/view/${sig}${query}`;
+}

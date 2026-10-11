@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { getFallbacks } from "../lib/config";
 import { resolveNetwork } from "../lib/chains/resolve";
-import { inscriptionSrcCandidates } from "../lib/inscription";
+import { inscriptionViewUrl } from "../lib/inscription";
 import InscriptionImage from "./inscription-image";
 
 // A post attachment whose img field held a bare inscription signature, not a
@@ -19,7 +19,7 @@ export default function InscriptionAttachment({ sig, isOp }: { sig: string; isOp
     const short = sig.slice(0, 8);
     const accent = net.theme.accent;
     const explorerUrl = `${net.explorerTxUrl}${sig}`;
-    const gatewayView = inscriptionSrcCandidates(sig, getFallbacks(), net.gatewayNetworkParam)[0];
+    const gatewayView = inscriptionViewUrl(sig, getFallbacks()[0], net.gatewayNetworkParam);
 
     return (
         <span className={`fileThumb${expanded ? " fileThumbExpanded" : ""}`} style={{ position: "relative", display: "inline-block" }}>
