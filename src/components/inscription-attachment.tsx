@@ -33,7 +33,7 @@ export default function InscriptionAttachment({ sig, isOp }: { sig: string; isOp
             />
             <button
                 type="button"
-                title={`On-chain inscription ${short}`}
+                title={`View inscription on ${net.theme.chainLabel}`}
                 onClick={(e) => { e.stopPropagation(); setShowGuide((v) => !v); }}
                 style={{
                     position: "absolute",

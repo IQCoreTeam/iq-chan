@@ -186,6 +186,8 @@ export function createEvmReadAdapter(net: NetworkDescriptor): ChainReadAdapter {
         // The EVM /user/assets index only lists codeIn uploads, not the writeRow
         // path these posts use, so inventory is the code-in feed filtered by the
         // `who` column, paged a few cursors deep (mirrors iq6900 evm.js readMine).
+        // Images only: this is an image board, and the rows are already fetched so
+        // the kind filter adds no extra request.
         async listInventory(address: string): Promise<string[]> {
             const me = address.toLowerCase();
             const out: string[] = [];
@@ -198,6 +200,7 @@ export function createEvmReadAdapter(net: NetworkDescriptor): ChainReadAdapter {
                 const data = await res.json();
                 for (const raw of (data.rows ?? []) as RawRow[]) {
                     if (String(raw.who ?? "").toLowerCase() !== me) continue;
+                    if (String(raw.kind ?? "") !== "image") continue;
                     const sig = normalizeRow(raw).__txSignature;
                     if (sig) out.push(sig);
                 }

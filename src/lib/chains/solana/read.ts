@@ -87,14 +87,14 @@ export function createSolanaReadAdapter(net: NetworkDescriptor): ChainReadAdapte
         },
 
         // /user/assets lists every tx that touched the wallet's inventory PDA, so
-        // slice the code-in feed to decode and keep only real feed rows (those
-        // with a kind); user_init / session / chunk txs decode to no kind. The
-        // assets endpoint's newest-first order is preserved.
+        // slice the code-in feed to decode and keep only image rows; this is an
+        // image board, and the slice is already fetched so the kind filter adds no
+        // extra request. The assets endpoint's newest-first order is preserved.
         async listInventory(address: string): Promise<string[]> {
             const sigs = (await fetchUserAssets(address)).slice(0, 50);
             if (sigs.length === 0) return [];
             const rows = await fetchTableSlice(CODEIN_FEED_PDA, sigs);
-            const feedSigs = new Set(rows.filter((r) => r.kind).map((r) => r.__txSignature));
+            const feedSigs = new Set(rows.filter((r) => r.kind === "image").map((r) => r.__txSignature));
             return sigs.filter((s) => feedSigs.has(s));
         },
     };
