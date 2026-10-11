@@ -51,6 +51,9 @@ export interface NetworkDescriptor {
     chainId?: number;
     /** EVM only: default RPC for the write path when the wallet has none. */
     rpcUrl?: string;
+    /** iqlabs.dev inscribe page for this chain, where a user makes an on-chain
+     *  image to attach here. Omit for chains without an iqlabs.dev surface. */
+    inscribeUrl?: string;
     theme: NetworkTheme;
 }
 

@@ -104,6 +104,18 @@ export default function InventoryModal({
                         </div>
                     )}
                 </div>
+                {net.inscribeUrl && (
+                    <div style={{ padding: "8px 12px", borderTop: "1px solid var(--edge)", textAlign: "center" }}>
+                        <a
+                            href={net.inscribeUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{ fontSize: 11, color: net.theme.accent, fontWeight: "bold", textDecoration: "none" }}
+                        >
+                            Want to make an on-chain image? Inscribe one on {net.theme.chainLabel}
+                        </a>
+                    </div>
+                )}
             </div>
         </div>
     );

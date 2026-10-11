@@ -18,6 +18,7 @@ export const NETWORKS: Record<string, NetworkDescriptor> = {
         explorerTxUrl: "https://solscan.io/tx/",
         explorerName: "Solscan",
         // no gatewayNetworkParam: Solana is the gateway default
+        inscribeUrl: "https://iqlabs.dev/?menu=codein",
         theme: {
             siteName: "BlockChan",
             chainLabel: "Solana",
@@ -40,6 +41,7 @@ export const NETWORKS: Record<string, NetworkDescriptor> = {
         sdkMode: "robinhood",
         chainId: 4663,
         rpcUrl: "https://rpc.mainnet.chain.robinhood.com",
+        inscribeUrl: "https://iqlabs.dev/?menu=hoodin",
         theme: {
             siteName: "HoodChan",
             bannerDir: "hoodchan/banners",
