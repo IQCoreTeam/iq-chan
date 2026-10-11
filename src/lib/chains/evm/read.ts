@@ -14,7 +14,7 @@
 // creation order for threads just posted but not yet indexed.
 
 import { gwFetch } from "../../gateway";
-import { DB_ROOT_ID, resolveBoardSeed, THREADS_PER_PAGE } from "../../board-config";
+import { DB_ROOT_ID, CODEIN_DB_ROOT_ID, CODEIN_FEED_TABLE, resolveBoardSeed, THREADS_PER_PAGE } from "../../board-config";
 import type { Post, Reply, ThreadEntry, ThreadResult, BoardGate } from "../../types";
 import type { ChainReadAdapter, NetworkDescriptor } from "../types";
 
@@ -181,6 +181,30 @@ export function createEvmReadAdapter(net: NetworkDescriptor): ChainReadAdapter {
                 gateType: isGated ? (meta.gate?.gateType ?? meta.gate?.gate_type ?? 0) : undefined,
                 tableName: meta.name || "",
             };
+        },
+
+        // The EVM /user/assets index only lists codeIn uploads, not the writeRow
+        // path these posts use, so inventory is the code-in feed filtered by the
+        // `who` column, paged a few cursors deep (mirrors iq6900 evm.js readMine).
+        async listInventory(address: string): Promise<string[]> {
+            const me = address.toLowerCase();
+            const out: string[] = [];
+            let cursor: string | undefined;
+            for (let i = 0; i < 5; i++) {
+                const params: Record<string, string> = { limit: "50" };
+                if (cursor) params.before = cursor;
+                const res = await gwFetch(`/table/${enc(CODEIN_DB_ROOT_ID)}/${enc(CODEIN_FEED_TABLE)}/rows?${withNetwork(params)}`);
+                if (!res.ok) break;
+                const data = await res.json();
+                for (const raw of (data.rows ?? []) as RawRow[]) {
+                    if (String(raw.who ?? "").toLowerCase() !== me) continue;
+                    const sig = normalizeRow(raw).__txSignature;
+                    if (sig) out.push(sig);
+                }
+                cursor = data.nextCursor ?? undefined;
+                if (!cursor || out.length >= 24) break;
+            }
+            return out.slice(0, 24);
         },
     };
 }

@@ -3,9 +3,9 @@
 // what the corresponding read hook used to do inline, so the live Solana site
 // behaves identically; the hooks now just call these.
 
-import { DB_ROOT_KEY, resolveBoardSeed, deriveTablePda, deriveInstructionTablePda } from "../../constants";
+import { DB_ROOT_KEY, CODEIN_FEED_PDA, resolveBoardSeed, deriveTablePda, deriveInstructionTablePda } from "../../constants";
 import { getFeedPda, fetchFeedThreadsQuick, fetchThreadPreviews, isMoreLikelyOp } from "../../board";
-import { fetchThread, fetchAllTableRows, fetchTableMeta, type Row } from "../../gateway";
+import { fetchThread, fetchAllTableRows, fetchTableMeta, fetchUserAssets, fetchTableSlice, type Row } from "../../gateway";
 import { mergeInstructions } from "../../parse";
 import type { Post, ThreadEntry, ThreadResult, BoardGate } from "../../types";
 import type { ChainReadAdapter, NetworkDescriptor } from "../types";
@@ -84,6 +84,18 @@ export function createSolanaReadAdapter(net: NetworkDescriptor): ChainReadAdapte
                 gateType: isGated ? (meta.gate?.gateType ?? gate?.gate_type ?? 0) : undefined,
                 tableName: meta.name || "",
             };
+        },
+
+        // /user/assets lists every tx that touched the wallet's inventory PDA, so
+        // slice the code-in feed to decode and keep only real feed rows (those
+        // with a kind); user_init / session / chunk txs decode to no kind. The
+        // assets endpoint's newest-first order is preserved.
+        async listInventory(address: string): Promise<string[]> {
+            const sigs = (await fetchUserAssets(address)).slice(0, 50);
+            if (sigs.length === 0) return [];
+            const rows = await fetchTableSlice(CODEIN_FEED_PDA, sigs);
+            const feedSigs = new Set(rows.filter((r) => r.kind).map((r) => r.__txSignature));
+            return sigs.filter((s) => feedSigs.has(s));
         },
     };
 }

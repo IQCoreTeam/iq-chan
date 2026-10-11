@@ -19,6 +19,13 @@ export const THREADS_PER_PAGE = 20;
 export const BUMP_LIMIT = 300;
 export const FEED_SEED_PREFIX = "feedmY}AGBJiqLabs";
 
+// The iq6900 code-in / hood-in feed, a DIFFERENT db_root from the iqchan board.
+// A post can attach an inscription from this feed (its share link is
+// ?menu=codein&post=<sig>). Same labels on every chain; Solana derives a PDA
+// from them in constants.ts, EVM addresses them as strings.
+export const CODEIN_DB_ROOT_ID = "iq6900-codein-feed-v1";
+export const CODEIN_FEED_TABLE = "global-feed";
+
 // Fallback board metadata for known boards (used until on-chain metadata is loaded)
 export const BOARD_METADATA: Record<string, { seed: string; title: string; description: string; image: string }> = {
     iq:  { seed: "iq",  title: "IQ Labs Community", description: "IQ token holders only", image: "/boards/iqbanner.webp" },

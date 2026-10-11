@@ -68,4 +68,8 @@ export interface ChainReadAdapter {
     getThread(boardId: string | undefined, threadRef: string): Promise<ThreadResult>;
     /** Token/collection gate config for a board's table. */
     getBoardGate(boardId: string): Promise<BoardGate>;
+    /** A wallet's code-in inscriptions (newest first) as bare tx signatures, the
+     *  same list iqlabs.dev "my inventory" shows. Attach one to a post by its
+     *  signature; the browser assembles the gateway view at read time. */
+    listInventory(address: string): Promise<string[]>;
 }

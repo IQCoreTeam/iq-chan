@@ -4,39 +4,37 @@ import { useState } from "react";
 import { getFallbacks } from "../lib/config";
 import { resolveNetwork } from "../lib/chains/resolve";
 import { inscriptionSrcCandidates } from "../lib/inscription";
+import InscriptionImage from "./inscription-image";
 
-// Renders a post attachment whose img field held a bare inscription signature,
-// not a url. The gateway url is assembled here (never stored on chain), so it
-// walks to the next gateway on failure and wears an "on-chain" badge that links
-// to the tx on this chain's explorer. The thumbnail click expands like a normal
-// attachment; the badge is the only navigation.
+// A post attachment whose img field held a bare inscription signature, not a
+// url. The gateway render comes from InscriptionImage (assembled at read time,
+// cycles on failure). The thumbnail click expands like a normal attachment; the
+// "on-chain" badge opens a short guide that confirms the media is on chain and
+// offers the explorer and a gateway view. The gateway link stays dynamic (from
+// getFallbacks), so a gateway move needs no post rewrite.
 export default function InscriptionAttachment({ sig, isOp }: { sig: string; isOp?: boolean }) {
     const net = resolveNetwork();
-    const candidates = inscriptionSrcCandidates(sig, getFallbacks(), net.gatewayNetworkParam);
-    const [idx, setIdx] = useState(0);
     const [expanded, setExpanded] = useState(false);
-    const exhausted = idx >= candidates.length;
-    const src = exhausted ? "/404.webp" : candidates[idx];
+    const [showGuide, setShowGuide] = useState(false);
     const short = sig.slice(0, 8);
     const accent = net.theme.accent;
+    const explorerUrl = `${net.explorerTxUrl}${sig}`;
+    const gatewayView = inscriptionSrcCandidates(sig, getFallbacks(), net.gatewayNetworkParam)[0];
 
     return (
         <span className={`fileThumb${expanded ? " fileThumbExpanded" : ""}`} style={{ position: "relative", display: "inline-block" }}>
-            <img
-                src={src}
-                alt={exhausted ? "Inscription unavailable" : `on-chain inscription ${short}`}
-                loading="lazy"
-                onClick={() => { if (!exhausted) setExpanded((v) => !v); }}
-                onError={() => setIdx((i) => i + 1)}
+            <InscriptionImage
+                sig={sig}
+                alt={`on-chain inscription ${short}`}
+                onClick={() => setExpanded((v) => !v)}
                 style={expanded
                     ? { maxWidth: "100%", maxHeight: "none", cursor: "zoom-out" }
-                    : { maxWidth: isOp ? 250 : 125, maxHeight: isOp ? 250 : 125, cursor: exhausted ? "default" : "zoom-in" }}
+                    : { maxWidth: isOp ? 250 : 125, maxHeight: isOp ? 250 : 125, cursor: "zoom-in" }}
             />
-            <a
-                href={`${net.explorerTxUrl}${sig}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                title={`On-chain inscription, view ${short} on ${net.explorerName}`}
+            <button
+                type="button"
+                title={`On-chain inscription ${short}`}
+                onClick={(e) => { e.stopPropagation(); setShowGuide((v) => !v); }}
                 style={{
                     position: "absolute",
                     left: 4,
@@ -45,15 +43,62 @@ export default function InscriptionAttachment({ sig, isOp }: { sig: string; isOp
                     fontSize: 10,
                     lineHeight: 1.4,
                     fontWeight: "bold",
-                    textDecoration: "none",
                     textTransform: "uppercase",
                     letterSpacing: "0.03em",
                     color: accent,
                     background: "var(--panel)",
                     border: `1px solid ${accent}`,
                     borderRadius: 2,
+                    cursor: "pointer",
                 }}
-            >on-chain</a>
+            >on-chain</button>
+
+            {showGuide && (
+                <span
+                    onClick={(e) => e.stopPropagation()}
+                    style={{
+                        position: "absolute",
+                        left: 4,
+                        bottom: 24,
+                        zIndex: 9999,
+                        width: 230,
+                        padding: "8px 10px",
+                        background: "var(--panel)",
+                        border: `1px solid ${accent}`,
+                        borderRadius: 2,
+                        boxShadow: "1px 1px 3px rgba(0,0,0,0.3)",
+                        fontSize: 11,
+                        lineHeight: 1.5,
+                        color: "var(--fg, #000)",
+                        textAlign: "left",
+                        whiteSpace: "normal",
+                        fontWeight: "normal",
+                        textTransform: "none",
+                        letterSpacing: "normal",
+                    }}
+                >
+                    <div style={{ fontWeight: "bold", marginBottom: 4 }}>On-chain inscription</div>
+                    <div style={{ marginBottom: 6 }}>
+                        This media is stored on {net.theme.chainLabel}. Confirm the transaction on {net.explorerName}, or open the gateway render.
+                    </div>
+                    <a
+                        href={explorerUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ display: "block", marginBottom: 3, color: accent, fontWeight: "bold", textDecoration: "none" }}
+                    >
+                        View on {net.explorerName}
+                    </a>
+                    <a
+                        href={gatewayView}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ display: "block", color: accent, textDecoration: "none" }}
+                    >
+                        Open on gateway
+                    </a>
+                </span>
+            )}
         </span>
     );
 }

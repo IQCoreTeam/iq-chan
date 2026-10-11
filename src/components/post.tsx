@@ -1,14 +1,13 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { formatPostMessage, safePostUrl } from "../lib/format";
+import { formatPostMessage } from "../lib/format";
 import { scrollToPost, highlightPost, showPostPreview, hidePostPreview } from "../lib/highlight";
 import { formatDate, timeAgo } from "../lib/time";
 import { resolveNetwork } from "../lib/chains/resolve";
 import { shareUrl } from "../lib/share";
 import ShareLink from "./share-link";
-import Attachment from "./attachment";
-import InscriptionAttachment from "./inscription-attachment";
+import PostAttachment from "./post-attachment";
 import { parseInscriptionRef, inscriptionSrcCandidates } from "../lib/inscription";
 import { getFallbacks } from "../lib/config";
 import TokenCard from "./token-card";
@@ -70,30 +69,11 @@ export default function Post({
     }, [menuOpen]);
 
     // The img field may hold a bare inscription signature (on-chain media) or a
-    // plain attachment url. Detect the inscription first; otherwise drop any
-    // non-http(s) url instead of linking it, since the field is attacker-
-    // controlled on-chain data that lands in an href below.
+    // plain attachment url; PostAttachment owns the decision and rendering so the
+    // compose preview stays identical. The menu's "Open original file" still needs
+    // the parsed sig to point at the gateway source.
     const inscriptionSig = parseInscriptionRef(img);
-    const safeImg = inscriptionSig ? null : safePostUrl(img);
-
-    let fileName = "";
-    if (safeImg) {
-        try { fileName = decodeURIComponent(new URL(safeImg).pathname.split("/").pop() ?? "image"); }
-        catch { fileName = "image"; }
-    }
-
-    const fileBlock = inscriptionSig ? (
-        <div className="file" id={`f${txSig}`}>
-            <InscriptionAttachment sig={inscriptionSig} isOp={isOp} />
-        </div>
-    ) : safeImg ? (
-        <div className="file" id={`f${txSig}`}>
-            <div className="fileText" id={`fT${txSig}`}>
-                File: <a href={safeImg} target="_blank" rel="noopener noreferrer">{fileName}</a>
-            </div>
-            <Attachment key={safeImg} url={safeImg} name={fileName} isOp={isOp} />
-        </div>
-    ) : null;
+    const fileBlock = <PostAttachment img={img} isOp={isOp} id={`f${txSig}`} />;
 
     const digitsLink = onQuote
         ? <a href="#" title="Reply to this post" onClick={(e) => { e.preventDefault(); onQuote(txSig); }}>{display}</a>

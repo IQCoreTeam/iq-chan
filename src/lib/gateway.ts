@@ -161,6 +161,18 @@ export async function checkGateFor(tablePda: string, wallet: string): Promise<{
     return res.json();
 }
 
+/** Signatures of a wallet's code-in assets, newest first. /user/{addr}/assets
+ *  returns tx-index entries (signature + metadata), not decoded rows; the caller
+ *  slices the feed to decode them. Solana only: the EVM /user/assets index lists
+ *  codeIn uploads, not writeRow, so the EVM adapter filters the feed by `who`. */
+export async function fetchUserAssets(address: string, limit = 50): Promise<string[]> {
+    const res = await gwFetch(`/user/${address}/assets?limit=${limit}`);
+    if (!res.ok) return [];
+    const data = await res.json();
+    const assets = (Array.isArray(data) ? data : (data.assets ?? [])) as Array<{ signature?: string }>;
+    return assets.map((a) => a.signature).filter((s): s is string => !!s);
+}
+
 export async function fetchTableSlice(
     tablePda: string,
     sigs: string[],
