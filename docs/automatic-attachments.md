@@ -18,3 +18,16 @@ existing gateway transport, response reader and InscriptionImage fallback;
 text/ascii and unavailable media still use Zo's image/render candidate path.
 The badge, guide and inventory image thumbnails remain upstream's components.
 Gateway #32 must deploy before enabling the media route.
+
+## Homepage thumbnails
+
+The shared homepage previously sent a bare inscription transaction ID directly
+into img src. On the deployed HoodChan onchain-image-testing thread, the thread
+image loaded but its homepage card fell back to a no-image placeholder.
+ThreadThumbnail now detects the reference through parseInscriptionRef and reuses
+InscriptionImage's gateway/image/render fallback. Natural dimensions still drive
+its existing 150-pixel thumbnail scaling. Both Solana and EVM regressions cover
+resolution, fallback and load sizing without an additional board scan. Chrome
+verified the same live Robinhood inscription on the patched local homepage:
+0x422070350c660a3f79c5562cda187632e298b7a1ede82ee666aa7863a21533b5.
+This was read-only production data; no transaction was submitted.
