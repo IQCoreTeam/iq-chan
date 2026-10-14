@@ -17,12 +17,14 @@ export default function InscriptionImage({
     style,
     className,
     onClick,
+    onLoad,
 }: {
     sig: string;
     alt?: string;
     style?: React.CSSProperties;
     className?: string;
     onClick?: () => void;
+    onLoad?: React.ReactEventHandler<HTMLImageElement>;
 }) {
     const net = resolveNetwork();
     const candidates = inscriptionSrcCandidates(sig, getFallbacks(), net.gatewayNetworkParam);
@@ -36,6 +38,7 @@ export default function InscriptionImage({
             loading="lazy"
             className={className}
             onClick={onClick}
+            onLoad={onLoad}
             onError={() => setIdx((i) => i + 1)}
             style={style}
         />

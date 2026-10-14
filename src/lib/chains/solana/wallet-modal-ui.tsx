@@ -2,32 +2,39 @@
 
 // Solana wallet-selection modal (the win95 panel formerly inline in
 // wallet-button). It's Solana-specific — it lists wallet-adapter `wallets` and
-// calls select()/adapter.connect() — so it lives in the Solana subtree and is
-// rendered by SolanaProviders. On EVM there is no wallet list; connect() just
-// requests accounts from the injected provider, so no equivalent is needed.
+// uses provider-managed selection/connection so React observes wallet events.
+// Rendered by SolanaProviders; EVM has its own provider picker.
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useWalletModal } from "../../wallet-modal";
 
 export default function SolanaWalletModal() {
-    const { wallets, select, connecting } = useWallet();
+    const { wallets, wallet: selectedWallet, select, connect, connected, connecting } = useWallet();
     const { open, closeWalletModal } = useWalletModal();
     const [error, setError] = useState("");
+
+    useEffect(() => {
+        if (connected) closeWalletModal();
+    }, [connected, closeWalletModal]);
+
+    useEffect(() => {
+        const report = (error: Error) => setError(error.message || "Connection failed. Open your wallet and try again.");
+        for (const { adapter } of wallets) adapter.on('error', report);
+        return () => { for (const { adapter } of wallets) adapter.off('error', report); };
+    }, [wallets]);
 
     if (!open) return null;
 
     async function handleSelect(wallet: (typeof wallets)[number]) {
+        if (connecting) return;
         setError("");
-        try {
+        if (selectedWallet?.adapter === wallet.adapter) {
+            try { await connect(); }
+            catch (error) { setError(error instanceof Error ? error.message : "Connection failed"); }
+        } else {
+            // WalletProvider connects after selection and event listeners are ready.
             select(wallet.adapter.name);
-            // Connect directly on the adapter — bypasses the react state race
-            // that causes WalletNotSelectedError when calling the hook's connect()
-            // before useWallet's selected state has propagated.
-            await wallet.adapter.connect();
-            closeWalletModal();
-        } catch (e) {
-            setError(e instanceof Error ? e.message : "Connection failed");
         }
     }
 
@@ -97,6 +104,7 @@ export default function SolanaWalletModal() {
                         Select a wallet to connect:
                     </p>
 
+                    {connecting && <p role="status" style={{color: "#000", marginBottom: 8}}>Open and unlock your wallet, then approve the connection there.</p>}
                     {wallets.length === 0 ? (
                         <div style={{
                             background: "#fff",
@@ -169,8 +177,8 @@ export default function SolanaWalletModal() {
                     )}
 
                     {error && (
-                        <p style={{ color: "#d00", fontSize: "11px", marginTop: 6 }}>
-                            {error}
+                        <p role="alert" style={{ color: "#d00", fontSize: "11px", marginTop: 6 }}>
+                            {error} Open your wallet, then select it again to retry.
                         </p>
                     )}
                 </div>

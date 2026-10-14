@@ -333,3 +333,26 @@ test("signer lookup fails without requesting permission if the account is no lon
         expect(metamask.calls).not.toContain("wallet_switchEthereumChain");
     } finally { await app.close(); }
 });
+
+test('locked explicit connection stays pending, then unlock completes without reload', async () => {
+    const metamask = provider();
+    const request = metamask.request.bind(metamask);
+    let unlock!: () => void;
+    metamask.request = async args => {
+        if (args.method === 'eth_requestAccounts') await new Promise<void>(resolve => { unlock = resolve; });
+        return request(args);
+    };
+    const app = await mount({wallets:[option(metamask)]});
+    try {
+        await act(async () => app.wallet.connect());
+        let pending!: Promise<void>;
+        await act(async () => { pending = app.wallet.selectWallet(option(metamask)); });
+        expect(app.wallet.connecting).toBe(true);
+        expect(document.querySelector('[role=status]')?.textContent).toContain('unlock');
+        expect(Array.from(document.querySelectorAll('button')).find(b=>b.textContent?.includes('io.metamask'))?.disabled).toBe(true);
+        await act(async () => { unlock(); await pending; });
+        expect(app.wallet.connecting).toBe(false);
+        expect(app.wallet.address).toBe(ADDRESS);
+        expect(metamask.calls.filter(m=>m==='eth_requestAccounts')).toHaveLength(1);
+    } finally { await app.close(); }
+});

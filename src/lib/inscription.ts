@@ -1,14 +1,17 @@
+import { bs58 } from "@coral-xyz/anchor/dist/esm/utils/bytes";
+import type { NetworkDescriptor } from "./chains/types";
+
 // Single source of truth for on-chain inscription references. We store only the
 // bare tx signature on chain (never an assembled gateway url), so the gateway
 // host stays a render-time choice: a post survives any gateway move, and a dead
 // gateway just falls through to the next candidate.
 
 // Solana tx signature: base58, roughly 88 chars. EVM tx hash: 0x + 64 hex.
-const SOLANA_SIG = /^[1-9A-HJ-NP-Za-km-z]{80,90}$/;
+const SOLANA_SIG = /^[1-9A-HJ-NP-Za-km-z]{64,88}$/;
 const EVM_HASH = /^0x[a-fA-F0-9]{64}$/;
 
 function isSig(value: string): boolean {
-    return SOLANA_SIG.test(value) || EVM_HASH.test(value);
+    return (SOLANA_SIG.test(value) && bs58.decode(value).length === 64) || EVM_HASH.test(value);
 }
 
 /**
@@ -21,13 +24,13 @@ export function parseInscriptionRef(input?: string): string | null {
     if (!input) return null;
     const value = input.trim();
     if (!value) return null;
-    if (isSig(value)) return value;
+    if (isSig(value)) return EVM_HASH.test(value) ? value.toLowerCase() : value;
     let url: URL;
     try { url = new URL(value); } catch { return null; }
     const post = url.searchParams.get("post");
-    if (post && isSig(post)) return post;
+    if (post && isSig(post)) return EVM_HASH.test(post) ? post.toLowerCase() : post;
     const seg = url.pathname.match(/\/(?:img|render)\/([^/.?]+)/);
-    if (seg && isSig(seg[1])) return seg[1];
+    if (seg && isSig(seg[1])) return EVM_HASH.test(seg[1]) ? seg[1].toLowerCase() : seg[1];
     return null;
 }
 
@@ -52,4 +55,12 @@ export function inscriptionSrcCandidates(sig: string, gateways: string[], networ
 export function inscriptionViewUrl(sig: string, gateway: string, networkParam?: string): string {
     const query = networkParam ? `?network=${networkParam}` : "";
     return `${gateway}/view/${sig}${query}`;
+}
+
+/** The existing uploader owns writing; the posting app stores its returned ID. */
+export function inscriptionSiteUrl(network: NetworkDescriptor): string | null {
+    if (!["solana", "robinhood"].includes(network.id)) return null;
+    const url = new URL(process.env.NEXT_PUBLIC_INSCRIPTION_URL || "https://iqlabs.dev/");
+    url.searchParams.set("menu", network.id === "robinhood" ? "hoodin" : "codein");
+    return url.href;
 }
