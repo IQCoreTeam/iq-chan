@@ -63,6 +63,7 @@ export default function EvmWalletModal() {
                         Select a wallet to connect:
                     </p>
 
+                    {connecting && <p role="status" style={{color: "#000", marginBottom: 8}}>Open and unlock your wallet, then approve the connection there.</p>}
                     {wallets.length === 0 ? (
                         <div style={{ background: "#fff", border: "2px inset #b7d9bf", padding: "12px", textAlign: "center" }}>
                             <p style={{ color: "#000", fontSize: "11px", marginBottom: 6 }}>No wallets detected.</p>
@@ -101,7 +102,7 @@ export default function EvmWalletModal() {
                         </div>
                     )}
 
-                    {error && <p style={{ color: "#d00", fontSize: "11px", marginTop: 6 }}>{error}</p>}
+                    {error && <p role="alert" style={{ color: "#d00", fontSize: "11px", marginTop: 6 }}>{error}</p>}
                 </div>
             </div>
         </div>

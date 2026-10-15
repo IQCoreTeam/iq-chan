@@ -4,7 +4,7 @@ import { useState } from "react";
 import { getFallbacks } from "../lib/config";
 import { resolveNetwork } from "../lib/chains/resolve";
 import { inscriptionViewUrl } from "../lib/inscription";
-import InscriptionImage from "./inscription-image";
+import InscriptionMedia from "./inscription-media";
 
 // A post attachment whose img field held a bare inscription signature, not a
 // url. The gateway render comes from InscriptionImage (assembled at read time,
@@ -23,7 +23,7 @@ export default function InscriptionAttachment({ sig, isOp }: { sig: string; isOp
 
     return (
         <span className={`fileThumb${expanded ? " fileThumbExpanded" : ""}`} style={{ position: "relative", display: "inline-block" }}>
-            <InscriptionImage
+            <InscriptionMedia
                 sig={sig}
                 alt={`on-chain inscription ${short}`}
                 onClick={() => setExpanded((v) => !v)}
