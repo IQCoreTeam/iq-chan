@@ -1,10 +1,10 @@
 import { bs58 } from "@coral-xyz/anchor/dist/esm/utils/bytes";
+import { NETWORKS } from "./chains/networks";
 import type { NetworkDescriptor } from "./chains/types";
 
-// Single source of truth for on-chain inscription references. We store only the
-// bare tx signature on chain (never an assembled gateway url), so the gateway
-// host stays a render-time choice: a post survives any gateway move, and a dead
-// gateway just falls through to the next candidate.
+// On-chain attachment references may be bare IDs or links carrying a chain.
+// Parse the identity rather than fetching the stored URL: gateway hosts remain
+// a render-time choice, so moving a gateway needs no post rewrite.
 
 // Solana tx signature: base58, roughly 88 chars. EVM tx hash: 0x + 64 hex.
 const SOLANA_SIG = /^[1-9A-HJ-NP-Za-km-z]{64,88}$/;
@@ -32,6 +32,16 @@ export function parseInscriptionRef(input?: string): string | null {
     const seg = url.pathname.match(/\/(?:img|render)\/([^/.?]+)/);
     if (seg && isSig(seg[1])) return EVM_HASH.test(seg[1]) ? seg[1].toLowerCase() : seg[1];
     return null;
+}
+
+/** BlockChan's cross-chain attachment target is Robinhood, not arbitrary EVM chains. */
+export function inscriptionNetwork(input: string, fallback: NetworkDescriptor): NetworkDescriptor {
+    const sig = parseInscriptionRef(input);
+    if (!sig) return fallback;
+    if (!sig.startsWith("0x")) return NETWORKS.solana;
+    // EVM hashes contain no chain ID. BlockChan supports Robinhood attachments;
+    // existing EVM builds retain their own network rather than probing chains.
+    return fallback.id === "solana" ? NETWORKS.robinhood : fallback;
 }
 
 /**

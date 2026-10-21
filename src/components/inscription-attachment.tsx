@@ -3,17 +3,18 @@
 import { useState } from "react";
 import { getFallbacks } from "../lib/config";
 import { resolveNetwork } from "../lib/chains/resolve";
-import { inscriptionViewUrl } from "../lib/inscription";
+import { inscriptionViewUrl, parseInscriptionRef, inscriptionNetwork } from "../lib/inscription";
 import InscriptionMedia from "./inscription-media";
 
-// A post attachment whose img field held a bare inscription signature, not a
-// url. The gateway render comes from InscriptionImage (assembled at read time,
+// An inscription attachment; retain an explicit link so its chain survives
+// independently of the board. The gateway render comes from InscriptionImage (assembled at read time,
 // cycles on failure). The thumbnail click expands like a normal attachment; the
 // "on-chain" badge opens a short guide that confirms the media is on chain and
 // offers the explorer and a gateway view. The gateway link stays dynamic (from
 // getFallbacks), so a gateway move needs no post rewrite.
-export default function InscriptionAttachment({ sig, isOp }: { sig: string; isOp?: boolean }) {
-    const net = resolveNetwork();
+export default function InscriptionAttachment({ sig: reference, isOp }: { sig: string; isOp?: boolean }) {
+    const net = inscriptionNetwork(reference, resolveNetwork());
+    const sig = parseInscriptionRef(reference) ?? reference;
     const [expanded, setExpanded] = useState(false);
     const [showGuide, setShowGuide] = useState(false);
     const short = sig.slice(0, 8);
@@ -24,7 +25,7 @@ export default function InscriptionAttachment({ sig, isOp }: { sig: string; isOp
     return (
         <span className={`fileThumb${expanded ? " fileThumbExpanded" : ""}`} style={{ position: "relative", display: "inline-block" }}>
             <InscriptionMedia
-                sig={sig}
+                sig={reference}
                 alt={`on-chain inscription ${short}`}
                 onClick={() => setExpanded((v) => !v)}
                 style={expanded

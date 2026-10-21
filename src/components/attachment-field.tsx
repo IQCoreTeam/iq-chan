@@ -8,10 +8,8 @@ import InventoryModal from "./inventory-modal";
 
 // The attachment input, shared by the post form and the quick reply so the two
 // never drift. One field takes either an off-chain link or an on-chain tx id
-// (a bare signature, a ?post= link, or a gateway url). parseInscriptionRef
-// normalizes an inscription reference down to its bare signature, stored
-// verbatim on chain; a plain link is kept as typed. PostAttachment renders the
-// live preview, auto-detecting url vs inscription.
+// (a bare signature, a ?post= link, or a gateway url). Pasted links retain their
+// explicit chain. PostAttachment validates and renders the live preview.
 export default function AttachmentField({
     img,
     setImg,
@@ -97,7 +95,7 @@ export default function AttachmentField({
                 disabled={disabled}
                 value={img}
                 aria-label="Attachment link or transaction ID"
-                onChange={(e) => { setUpload(null); setStatus(""); const v = e.target.value.trim(); setImg(parseInscriptionRef(v) ?? v); }}
+                onChange={(e) => { setUpload(null); setStatus(""); const v = e.target.value.trim(); setImg(v); }}
                 placeholder="paste a link, or an on-chain tx / ?post= link"
                 style={{ width: "100%", maxWidth: 420, fontSize: 12, padding: "1px 3px", border: "1px solid #aaa", outline: "none" }}
             />

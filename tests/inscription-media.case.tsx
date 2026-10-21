@@ -9,8 +9,9 @@ const signals: (AbortSignal | null | undefined)[] = [];
 mock.module('../src/lib/gateway', () => ({gwFetch: (path: string, init: RequestInit) => {calls.push(path); signals.push(init.signal); return reply();}}));
 mock.module('../src/lib/chains/resolve', () => ({resolveNetwork: () => network}));
 const {default: Attachment} = await import('../src/components/inscription-media');
+const {default: InscriptionAttachment} = await import('../src/components/inscription-attachment');
 
-async function mount(url: string, observerSupport = false, count = 1) {
+async function mount(url: string, observerSupport = false, count = 1, Component = Attachment) {
     calls.length = 0;
     signals.length = 0;
     const dom = new JSDOM('<div id="root"></div>', {url:'http://localhost'});
@@ -32,7 +33,7 @@ async function mount(url: string, observerSupport = false, count = 1) {
     URL.revokeObjectURL = url => {revoked.push(url);};
     const {createRoot} = await import('react-dom/client');
     const root = createRoot(document.getElementById('root')!);
-    await act(async () => root.render(<>{Array.from({length: count}, (_, index) => <Attachment key={index} sig={url} alt="fixture" />)}</>));
+    await act(async () => root.render(<>{Array.from({length: count}, (_, index) => <Component key={index} sig={url} alt="fixture" />)}</>));
     return {revoked, observers, close:async () => {await act(async () => root.unmount()); URL.createObjectURL=originalCreate; URL.revokeObjectURL=originalRevoke; dom.window.close();}};
 }
 
@@ -119,3 +120,60 @@ test('oversized streaming media is cancelled before the whole body downloads', a
         expect(document.querySelector('img')?.getAttribute('src')).toContain('/img/');
     } finally { await view.close(); }
 });
+
+test('Solana post renders its explicit Robinhood GIF without using the board chain', async () => {
+ network=NETWORKS.solana;
+ reply=async()=>new Response(new Uint8Array([71,73,70]),{headers:{'Content-Type':'image/gif'}});
+ const hash='0xf8fcb463421d4142859066bf7a9c3ba3e432c81b0ed86cd5e0e4b0aa27cb5d6b';
+ const view=await mount('https://iqlabs.dev/?menu=hoodin&post='+hash);
+ try {expect(calls).toEqual([`/media/${hash}?network=robinhood`]);expect(document.querySelector('img')?.getAttribute('src')).toBe('blob:synthetic');}
+ finally {await view.close();}
+});
+test('HoodChan renders a Solana attachment using Solana image fallbacks', async () => {
+ network=NETWORKS.robinhood;
+ reply=async()=>new Response('missing',{status:404});
+ const sig='2'.repeat(88);const view=await mount(sig);
+ try {expect(calls).toEqual([`/media/${sig}?network=solana`]);expect(document.querySelector('img')?.getAttribute('src')).not.toContain('network=robinhood');}
+ finally {await view.close();}
+});
+
+ test('BlockChan treats a bare EVM attachment hash as Robinhood without chain probing', async () => {
+ network=NETWORKS.solana;
+ reply=async()=>new Response(new Uint8Array([71,73,70]),{headers:{'Content-Type':'image/gif'}});
+ const hash='0x'+'c'.repeat(64);const view=await mount(hash);
+ try{expect(calls).toEqual([`/media/${hash}?network=robinhood`]);expect(document.querySelector('img')).not.toBeNull();}
+ finally{await view.close();}
+ });
+
+
+for (const mime of ['image/gif', 'text/html']) {
+    test(`inscription ${mime === 'image/gif' ? 'GIF' : 'image fallback'} toggles expansion independently of its badge`, async () => {
+        network = NETWORKS.solana;
+        reply = async () => new Response(new Uint8Array([71, 73, 70]), { headers: { 'Content-Type': mime } });
+        const view = await mount('2'.repeat(88), false, 1, InscriptionAttachment);
+        try {
+            const image = document.querySelector('img')!;
+            const badge = document.querySelector('button')!;
+            expect(image.style.cursor).toBe('zoom-in');
+            expect(document.querySelector('.fileThumbExpanded')).toBeNull();
+            await act(async () => badge.click());
+            expect(document.body.textContent).toContain('On-chain inscription');
+            expect(document.querySelector('.fileThumbExpanded')).toBeNull();
+            await act(async () => image.click());
+            expect(document.querySelector('.fileThumbExpanded')).not.toBeNull();
+            expect(image.style.cursor).toBe('zoom-out');
+            expect(image.style.maxWidth).toBe('100%');
+            expect(image.style.maxHeight).toBe('none');
+            // Expansion removes thumbnail limits; it does not upscale tiny images.
+            expect(image.style.width).toBe('');
+            await act(async () => badge.click());
+            expect(document.body.textContent).not.toContain('On-chain inscription');
+            expect(document.querySelector('.fileThumbExpanded')).not.toBeNull();
+            await act(async () => image.click());
+            expect(document.querySelector('.fileThumbExpanded')).toBeNull();
+            expect(image.style.cursor).toBe('zoom-in');
+            expect(image.style.maxWidth).toBe('125px');
+            expect(calls).toHaveLength(1);
+        } finally { await view.close(); }
+    });
+}

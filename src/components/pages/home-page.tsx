@@ -36,7 +36,7 @@ export function ThreadThumbnail({ thread }: { thread: PopularThread }) {
     };
     return (
         <span className="c-thumbnail" style={{ width: dims.w, height: dims.h }}>
-            {sig ? <InscriptionImage key={sig} sig={sig} alt="" className="c-thumb"
+            {sig ? <InscriptionImage key={thread.img} sig={thread.img!} alt="" className="c-thumb"
                 onLoad={onLoad} style={{maxWidth: THUMB_MAX, maxHeight: THUMB_MAX, opacity: loaded ? 1 : 0}} /> : <img
                 alt=""
                 className="c-thumb"

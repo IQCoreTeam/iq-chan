@@ -24,7 +24,7 @@ export default function PostAttachment({ img, isOp, id }: { img?: string; isOp?:
     return (
         <div className="file" id={id}>
             {inscriptionSig ? (
-                <InscriptionAttachment sig={inscriptionSig} isOp={isOp} />
+                <InscriptionAttachment sig={img!} isOp={isOp} />
             ) : (
                 <>
                     <div className="fileText">
