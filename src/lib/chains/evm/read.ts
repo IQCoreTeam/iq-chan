@@ -18,6 +18,8 @@ import { DB_ROOT_ID, CODEIN_DB_ROOT_ID, CODEIN_FEED_TABLE, resolveBoardSeed, THR
 import type { Post, Reply, ThreadEntry, ThreadResult, BoardGate } from "../../types";
 import type { ChainReadAdapter, NetworkDescriptor } from "../types";
 
+import { inventoryMediaKind } from "../../inventory-media";
+
 const NO_GATE_MINT_EVM = "0x0000000000000000000000000000000000000000";
 const REPLY_PREVIEW_COUNT = 5;
 const enc = encodeURIComponent;
@@ -186,11 +188,10 @@ export function createEvmReadAdapter(net: NetworkDescriptor): ChainReadAdapter {
         // The EVM /user/assets index only lists codeIn uploads, not the writeRow
         // path these posts use, so inventory is the code-in feed filtered by the
         // `who` column, paged a few cursors deep (mirrors iq6900 evm.js readMine).
-        // Images only: this is an image board, and the rows are already fetched so
-        // the kind filter adds no extra request.
-        async listInventory(address: string): Promise<string[]> {
+        // Classify already fetched rows without additional media reads.
+        async listInventory(address: string) {
             const me = address.toLowerCase();
-            const out: string[] = [];
+            const out: { signature: string; kind: "image" | "audio" | "video" }[] = [];
             let cursor: string | undefined;
             for (let i = 0; i < 5; i++) {
                 const params: Record<string, string> = { limit: "50" };
@@ -200,9 +201,9 @@ export function createEvmReadAdapter(net: NetworkDescriptor): ChainReadAdapter {
                 const data = await res.json();
                 for (const raw of (data.rows ?? []) as RawRow[]) {
                     if (String(raw.who ?? "").toLowerCase() !== me) continue;
-                    if (String(raw.kind ?? "") !== "image") continue;
+                    const kind = inventoryMediaKind(raw);
                     const sig = normalizeRow(raw).__txSignature;
-                    if (sig) out.push(sig);
+                    if (kind && sig && !out.some(item => item.signature === sig)) out.push({signature: sig, kind});
                 }
                 cursor = data.nextCursor ?? undefined;
                 if (!cursor || out.length >= 24) break;
