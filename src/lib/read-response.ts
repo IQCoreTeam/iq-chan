@@ -1,3 +1,5 @@
+import { Buffer } from "buffer";
+
 /** Consume a remote body with a hard byte limit, cancelling on rejection. */
 export async function readResponseBytes(response: Response, maxBytes: number): Promise<Buffer> {
     const reader = response.body?.getReader();

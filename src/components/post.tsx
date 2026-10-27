@@ -8,7 +8,7 @@ import { resolveNetwork } from "../lib/chains/resolve";
 import { shareUrl } from "../lib/share";
 import ShareLink from "./share-link";
 import PostAttachment from "./post-attachment";
-import { parseInscriptionRef, inscriptionSrcCandidates } from "../lib/inscription";
+import { parseInscriptionRef, inscriptionSrcCandidates, inscriptionNetwork } from "../lib/inscription";
 import { getFallbacks } from "../lib/config";
 import TokenCard from "./token-card";
 import SolanaTokenCard from "./solana-token-card";
@@ -96,7 +96,7 @@ export default function Post({
                 {img && (
                     <li style={{ padding: "3px 10px", cursor: "pointer" }} onClick={() => {
                         const target = inscriptionSig
-                            ? inscriptionSrcCandidates(inscriptionSig, getFallbacks(), net.gatewayNetworkParam)[0]
+                            ? inscriptionSrcCandidates(inscriptionSig, getFallbacks(), inscriptionNetwork(img!, net).gatewayNetworkParam)[0]
                             : img;
                         window.open(target, "_blank");
                         setMenuOpen(false);

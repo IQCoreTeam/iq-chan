@@ -10,6 +10,8 @@ import { mergeInstructions } from "../../parse";
 import type { Post, ThreadEntry, ThreadResult, BoardGate } from "../../types";
 import type { ChainReadAdapter, NetworkDescriptor } from "../types";
 
+import { inventoryMediaKind } from "../../inventory-media";
+
 const NO_GATE_MINT = "11111111111111111111111111111111";
 
 /** OP + replies from a merged row set, derived identically to the old
@@ -86,16 +88,16 @@ export function createSolanaReadAdapter(net: NetworkDescriptor): ChainReadAdapte
             };
         },
 
-        // /user/assets lists every tx that touched the wallet's inventory PDA, so
-        // slice the code-in feed to decode and keep only image rows; this is an
-        // image board, and the slice is already fetched so the kind filter adds no
-        // extra request. The assets endpoint's newest-first order is preserved.
-        async listInventory(address: string): Promise<string[]> {
+        // Reuse the existing assets/slice reads; classify rows without hydrating files.
+        async listInventory(address: string) {
             const sigs = (await fetchUserAssets(address)).slice(0, 50);
             if (sigs.length === 0) return [];
             const rows = await fetchTableSlice(CODEIN_FEED_PDA, sigs);
-            const feedSigs = new Set(rows.filter((r) => r.kind === "image").map((r) => r.__txSignature));
-            return sigs.filter((s) => feedSigs.has(s));
+            const kinds = new Map(rows.map(row => [row.__txSignature, inventoryMediaKind(row)]));
+            return sigs.flatMap(signature => {
+                const kind = kinds.get(signature);
+                return kind ? [{ signature, kind }] : [];
+            });
         },
     };
 }

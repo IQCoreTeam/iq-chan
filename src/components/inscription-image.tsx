@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { getFallbacks } from "../lib/config";
 import { resolveNetwork } from "../lib/chains/resolve";
-import { inscriptionSrcCandidates } from "../lib/inscription";
+import { inscriptionSrcCandidates, parseInscriptionRef, inscriptionNetwork } from "../lib/inscription";
 
 // One source for an inscription rendered through the gateway: the <img> walks to
 // the next gateway/candidate on error (a dead gateway, or a text/ascii row that
@@ -12,19 +12,22 @@ import { inscriptionSrcCandidates } from "../lib/inscription";
 // gateway move needs no post rewrite. Used by the post attachment and the
 // inventory picker grid.
 export default function InscriptionImage({
-    sig,
+    sig: reference,
     alt,
     style,
     className,
     onClick,
+    onLoad,
 }: {
     sig: string;
     alt?: string;
     style?: React.CSSProperties;
     className?: string;
     onClick?: () => void;
+    onLoad?: React.ReactEventHandler<HTMLImageElement>;
 }) {
-    const net = resolveNetwork();
+    const net = inscriptionNetwork(reference, resolveNetwork());
+    const sig = parseInscriptionRef(reference) ?? reference;
     const candidates = inscriptionSrcCandidates(sig, getFallbacks(), net.gatewayNetworkParam);
     const [idx, setIdx] = useState(0);
     const exhausted = idx >= candidates.length;
@@ -36,6 +39,7 @@ export default function InscriptionImage({
             loading="lazy"
             className={className}
             onClick={onClick}
+            onLoad={onLoad}
             onError={() => setIdx((i) => i + 1)}
             style={style}
         />

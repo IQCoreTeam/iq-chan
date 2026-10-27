@@ -1,5 +1,5 @@
 export const RPC_ENDPOINT =
-    process.env.NEXT_PUBLIC_RPC_ENDPOINT ?? "https://api.mainnet-beta.solana.com";
+    process.env.NEXT_PUBLIC_RPC_ENDPOINT ?? "https://solana-rpc.publicnode.com";
 
 const PRIMARY_GATEWAY = process.env.NEXT_PUBLIC_GATEWAY_URL ?? "https://gateway.iqlabs.dev";
 const BACKUP_GATEWAY = "https://gateway.iqlabs.dev";

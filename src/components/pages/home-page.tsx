@@ -9,6 +9,8 @@ import { useBoards } from "../../hooks/use-boards";
 import { getFeedPda, isMoreLikelyOp } from "../../lib/board";
 import { fetchAllTableRows } from "../../lib/gateway";
 import type { BoardMeta, Post } from "../../lib/types";
+import { parseInscriptionRef } from "../../lib/inscription";
+import InscriptionImage from "../inscription-image";
 import "../../app/home.css";
 
 interface PopularThread {
@@ -22,14 +24,20 @@ interface PopularThread {
     fallbackImg: string;
 }
 
-function ThreadThumbnail({ thread }: { thread: PopularThread }) {
+export function ThreadThumbnail({ thread }: { thread: PopularThread }) {
     const [failed, setFailed] = useState(false);
     const [loaded, setLoaded] = useState(false);
     const [dims, setDims] = useState({ w: THUMB_MAX, h: THUMB_MAX });
     const src = failed ? thread.fallbackImg : thread.img;
+    const sig = parseInscriptionRef(thread.img);
+    const onLoad: React.ReactEventHandler<HTMLImageElement> = event => {
+        setDims(thumbDims(event.currentTarget.naturalWidth, event.currentTarget.naturalHeight));
+        setLoaded(true);
+    };
     return (
         <span className="c-thumbnail" style={{ width: dims.w, height: dims.h }}>
-            <img
+            {sig ? <InscriptionImage key={thread.img} sig={thread.img!} alt="" className="c-thumb"
+                onLoad={onLoad} style={{maxWidth: THUMB_MAX, maxHeight: THUMB_MAX, opacity: loaded ? 1 : 0}} /> : <img
                 alt=""
                 className="c-thumb"
                 src={src}
@@ -37,16 +45,13 @@ function ThreadThumbnail({ thread }: { thread: PopularThread }) {
                 height={dims.h}
                 decoding="async"
                 style={{ opacity: loaded ? 1 : 0 }}
-                onLoad={(event) => {
-                    setDims(thumbDims(event.currentTarget.naturalWidth, event.currentTarget.naturalHeight));
-                    setLoaded(true);
-                }}
+                onLoad={onLoad}
                 onError={() => {
                     // A missing fallback must not cause an endless error/reload loop.
                     if (src === thread.fallbackImg) setLoaded(true);
                     else { setFailed(true); setLoaded(false); }
                 }}
-            />
+            />}
             {!loaded && <span className="c-image-status">Loading image…</span>}
         </span>
     );

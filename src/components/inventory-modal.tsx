@@ -3,14 +3,13 @@
 import { useEffect, useState } from "react";
 import { useChainWallet } from "../lib/chains/context";
 import { resolveNetwork } from "../lib/chains/resolve";
-import { getChain } from "../lib/chains";
+import { getChain, type ChainReadAdapter } from "../lib/chains";
 import InscriptionImage from "./inscription-image";
 
 // Picker over the connected wallet's code-in inscriptions (the same list
 // iqlabs.dev "my inventory" shows). Clicking a thumbnail hands its bare tx
-// signature back; the form stores that verbatim and the read path assembles the
-// gateway view. Thumbnails reuse InscriptionImage, so a dead gateway cycles the
-// same way the posted attachment will.
+// signature back. Audio/video tiles use the existing row kind without fetching
+// payloads; the compose preview loads the selected media with the shared renderer.
 export default function InventoryModal({
     onPick,
     onClose,
@@ -20,17 +19,19 @@ export default function InventoryModal({
 }) {
     const { address } = useChainWallet();
     const net = resolveNetwork();
-    const [sigs, setSigs] = useState<string[] | null>(null);
+    const [items, setItems] = useState<Awaited<ReturnType<ChainReadAdapter["listInventory"]>> | null>(null);
     const [error, setError] = useState("");
 
     useEffect(() => {
+        setItems(null);
+        setError("");
         if (!address) return;
         let live = true;
         (async () => {
             try {
                 const chain = await getChain();
                 const list = await chain.listInventory(address);
-                if (live) setSigs(list);
+                if (live) setItems(list);
             } catch (e) {
                 if (live) setError(e instanceof Error ? e.message : "Failed to load inscriptions");
             }
@@ -78,11 +79,11 @@ export default function InventoryModal({
                 </div>
 
                 <div style={{ padding: "10px 12px" }}>
-                    {error ? (
+                    {!address ? <p>Connect your wallet to browse inscriptions.</p> : error ? (
                         <p style={{ color: "#d00", fontSize: 11, margin: 0 }}>{error}</p>
-                    ) : sigs === null ? (
+                    ) : items === null ? (
                         <p style={{ color: "#000", fontSize: 11, margin: 0 }}>Loading your inscriptions...</p>
-                    ) : sigs.length === 0 ? (
+                    ) : items.length === 0 ? (
                         <p style={{ color: "#000", fontSize: 11, margin: 0 }}>
                             No code-in inscriptions found for this wallet. Inscribe one at iqlabs.dev first.
                         </p>
@@ -92,14 +93,21 @@ export default function InventoryModal({
                             maxHeight: "60vh", overflowY: "auto",
                             background: "#fff", border: "2px inset var(--edge)", padding: 6,
                         }}>
-                            {sigs.map((sig) => (
-                                <InscriptionImage
-                                    key={sig}
-                                    sig={sig}
-                                    alt={`inscription ${sig.slice(0, 8)}`}
-                                    onClick={() => { onPick(sig); onClose(); }}
-                                    style={{ width: "100%", aspectRatio: "1 / 1", objectFit: "cover", cursor: "pointer", border: "1px solid var(--edge)" }}
-                                />
+                            {items.map(({ signature, kind }) => (
+                                <button
+                                    key={signature}
+                                    type="button"
+                                    aria-label={`Select ${kind} inscription ${signature.slice(0, 8)}`}
+                                    onClick={() => { onPick(signature); onClose(); }}
+                                    style={{ minWidth: 0, padding: 3, cursor: "pointer", border: "1px solid var(--edge)", background: "var(--panel)", color: "var(--fg, #000)", font: "inherit" }}
+                                >
+                                    {kind === "image" ? <InscriptionImage sig={signature} alt="" style={{ width: "100%", aspectRatio: "1 / 1", objectFit: "cover" }} /> : (
+                                        <span style={{ display: "grid", placeItems: "center", aspectRatio: "1 / 1", fontWeight: "bold", border: "1px inset var(--edge)" }}>
+                                            {kind === "audio" ? "Audio" : "Video"}
+                                        </span>
+                                    )}
+                                    <span style={{ display: "block", marginTop: 3, fontSize: 11 }}>{kind} · {signature.slice(0, 6)}…</span>
+                                </button>
                             ))}
                         </div>
                     )}
@@ -112,7 +120,7 @@ export default function InventoryModal({
                             rel="noopener noreferrer"
                             style={{ fontSize: 11, color: net.theme.accent, fontWeight: "bold", textDecoration: "none" }}
                         >
-                            Want to make an on-chain image? Inscribe one on {net.theme.chainLabel}
+                            Want to make an on-chain attachment? Inscribe one on {net.theme.chainLabel}
                         </a>
                     </div>
                 )}
