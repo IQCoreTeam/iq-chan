@@ -6,6 +6,7 @@
 
 import { useState } from "react";
 import { useEvmWallet, type WalletOption } from "./wallet";
+import { WalletOptions } from "../../wallet-options";
 
 export default function EvmWalletModal() {
     const { modalOpen, closeModal, wallets, selectWallet, connecting } = useEvmWallet();
@@ -25,21 +26,27 @@ export default function EvmWalletModal() {
     return (
         <div
             style={{
-                position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh",
+                position: "fixed", top: 0, left: 0, width: "100vw", height: "100dvh",
                 background: "rgba(0,0,0,0.25)", zIndex: 9999,
                 display: "flex", alignItems: "center", justifyContent: "center",
+                padding: 12, boxSizing: "border-box",
             }}
             onClick={() => closeModal()}
         >
             <div
+                role="dialog"
+                aria-modal="true"
+                aria-label="Connect wallet"
                 onClick={(e) => e.stopPropagation()}
                 style={{
                     background: "#d6f0da", border: "2px outset #eefff2",
                     fontFamily: "arial, helvetica, sans-serif", fontSize: "13px",
-                    minWidth: 260, boxShadow: "2px 2px 0 rgba(0,0,0,0.3)",
+                    width: 360, minWidth: 0, maxWidth: "100%", maxHeight: "100%",
+                    display: "flex", flexDirection: "column", boxSizing: "border-box", boxShadow: "2px 2px 0 rgba(0,0,0,0.3)",
                 }}
             >
                 <div style={{
+                    flexShrink: 0,
                     background: "linear-gradient(90deg, #0b7a2f, #57b979)", padding: "3px 4px",
                     display: "flex", justifyContent: "space-between", alignItems: "center",
                 }}>
@@ -47,6 +54,8 @@ export default function EvmWalletModal() {
                         Connect Wallet
                     </span>
                     <button
+                        type="button"
+                        aria-label="Close wallet selector"
                         onClick={() => closeModal()}
                         style={{
                             background: "#d6f0da", border: "2px outset #eefff2", width: 18, height: 18,
@@ -58,7 +67,7 @@ export default function EvmWalletModal() {
                     </button>
                 </div>
 
-                <div style={{ padding: "10px 12px" }}>
+                <div style={{ padding: "10px 12px", minHeight: 0, overflowY: "auto" }}>
                     <p style={{ color: "#000", fontSize: "11px", marginBottom: 8 }}>
                         Select a wallet to connect:
                     </p>
@@ -73,6 +82,7 @@ export default function EvmWalletModal() {
                         </div>
                     ) : (
                         <div style={{ background: "#fff", border: "2px inset #b7d9bf", padding: 2 }}>
+                            <WalletOptions disabled={connecting}>
                             {wallets.map((w) => (
                                 <button
                                     key={w.id}
@@ -99,6 +109,7 @@ export default function EvmWalletModal() {
                                     </span>
                                 </button>
                             ))}
+                            </WalletOptions>
                         </div>
                     )}
 

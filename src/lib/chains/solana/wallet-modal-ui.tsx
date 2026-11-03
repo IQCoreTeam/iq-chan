@@ -8,6 +8,7 @@
 import { useState, useEffect } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useWalletModal } from "../../wallet-modal";
+import { WalletOptions } from "../../wallet-options";
 
 export default function SolanaWalletModal() {
     const { wallets, wallet: selectedWallet, select, connect, connected, connecting } = useWallet();
@@ -45,30 +46,37 @@ export default function SolanaWalletModal() {
                 top: 0,
                 left: 0,
                 width: "100vw",
-                height: "100vh",
+                height: "100dvh",
                 background: "rgba(0,0,0,0.25)",
                 zIndex: 9999,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
+                padding: 12,
+                boxSizing: "border-box",
             }}
             onClick={() => closeWalletModal()}
         >
             {/* Win95-style raised panel */}
             <div
+                role="dialog"
+                aria-modal="true"
+                aria-label="Connect wallet"
                 onClick={(e) => e.stopPropagation()}
                 style={{
                     background: "var(--panel)",
                     border: "2px outset var(--page-bg)",
                     fontFamily: "arial, helvetica, sans-serif",
                     fontSize: "13px",
-                    minWidth: 260,
+                    width: 360, minWidth: 0, maxWidth: "100%", maxHeight: "100%",
+                    display: "flex", flexDirection: "column", boxSizing: "border-box",
                     boxShadow: "2px 2px 0 rgba(0,0,0,0.3)",
                 }}
             >
                 {/* Title bar */}
                 <div
                     style={{
+                        flexShrink: 0,
                         background: "linear-gradient(90deg, #3a6ea5, var(--accent))",
                         padding: "3px 4px",
                         display: "flex",
@@ -80,6 +88,8 @@ export default function SolanaWalletModal() {
                         Connect Wallet
                     </span>
                     <button
+                        type="button"
+                        aria-label="Close wallet selector"
                         onClick={() => closeWalletModal()}
                         style={{
                             background: "var(--panel)",
@@ -99,7 +109,7 @@ export default function SolanaWalletModal() {
                 </div>
 
                 {/* Content */}
-                <div style={{ padding: "10px 12px" }}>
+                <div style={{ padding: "10px 12px", minHeight: 0, overflowY: "auto" }}>
                     <p style={{ color: "#000", fontSize: "11px", marginBottom: 8 }}>
                         Select a wallet to connect:
                     </p>
@@ -130,6 +140,7 @@ export default function SolanaWalletModal() {
                             border: "2px inset var(--edge)",
                             padding: 2,
                         }}>
+                            <WalletOptions disabled={connecting}>
                             {wallets.map((wallet) => (
                                 <button
                                     key={wallet.adapter.name}
@@ -173,6 +184,7 @@ export default function SolanaWalletModal() {
                                     {wallet.adapter.name}
                                 </button>
                             ))}
+                            </WalletOptions>
                         </div>
                     )}
 
