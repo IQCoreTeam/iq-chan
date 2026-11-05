@@ -15,7 +15,7 @@
     "@solana/wallet-adapter-base": "^0.9.23",
     "@solana/wallet-adapter-react": "^0.15.35",
     "@solana/web3.js": "^1.99.0",
-    "@walletconnect/ethereum-provider": "~2.17.0",
+    "@walletconnect/ethereum-provider": "~2.25.0",
     "ethers": "^6.16.0",
     "iqlabs-sdk": "npm:@iqlabs-official/solana-sdk@^0.3.0",
     "next": "^15.3.0",
@@ -23,6 +23,11 @@
     "react-dom": "^19.1.0",
     "sharp": "^0.35.4",
     "buffer": "^6.0.3"
+  },
+  "overrides": {
+    "next": {
+      "postcss": "8.5.28"
+    }
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
