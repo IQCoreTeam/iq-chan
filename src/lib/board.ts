@@ -1,7 +1,8 @@
 import { PublicKey } from "@solana/web3.js";
 import iqlabs from "iqlabs-sdk";
-import { FEED_SEED_PREFIX, THREADS_PER_PAGE, BOARD_METADATA } from "./constants";
-import { fetchAllTableRows, fetchDbRoot } from "./gateway";
+import { FEED_SEED_PREFIX, THREADS_PER_PAGE, BOARD_METADATA, deriveInstructionTablePda } from "./constants";
+import { fetchAllTableRows, fetchDbRoot, type Row } from "./gateway";
+import { isPostRow, mergeInstructions } from "./parse";
 import type { Post, Reply, BoardMeta, ThreadEntry } from "./types";
 
 export type { ThreadEntry };
@@ -50,8 +51,8 @@ export async function fetchFeedThreadsQuick(
     const feedRows = await fetchAllTableRows(feedPda.toBase58(), THREADS_PER_PAGE * 3);
 
     for (const row of feedRows) {
-        const post = row as Post;
-        if (!post.threadPda) continue;
+        const post = row;
+        if (!isPostRow(post) || !post.threadPda) continue;
 
         const time = post.time ?? 0;
         const existing = threads.get(post.threadPda);
@@ -81,21 +82,33 @@ export async function fetchFeedThreadsQuick(
 export async function fetchThreadPreviews(entry: ThreadEntry): Promise<ThreadEntry> {
     const rows = await fetchAllTableRows(entry.threadPda, 50);
 
-    const opFromRows = rows
-        .filter((r) => !!r.threadSeed)
-        .reduce<Post | undefined>(
-            (best, r) => isMoreLikelyOp(best, r as Post) ? r as Post : best,
-            undefined,
-        );
-    if (opFromRows && !entry.opData) entry.opData = opFromRows;
+    let posts: Post[] = rows.filter(isPostRow);
+    const op = entry.opData ?? posts
+        .filter((row) => !!row.threadSeed)
+        .reduce<Post | null>((best, row) => isMoreLikelyOp(best ?? undefined, row) ? row : best, null);
+    if (op && !posts.some((row) => row.__txSignature === op.__txSignature)) {
+        posts = [op, ...posts];
+    }
 
-    const opSig = entry.opData?.__txSignature ?? opFromRows?.__txSignature;
-    const replies = rows
-        .filter((r) => r.__txSignature !== opSig)
-        .sort((a, b) => (a.time as number) - (b.time as number));
+    // The signature scan can surface edits alongside posts. Read the actual
+    // instruction table only when a scan row targets a post in this preview.
+    const signatures = new Set(posts.map((post) => post.__txSignature));
+    const hasInstruction = rows.some((row) =>
+        !isPostRow(row) && typeof row.target === "string" && signatures.has(row.target),
+    );
+    if (op?.threadSeed && hasInstruction) {
+        const instructionTable = deriveInstructionTablePda(op.threadSeed);
+        const instructions = await fetchAllTableRows(instructionTable).catch(() => []);
+        posts = mergeInstructions(posts as Row[], instructions) as Post[];
+    }
+
+    const replies = posts
+        .filter((row) => row.__txSignature !== op?.__txSignature)
+        .sort((a, b) => a.time - b.time);
 
     return {
         ...entry,
+        opData: posts.find((row) => row.__txSignature === op?.__txSignature) ?? null,
         replyCount: replies.length,
         lastReplies: replies.slice(-REPLY_PREVIEW_COUNT) as Reply[],
     };

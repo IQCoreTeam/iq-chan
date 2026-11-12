@@ -6,7 +6,7 @@
 import { DB_ROOT_KEY, CODEIN_FEED_PDA, resolveBoardSeed, deriveTablePda, deriveInstructionTablePda } from "../../constants";
 import { getFeedPda, fetchFeedThreadsQuick, fetchThreadPreviews, isMoreLikelyOp } from "../../board";
 import { fetchThread, fetchAllTableRows, fetchTableMeta, fetchUserAssets, fetchTableSlice, type Row } from "../../gateway";
-import { mergeInstructions } from "../../parse";
+import { isPostRow, mergeInstructions } from "../../parse";
 import type { Post, ThreadEntry, ThreadResult, BoardGate } from "../../types";
 import type { ChainReadAdapter, NetworkDescriptor } from "../types";
 
@@ -53,7 +53,7 @@ export function createSolanaReadAdapter(net: NetworkDescriptor): ChainReadAdapte
                     ? [thread.op, ...(thread.replies as Post[])]
                     : (thread.replies as Post[]);
             } else {
-                const tableRows = await fetchAllTableRows(threadRef);
+                const tableRows = (await fetchAllTableRows(threadRef)).filter(isPostRow);
                 op = tableRows
                     .filter((r) => !!r.threadSeed)
                     .reduce<Post | undefined>((best, r) => (isMoreLikelyOp(best, r) ? r : best), undefined)
