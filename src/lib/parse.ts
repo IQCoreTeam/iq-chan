@@ -1,5 +1,9 @@
 import type { Row } from "./gateway";
 
+export function isPostRow(row: Row): boolean {
+    return typeof row.time === "number" && Number.isFinite(row.time);
+}
+
 // Apply edit/delete instruction logs to posts.
 // Edits overwrite fields, deletes remove the post.
 export function mergeInstructions(posts: Row[], instructions: Row[]): Row[] {
